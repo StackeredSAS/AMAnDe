@@ -3,7 +3,8 @@
 import xml.etree.ElementTree as ET
 from tabulate import tabulate
 import termcolor
-from Logger import *
+import logging
+from CustomFormatter import *
 
 #TODO : add color to print result in green, orange or red (from criticity).
 #TODO : add install script (gradle, codeql etc.)
