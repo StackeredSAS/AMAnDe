@@ -15,6 +15,20 @@ from Logger import *
 
 FILE_NAME = "AndroidManifest.xml"
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Define format for logs
+#fmt = '%(levelname)s | %(message)s'
+
+# Create stdout handler for logging to the console (logs all five levels)
+stdout_handler = logging.StreamHandler()
+stdout_handler.setLevel(logging.INFO)
+stdout_handler.setFormatter(CustomFormatter())
+
+# Add both handlers to the logger
+logger.addHandler(stdout_handler)
+
 
 class ManifestParser:
 
@@ -59,6 +73,10 @@ class ManifestParser:
 				table.append(app_permissions)
 
 		print(tabulate(table, headers, tablefmt="github"))
+		# TEST LOG
+		logger.info("This is an info")
+		logger.warning("This is a warning to pay attention")
+		logger.error("This is an error")
 
 
 
