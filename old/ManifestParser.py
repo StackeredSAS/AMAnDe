@@ -35,8 +35,8 @@ class ManifestParser:
 
 	def __init__(self):
 		self.FILE_NAME = FILE_NAME
-		self.namespaces = {'android': 'http://schemas.android.com/apk/res/android',
-						   'tools': 'http://schemas.android.com/tools'}
+		self.namespaces = dict([node for _, node in ET.iterparse(self.FILE_NAME, events=['start-ns'])])
+
 		self.root = ET.parse(FILE_NAME).getroot()
 
 

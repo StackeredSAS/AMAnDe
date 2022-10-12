@@ -2,7 +2,6 @@
 
 from termcolor import *
 import logging
-import datetime
 
 
 class CustomFormatter(logging.Formatter):
@@ -23,7 +22,7 @@ class CustomFormatter(logging.Formatter):
 
         #datetime.date.today().strftime("%m/%d %H:%M:%S")
         if record.levelno == logging.INFO:
-                record.msg = colored('[+] %s' % (record.msg),"blue")
+                pass
         elif record.levelno == logging.WARNING:
                 record.msg = colored('[-] %s' % (record.msg), "yellow")
         elif record.levelno == logging.ERROR:
