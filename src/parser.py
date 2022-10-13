@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+from .utils import str2Bool
 
 class Parser():
 
@@ -23,4 +24,4 @@ class Parser():
 
 
     def getBackupAttr(self):
-        return [self._getattr(backup, "android:allowBackup") for backup in self.root.findall("application")]
+        return str2Bool(self._getattr(self.root.find("application"), "android:allowBackup"))
