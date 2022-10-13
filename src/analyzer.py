@@ -30,7 +30,7 @@ class Analyzer():
         self.logger.info("on analyse les perms bla bla")
         header = ["builtin Permissions"]
         table = []
-        for perm in self.parser.builtinsPermission():
+        for perm in self.parser.builtinsPermissions():
             if perm == 'android.permission.ACCESS_NETWORK_STATE':
                 perm = colored(perm, "red")
             if perm == 'android.permission.GET_ACCOUNTS':
@@ -57,3 +57,11 @@ class Analyzer():
     def runAllTests(self):
         self.analyseBuiltinsPerms()
         self.isBackupAllowed()
+
+        # showcase parser unused features
+        print("-"*20)
+        print(f"{self.parser.debuggable()=}")
+        print(f"{self.parser.usesCleartextTraffic()=}")
+        for e in self.parser.customPermissions():
+            print(f"{e.name} | {e.permissionGroup} | {e.protectionLevel}")
+        print(self.parser.exportedServices())

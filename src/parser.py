@@ -15,7 +15,7 @@ class Parser():
         return elm.attrib.get(attr)
 
 
-    def builtinsPermission(self):
+    def builtinsPermissions(self):
         """
         récupère les builtins permissions
         :return:
@@ -25,3 +25,31 @@ class Parser():
 
     def getBackupAttr(self):
         return str2Bool(self._getattr(self.root.find("application"), "android:allowBackup"))
+
+    def debuggable(self):
+        return str2Bool(self._getattr(self.root.find("application"), "android:debuggable"))
+
+    def usesCleartextTraffic(self):
+        return str2Bool(self._getattr(self.root.find("application"), "android:usesCleartextTraffic"))
+
+    def customPermissions(self):
+        """
+        J'ai pas encore décidé si cette fonction doit juste renvoyer le nom des customPerms
+        et faire une fonction différente appellant celle-ci pour récupérer des attributs particuliers.
+        Comme-ça ca me semble bien.
+        J'y réfléchirai sérieusement quand on fera le parsing des activité, là c'est plus complexe.
+        """
+        from collections import namedtuple
+        # use a namedtuple for more readable access to important attributes
+        CustomPerm = namedtuple("CustomPerm", "name permissionGroup protectionLevel")
+        res = []
+        for perm in self.root.findall('permission'):
+            name = self._getattr(perm, "android:name")
+            # not sure if permission group is important or not
+            permissionGroup = self._getattr(perm, "android:permissionGroup")
+            protectionLevel = self._getattr(perm, "android:protectionLevel")
+            res.append(CustomPerm(name, permissionGroup, protectionLevel))
+        return res
+
+    def exportedServices(self):
+        return [self._getattr(perm, "android:name") for perm in self.root.findall('application/service[@android:exported="true"]', namespaces=self.namespaces)]
