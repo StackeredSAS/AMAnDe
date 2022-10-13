@@ -26,7 +26,7 @@ class Analyzer():
         else:
             raise NotImplementedError("Unknown logging level")
 
-    def analyse_builtins_perms(self):
+    def analyseBuiltinsPerms(self):
         self.logger.info("on analyse les perms bla bla")
         header = ["builtin Permissions"]
         table = []
@@ -41,6 +41,19 @@ class Analyzer():
         self.logger.error(f"Found vulnerable perms : android.permission.ACCESS_NETWORK_STATE")
 
 
+    def isBackupAllowed(self):
+        self.logger.info("Analyzing backup functionnality")
+        backup_attr = self.parser.getBackupAttr()
+
+        if backup_attr == None:
+            self.logger.info("APK allowBackup property not found! From Android 6, the default value is true.")
+        elif backup_attr:
+            self.logger.info("APK can be backuped.")
+        else:
+            self.logger.info("APK can not be backuped")
+        
+        
 
     def runAllTests(self):
-        self.analyse_builtins_perms()
+        self.analyseBuiltinsPerms()
+        self.isBackupAllowed()

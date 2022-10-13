@@ -31,3 +31,12 @@ class CustomFormatter(logging.Formatter):
             print("[!] Logging level not recognized")
 
         return super(CustomFormatter , self).format(record)
+
+
+def str2Bool(s):
+    if s == "true":
+        return True
+    elif s == "false":
+        return False
+    else:
+        return None

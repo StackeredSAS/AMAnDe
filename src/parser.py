@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+from .utils import str2Bool
 
 class Parser():
 
@@ -13,9 +14,14 @@ class Parser():
             attr = f"{{{self.namespaces[prefix]}}}{uri}"
         return elm.attrib.get(attr)
 
+
     def builtinsPermission(self):
         """
         récupère les builtins permissions
         :return:
         """
         return [self._getattr(perm, "android:name") for perm in self.root.findall('uses-permission')]
+
+
+    def getBackupAttr(self):
+        return str2Bool(self._getattr(self.root.find("application"), "android:allowBackup"))
