@@ -23,7 +23,7 @@ class Parser():
         return [self._getattr(perm, "android:name") for perm in self.root.findall('uses-permission')]
 
 
-    def getBackupAttr(self):
+    def allowBackup(self):
         return str2Bool(self._getattr(self.root.find("application"), "android:allowBackup"))
 
     def debuggable(self):
@@ -52,4 +52,4 @@ class Parser():
         return res
 
     def exportedServices(self):
-        return [self._getattr(perm, "android:name") for perm in self.root.findall('application/service[@android:exported="true"]', namespaces=self.namespaces)]
+        return [self._getattr(e, "android:name") for e in self.root.findall('application/service[@android:exported="true"]', namespaces=self.namespaces)]

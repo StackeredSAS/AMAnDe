@@ -43,7 +43,7 @@ class Analyzer():
 
     def isBackupAllowed(self):
         self.logger.info("Analyzing backup functionnality")
-        backup_attr = self.parser.getBackupAttr()
+        backup_attr = self.parser.allowBackup()
 
         if backup_attr == None:
             self.logger.info("APK allowBackup property not found! From Android 6, the default value is true.")
