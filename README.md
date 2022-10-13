@@ -11,7 +11,8 @@ python3 -m pip install -r requirements.txt
 ## Usage
 
 ```
-./ManifestAnalyzer.py
+./main.py -h
+./main.py examples/AndroidManifest.xml
 ```
 
 ## todo

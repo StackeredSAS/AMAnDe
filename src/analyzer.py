@@ -16,6 +16,16 @@ class Analyzer():
         # Add handlers to the logger
         self.logger.addHandler(stdout_handler)
 
+    def setLogLevel(self, level):
+        if level == "INFO":
+            self.logger.setLevel(logging.INFO)
+        elif level == "WARNING":
+            self.logger.setLevel(logging.WARNING)
+        elif level == "ERROR":
+            self.logger.setLevel(logging.ERROR)
+        else:
+            raise NotImplementedError("Unknown logging level")
+
     def analyse_builtins_perms(self):
         self.logger.info("on analyse les perms bla bla")
         header = ["builtin Permissions"]
