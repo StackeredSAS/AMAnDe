@@ -41,6 +41,16 @@ class Analyzer():
         self.logger.error(f"Found vulnerable perms : android.permission.ACCESS_NETWORK_STATE")
 
 
+    def isBackupAllowed(self):
+        self.logger.info("Analyzing backup functionnality")
+        if self.parser.getBackupAttr()[0] == None:
+            self.logger.info("allowBackup property not found! From Android 6, the default value is true.")
+        elif(self.parser.getBackupAttr()[0] == "true"):
+            self.logger.info("APK can be backuped.")
+        else:
+            self.logger.info("APK can not be backuped")
+        
 
     def runAllTests(self):
         self.analyse_builtins_perms()
+        self.isBackupAllowed()

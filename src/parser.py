@@ -13,9 +13,14 @@ class Parser():
             attr = f"{{{self.namespaces[prefix]}}}{uri}"
         return elm.attrib.get(attr)
 
+
     def builtinsPermission(self):
         """
         récupère les builtins permissions
         :return:
         """
         return [self._getattr(perm, "android:name") for perm in self.root.findall('uses-permission')]
+
+
+    def getBackupAttr(self):
+        return [self._getattr(backup, "android:allowBackup") for backup in self.root.findall("application")]
