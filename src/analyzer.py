@@ -2,6 +2,7 @@ from termcolor import colored
 from tabulate import tabulate
 from .utils import CustomFormatter
 import logging
+from .constants import *
 
 class Analyzer():
 
@@ -30,11 +31,19 @@ class Analyzer():
         self.logger.info("on analyse les perms bla bla")
         header = ["builtin Permissions"]
         table = []
+        '''
         for perm in self.parser.builtinsPermissions():
-            if perm == 'android.permission.ACCESS_NETWORK_STATE':
-                perm = colored(perm, "red")
-            if perm == 'android.permission.GET_ACCOUNTS':
-                perm = colored(perm, "yellow")
+            #one solution
+            for e in dangerous_perms:
+                if e in perm:
+                    perm = colored(perm, "red")
+        '''
+        for perm in self.parser.builtinsPermissions():
+            #another solution
+            for e in dangerous_perms2:
+                if perm == e:
+                    perm = colored(perm, "red")
+
             table.append([perm])
         self.logger.info(tabulate(table, header, tablefmt="github"))
         # ajouter la logique
