@@ -31,18 +31,10 @@ class Analyzer():
         self.logger.info("on analyse les perms bla bla")
         header = ["builtin Permissions"]
         table = []
-        '''
+
         for perm in self.parser.builtinsPermissions():
-            #one solution
-            for e in dangerous_perms:
-                if e in perm:
-                    perm = colored(perm, "red")
-        '''
-        for perm in self.parser.builtinsPermissions():
-            #another solution
-            for e in dangerous_perms2:
-                if perm == e:
-                    perm = colored(perm, "red")
+            if perm in dangerous_perms:
+                perm = colored(perm, "red")
 
             table.append([perm])
         self.logger.info(tabulate(table, header, tablefmt="github"))
