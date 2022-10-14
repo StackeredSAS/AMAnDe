@@ -52,11 +52,31 @@ class Analyzer():
         else:
             self.logger.info("APK can not be backuped")
         
-        
+    def getBackupRulesFile(self):
+        self.logger.info("Analyzing backup functionnality")
+        backup_content_xml_file_rules = self.parser.fullBackupContent()
 
+        if backup_content_xml_file_rules != None:
+            self.logger.info(f'Custom rules has been defined to control what gets backed up in "{backup_content_xml_file_rules}" file')
+        else:
+            self.logger.warning("fullBackupContent property not found. Please make a backup for further controls")
+
+    def getNetworkConfigFile(self):
+        self.logger.info("Checking existence of network_security_config XML file")
+        network_security_config_xml_file = self.parser.networkSecurityConfig()
+
+        if network_security_config_xml_file != None:
+            self.logger.info(f'APK network security configuration is defined in "{network_security_config_xml_file}" file')
+        else:
+            self.logger.warning("networkSecurityConfig property not found")
+
+    #Pay attention : Check the default value of exported property for services, broadcast receiver etc.
     def runAllTests(self):
         self.analyseBuiltinsPerms()
         self.isBackupAllowed()
+        self.getBackupRulesFile()
+        self.getNetworkConfigFile()
+       
 
         # showcase parser unused features
         print("-"*20)
@@ -65,3 +85,4 @@ class Analyzer():
         for e in self.parser.customPermissions():
             print(f"{e.name} | {e.permissionGroup} | {e.protectionLevel}")
         print(self.parser.exportedServices())
+        

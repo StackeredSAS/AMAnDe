@@ -40,3 +40,8 @@ def str2Bool(s):
         return False
     else:
         return None
+
+
+def getResourceTypeName(value):
+    return value.split("/")[1] if value != None else None
+
