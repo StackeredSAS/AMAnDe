@@ -64,3 +64,14 @@ class Parser():
     def networkSecurityConfig(self):
         return getResourceTypeName(self._getattr(self.root.find("application"), "android:networkSecurityConfig"))
 
+    def minSdkVersion(self):
+        usesSdk = self.root.find("uses-sdk")
+        if usesSdk != None:
+            level = self._getattr(usesSdk, "android:minSdkVersion")
+            if level != None:
+                return int(level)
+            # https://developer.android.com/guide/topics/manifest/uses-sdk-element
+            # if the element exists but the attribute is not set, the default value is 1
+            return 1
+        # if the element is not defined, we don't know
+        return 0 # don't use None because it complexifies the code when checking for level>X
