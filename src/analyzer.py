@@ -42,6 +42,10 @@ class Analyzer():
 
 
     def isBackupAllowed(self):
+        """
+        Checks if backups are allowed.
+        :return: return value used for unit tests only
+        """
         # https://developer.android.com/guide/topics/manifest/application-element#allowbackup
         # is more complex than that
         self.logger.info("Analyzing backup functionnality")
@@ -51,10 +55,13 @@ class Analyzer():
         # Android 6 : API level >= 23
         if backup_attr == None and APILevel < 23:
             self.logger.info("APK allowBackup property not found! From Android 6 (API level 23), the default value is true.")
+            return None
         elif backup_attr or APILevel >= 23:
             self.logger.info("APK can be backuped.")
+            return True
         else:
             self.logger.info("APK can not be backuped")
+            return False
         
     def getBackupRulesFile(self):
         self.logger.info("Analyzing backup functionnality")
