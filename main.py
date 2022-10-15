@@ -8,7 +8,6 @@ if __name__ == "__main__":
     argparser.add_argument('--log-level', '-v', choices=['INFO', 'WARNING', 'ERROR'], help='Sets the log level', default="INFO")
     argparser.add_argument("path", help="The path to the manifest file.")
     argparser.add_argument("--min-sdk-version", type=int, choices=range(ANDROID_MIN_SDK,ANDROID_MAX_SDK+1), help='Indicate the minimum version supported by your application', metavar=f"[{ANDROID_MIN_SDK}, {ANDROID_MAX_SDK}]", required=True)
-    argparser.add_argument("--max-sdk-version", type=int, choices=range(ANDROID_MIN_SDK,ANDROID_MAX_SDK+1), help='Indicate the maximum version supported by your application', metavar=f"[{ANDROID_MIN_SDK}, {ANDROID_MAX_SDK}]", required=True)
     args = argparser.parse_args()
 
     parser = Parser(args.path)

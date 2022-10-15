@@ -1,5 +1,4 @@
 ANDROID_MIN_SDK = 9
-ANDROID_MAX_SDK = 33
 
 dangerous_perms = ['android.permission.ACCEPT_HANDOVER', 
 					'android.permission.ACCESS_BACKGROUND_LOCATION',
