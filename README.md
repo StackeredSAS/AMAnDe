@@ -6,6 +6,7 @@ Parsing and analyzing AndroidManifest.xml
 
 ```
 python3 -m pip install -r requirements.txt
+python3 -m unittest unitTests/tests.py
 ```
 
 ## Usage
