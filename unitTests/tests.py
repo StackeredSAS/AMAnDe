@@ -2,6 +2,8 @@
 import unittest
 from src.analyzer import Analyzer
 from src.parser import Parser
+import logging
+logging.disable(logging.CRITICAL)
 
 class FakeParser(Parser):
     # a fake parser class that allows init with no args
@@ -40,4 +42,4 @@ class TestAnalyzer(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main(buffer=True)
+    unittest.main()
