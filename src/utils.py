@@ -25,7 +25,7 @@ class CustomFormatter(logging.Formatter):
                 pass
         elif record.levelno == logging.WARNING:
                 record.msg = colored('[-] %s' % (record.msg), "yellow")
-        elif record.levelno == logging.ERROR:
+        elif record.levelno == logging.CRITICAL:
                 record.msg = colored('[!] %s' % (record.msg), "red")
         else:
             print("[!] Logging level not recognized")
