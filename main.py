@@ -2,6 +2,10 @@
 import argparse
 from src.parser import Parser
 from src.analyzer import Analyzer
+from src.constants import (
+    ANDROID_MIN_SDK,
+    ANDROID_MAX_SDK
+    )
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(description='Utility to analyse Android Manifest files.')
