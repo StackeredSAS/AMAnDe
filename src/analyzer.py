@@ -6,10 +6,11 @@ from .constants import *
 
 class Analyzer():
 
-    def __init__(self, parser):
+    def __init__(self, parser, args):
         self.parser = parser
+        self.args = args
         self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.INFO)
+        self.setLogLevel(args.log_level)
 
         # Create stdout handler for logging to the console (logs all five levels)
         stdout_handler = logging.StreamHandler()
@@ -53,6 +54,7 @@ class Analyzer():
         backup_attr = self.parser.allowBackup()
         APILevel = self.parser.minSdkVersion()
 
+        #print(self.args.min_sdk_version)
         if backup_attr == None:
             # https://developer.android.com/guide/topics/manifest/uses-sdk-element
             # Android 6 : API level >= 23
@@ -66,6 +68,7 @@ class Analyzer():
             return True
         self.logger.info("APK can not be backuped")
         return False
+
         
     def getBackupRulesFile(self):
         self.logger.info("Analyzing backup functionnality")
