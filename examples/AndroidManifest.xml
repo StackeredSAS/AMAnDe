@@ -42,12 +42,13 @@
       android:protectionLevel="signature" />
 
 
-
+ <!--android:fullBackupContent="@xml/test.xml"-->
     <application
         android:name="XXX"
         android:allowBackup="true"
         android:debuggable="true"
-        android:fullBackupContent="@xml/test.xml"
+        android:backupAgent=".MyBackupAgent"
+        android:dataExtractionRules="@xml/test2.xml"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
