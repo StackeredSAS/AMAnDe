@@ -59,7 +59,7 @@ class Analyzer():
         #APILevel = self.parser.minSdkVersion()
         ## Not relevant to test with min sdk version because if min SDK < 23 but max > 23 auto backup is enabled anyhow
         MaxAPILevel = self.args.max_sdk_version
-        backup_agent = self.isBackupAgentImplemented()
+        backup_agent = self.parser.backupAgent()
 
         if backup_attr == None:
             # https://developer.android.com/guide/topics/manifest/uses-sdk-element
@@ -79,11 +79,6 @@ class Analyzer():
         self.logger.info("APK can not be backuped")
         #use this return to call self.getBackupRulesFile() in runalltests (avoid calling it if backup is prohibited)
         return False
-
-    def isBackupAgentImplemented(self):
-        #https://developer.android.com/guide/topics/manifest/application-element#agent
-        return self.parser.backupAgent()
-
         
     def getBackupRulesFile(self):
         self.logger.info("Analyzing backup functionnality")

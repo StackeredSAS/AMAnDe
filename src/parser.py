@@ -28,6 +28,7 @@ class Parser():
     #BACKUP 
     def allowBackup(self):
         return str2Bool(self._getattr(self.root.find("application"), "android:allowBackup"))
+
     def backupAgent(self):
         return self._getattr(self.root.find("application"), "android:backupAgent")
 
@@ -58,7 +59,6 @@ class Parser():
 
     def exportedServices(self):
         return [self._getattr(e, "android:name") for e in self.root.findall('application/service[@android:exported="true"]', namespaces=self.namespaces)]
-
 
     def fullBackupContent(self):
         return getResourceTypeName(self._getattr(self.root.find("application"), "android:fullBackupContent"))
