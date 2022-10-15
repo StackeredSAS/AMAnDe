@@ -54,10 +54,7 @@ class Analyzer():
         backup_attr = self.parser.allowBackup()
         APILevel = self.parser.minSdkVersion()
 
-        ##ICi je comptais d'abord faire un check de ce style :
-        #pour vérifier que la balise <uses-sdk> est utilisée et que l'attribut minsdkversion a été défini
-        #if APILevel != 0 and APILevel > 1
-        #print(self.args.min_sdk_version, self.args.max_sdk_version)
+        #print(self.args.min_sdk_version)
         if backup_attr == None:
             # https://developer.android.com/guide/topics/manifest/uses-sdk-element
             # Android 6 : API level >= 23
@@ -71,8 +68,7 @@ class Analyzer():
             return True
         self.logger.info("APK can not be backuped")
         return False
-        #et faire un else ici pour si jamais ce n'est pas défini de faire les checks avec les args passés
-        #en ligne de commande. PArce que sinon si le uses-sdk existe pas les tests seront moins pertinents
+
         
     def getBackupRulesFile(self):
         self.logger.info("Analyzing backup functionnality")
