@@ -15,47 +15,29 @@ class TestAnalyzer(unittest.TestCase):
     analyzer = Analyzer(parser)
 
     def test_isBackupAllowed(self):
-        # allowBackup : true and no SDK
-        self.parser.allowBackup = lambda: True
-        self.parser.minSdkVersion = lambda: 0
-        res = self.analyzer.isBackupAllowed()
-        # backup should be allowed
-        self.assertEqual(res, True, "allowBackup : True and no SDK")
+        # the tuple elements represents :
+        # allowBackup, minSdkVersion, expectedResult
+        testCases = [
+            (True, 0, True),
+            (True, 25, True),
+            (True, 1, True),
+            (False, 24, False),
+            (False, 2, False),
+            (False, 0, False),
+            (None, 5, None),
+            (None, 23, True),
+            (None, 0, None),
+        ]
 
-        # allowBackup : true and SDK > 23
-        self.parser.allowBackup = lambda: True
-        self.parser.minSdkVersion = lambda: 25
-        res = self.analyzer.isBackupAllowed()
-        # backup should be allowed
-        self.assertEqual(res, True, "allowBackup : True and SDK > 23")
+        for testCase in testCases:
+            allowBackup = testCase[0]
+            minSdkVersion = testCase[1]
+            expected = testCase[2]
+            self.parser.allowBackup = lambda: allowBackup
+            self.parser.minSdkVersion = lambda: minSdkVersion
+            res = self.analyzer.isBackupAllowed()
+            self.assertEqual(res, expected, f"{allowBackup=} and {minSdkVersion=} should produce {expected} but produced {res}")
 
-        # allowBackup : false and SDK > 23
-        self.parser.allowBackup = lambda: False
-        self.parser.minSdkVersion = lambda: 24
-        res = self.analyzer.isBackupAllowed()
-        # backup should not be allowed
-        self.assertEqual(res, False, "allowBackup : False and SDK > 23")
-
-        # allowBackup : false and SDK < 23
-        self.parser.allowBackup = lambda: False
-        self.parser.minSdkVersion = lambda: 2
-        res = self.analyzer.isBackupAllowed()
-        # backup should not be allowed
-        self.assertEqual(res, False, "allowBackup : False and SDK < 23")
-
-        # allowBackup : None and SDK < 23
-        self.parser.allowBackup = lambda: None
-        self.parser.minSdkVersion = lambda: 5
-        res = self.analyzer.isBackupAllowed()
-        # we shouldn't know
-        self.assertEqual(res, None, "allowBackup : None and SDK < 23")
-
-        # allowBackup : None and SDK >= 23
-        self.parser.allowBackup = lambda: None
-        self.parser.minSdkVersion = lambda: 23
-        res = self.analyzer.isBackupAllowed()
-        # backup should be allowed
-        self.assertEqual(res, True, "allowBackup : None and SDK >= 23")
 
 if __name__ == '__main__':
     unittest.main(buffer=True)
