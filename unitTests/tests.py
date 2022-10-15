@@ -14,7 +14,11 @@ class TestAnalyzer(unittest.TestCase):
     # We do not test the parser it is assumed the parsing is done correctly.
     # This allows much simpler unit tests writing. No need to generated custom manifests.
     parser = FakeParser()
-    analyzer = Analyzer(parser)
+    # fake args
+    from collections import namedtuple
+    args = namedtuple("a", "log_level")
+    args.log_level = "INFO"
+    analyzer = Analyzer(parser, args)
 
     def test_isBackupAllowed(self):
         # the tuple elements represents :
