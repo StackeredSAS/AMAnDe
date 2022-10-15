@@ -23,7 +23,7 @@ class Analyzer():
             self.logger.setLevel(logging.INFO)
         elif level == "WARNING":
             self.logger.setLevel(logging.WARNING)
-        elif level == "ERROR":
+        elif level == "CRITICAL":
             self.logger.setLevel(logging.ERROR)
         else:
             raise NotImplementedError("Unknown logging level")
@@ -40,7 +40,7 @@ class Analyzer():
             table.append([perm])
         self.logger.info(tabulate(table, header, tablefmt="github"))
         # ajouter la logique
-        self.logger.error(f"Found vulnerable perms : android.permission.ACCESS_NETWORK_STATE")
+        self.logger.critical(f"Found vulnerable perms : android.permission.ACCESS_NETWORK_STATE")
 
 
     def isBackupAllowed(self):
@@ -53,6 +53,11 @@ class Analyzer():
         self.logger.info("Analyzing backup functionnality")
         backup_attr = self.parser.allowBackup()
         APILevel = self.parser.minSdkVersion()
+
+
+        # <uses-sdk> tag not defined in Manifest
+        if APILevel == 0:
+            APILevel = self.args.min_sdk_version
 
         #print(self.args.min_sdk_version)
         if backup_attr == None:
