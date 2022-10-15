@@ -13,7 +13,5 @@ if __name__ == "__main__":
     args = argparser.parse_args()
 
     parser = Parser(args.path)
-    analyzer = Analyzer(parser)
-    analyzer.setLogLevel(args.log_level)
+    analyzer = Analyzer(parser, args)
     analyzer.runAllTests()
-    #analyzer.getPerms()
