@@ -104,11 +104,11 @@ class Analyzer():
         backup_attr = self.parser.allowBackup()
         MaxAPILevel = self.args.max_sdk_version
 
-        #android:allowBackup default value is true (auto backup available for API > 23)
-        if backup_attr == None and MaxAPILevel > 23:
+        #android:allowBackup default value is true (auto backup available for API >= 23)
+        if backup_attr == None and MaxAPILevel >= 23:
             self.logger.warning("APK allowBackup property not found and max_sdk_version > 23. Auto backup funtionnality is activated (end-to-end encrypted Google drive backup for device running Android 9 or higher) and adb backup can be performed")
             return True
-        if backup_attr and MaxAPILevel > 23:
+        if backup_attr and MaxAPILevel >= 23:
             self.logger.warning("APK allowBackup property value is True and max_sdk_version > 23. Auto backup funtionnality is activated (end-to-end encrypted Google drive backup for device running Android 9 or higher) and adb backup can be performed")
             return True
         self.logger.info("APK can not be backuped with Auto Backup")
