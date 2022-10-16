@@ -43,5 +43,7 @@ def str2Bool(s):
 
 
 def getResourceTypeName(value):
-    return value.split("/")[1] if value != None else None
-
+    if value is not None:
+        value = value.split("/")[1]
+    if value:
+        return value
