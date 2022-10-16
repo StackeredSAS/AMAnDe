@@ -29,8 +29,11 @@ class Analyzer():
         else:
             raise NotImplementedError("Unknown logging level")
 
+    def printTestInfo(self, title):
+        print(colored(f"\n[+] {title}", "blue"))
+
     def analyseBuiltinsPerms(self):
-        self.logger.info("on analyse les perms bla bla")
+        self.printTestInfo("on analyse les perms bla bla")
         header = ["builtin Permissions"]
         table = []
 
@@ -44,30 +47,57 @@ class Analyzer():
         self.logger.critical(f"Found vulnerable perms : android.permission.ACCESS_NETWORK_STATE")
 
     def isADBBackupAllowed(self):
-        self.logger.info("Analyzing backup functionnality (adb)")
+        """
+        Checks if ADB backups are allowed.
+        https://developer.android.com/guide/topics/manifest/application-element#allowbackup
+        :return: True if ADB backup is allowed, False otherwise.
+        """
+        self.printTestInfo("Analyzing backup functionality (adb)")
         backup_attr = self.parser.allowBackup()
 
-        # android:allowBackup default value is true
+        # android:allowBackup default value is true for any android version
         if backup_attr or backup_attr is None:
             self.logger.info("adb backup can be performed")
             return True
-        self.logger.info("APK can not be backuped with adb")
+        self.logger.info("APK can not be backup-ed with adb")
         return False
 
     def isAutoBackupAllowed(self):
-        self.logger.info("Analyzing backup functionnality (Auto backup)")
+        """
+        Checks if Auto Backup are allowed.
+        https://developer.android.com/guide/topics/data/autobackup
+        :return: True if Auto Backup is allowed, False otherwise.
+        """
+        self.printTestInfo("Analyzing backup functionality (Auto backup)")
         backup_attr = self.parser.allowBackup()
         MaxAPILevel = self.args.max_sdk_version
+        MinAPILevel = self.args.min_sdk_version
 
-        # android:allowBackup default value is true (auto backup available for API >= 23)
+        # android:allowBackup default value is true for any android version but auto backup is only available for API >= 23
         if (backup_attr or backup_attr is None) and MaxAPILevel >= 23:
-            self.logger.warning("Auto backup funtionnality is activated (end-to-end encrypted Google drive backup for device running Android 9 or higher) and adb backup can be performed")
+            msg = "Google drive Auto backup functionality is activated "
+            # Android 9 => API level >= 28
+            if MinAPILevel >= 28:
+                msg += colored("(E2E encrypted)", "green")
+            elif MaxAPILevel < 28:
+                msg += colored("(E2E encryption not available)", "red")
+            else:
+                msg += colored("(E2E encryption is only available from Android 9 (API level 28))", "yellow")
+            self.logger.info(msg)
             return True
-        self.logger.info("APK can not be backuped with Auto Backup")
+        self.logger.info("APK can not be backup-ed with Auto Backup")
         return False
 
     def isBackupAgentImplemented(self):
-        self.logger.info("Checking for own developper backup agent")
+        """
+        Checks if a backup agent is implemented as a Java/Kotlin class.
+
+        .. note::
+        https://developer.android.com/guide/topics/manifest/application-element#agent
+
+        :return: True if a backupAgent property has been found in Manifest, False otherwise.
+        """
+        self.printTestInfo("Checking for own developer backup agent")
         agent = self.parser.backupAgent()
         if agent:
             self.logger.warning(
@@ -77,7 +107,10 @@ class Analyzer():
         return False
 
     def getBackupRulesFile(self):
-        self.logger.info("Analyzing backup functionnality")
+        """
+        todo: vérifier si les 2 balises peuvent coexister
+        """
+        self.printTestInfo("Analyzing backup functionality")
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
         # taking into account android 12 backup attribute dataExtractionRules
         dataExtractionRules_xml_rules_files = self.parser.dataExtractionRules()
@@ -94,7 +127,7 @@ class Analyzer():
         return res
 
     def getNetworkConfigFile(self):
-        self.logger.info("Checking existence of network_security_config XML file")
+        self.printTestInfo("Checking existence of network_security_config XML file")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
         if network_security_config_xml_file is not None:
             self.logger.info(f'APK network security configuration is defined in "{network_security_config_xml_file}" file')
@@ -104,14 +137,13 @@ class Analyzer():
 
     # Pay attention : Check the default value of exported property for services, broadcast receiver etc.
     def runAllTests(self):
-        #self.analyseBuiltinsPerms()
-        # isBackupAllowed = self.isBackupAllowed()
-        #isADBBackupAllowed = self.isADBBackupAllowed()
-        #isAutoBackupAllowed = self.isAutoBackupAllowed()
-        #if isADBBackupAllowed or isAutoBackupAllowed:
-            #self.getBackupRulesFile()
-        #self.getNetworkConfigFile()
-        #self.isBackupAgentImplemented()
+        self.analyseBuiltinsPerms()
+        isADBBackupAllowed = self.isADBBackupAllowed()
+        isAutoBackupAllowed = self.isAutoBackupAllowed()
+        if isADBBackupAllowed or isAutoBackupAllowed:
+            self.getBackupRulesFile()
+        self.getNetworkConfigFile()
+        self.isBackupAgentImplemented()
 
         # showcase parser unused features
         print("-" * 20)

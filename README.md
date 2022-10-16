@@ -6,7 +6,7 @@ Parsing and analyzing AndroidManifest.xml
 
 ```
 python3 -m pip install -r requirements.txt
-python3 -m unittest unitTests/tests.py
+python3 -m unittest -b unitTests/tests.py
 ```
 
 ## Usage
@@ -17,5 +17,12 @@ python3 -m unittest unitTests/tests.py
 ```
 
 ## todo
-
-- todo
+- terminer la fonction analyseBuiltinsPerms
+- implementer les tests sur les custom perms
+- def isAppLinkUsed 
+- def isDeepLinkUsed 
+- def receiverAnalysis 
+- def providerAnalysis
+- def apkInfo
+- def servicesAnalysis
+- def activitiesAnalysis

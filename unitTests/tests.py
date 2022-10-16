@@ -16,7 +16,7 @@ class TestAnalyzer(unittest.TestCase):
     parser = FakeParser()
     # fake args
     from collections import namedtuple
-    args = namedtuple("a", "log_level max_sdk_version")
+    args = namedtuple("a", "log_level max_sdk_version min_sdk_version")
     args.log_level = "INFO"
     analyzer = Analyzer(parser, args)
 
@@ -50,7 +50,7 @@ class TestAnalyzer(unittest.TestCase):
             (False, 23, False),
             (False, 26, False),
         ]
-
+        self.args.min_sdk_version = 8
         for testCase in testCases:
             allowBackup = testCase[0]
             max_sdk_version = testCase[1]
@@ -111,4 +111,4 @@ class TestAnalyzer(unittest.TestCase):
             self.assertEqual(res, expected, f"{networkSecurityConfig=} should produce {expected} but produced {res}")
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(buffer=True)
