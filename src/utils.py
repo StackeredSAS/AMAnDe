@@ -47,3 +47,10 @@ def getResourceTypeName(value):
         value = value.split("/")[1]
     if value:
         return value
+
+
+def printTestInfo(title):
+    print(colored(f"\n[*] {title}", "blue"))
+
+def printSubTestInfo(title):
+    print(colored(f"[+] {title}", "cyan"))

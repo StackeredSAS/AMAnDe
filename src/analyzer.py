@@ -1,6 +1,6 @@
 from termcolor import colored
 from tabulate import tabulate
-from .utils import CustomFormatter
+from .utils import CustomFormatter, printTestInfo, printSubTestInfo
 import logging
 from .constants import *
 
@@ -29,11 +29,8 @@ class Analyzer():
         else:
             raise NotImplementedError("Unknown logging level")
 
-    def printTestInfo(self, title):
-        print(colored(f"\n[+] {title}", "blue"))
-
     def analyseBuiltinsPerms(self):
-        self.printTestInfo("on analyse les perms bla bla")
+        printTestInfo("on analyse les perms bla bla")
         header = ["builtin Permissions"]
         table = []
 
@@ -52,14 +49,14 @@ class Analyzer():
         https://developer.android.com/guide/topics/manifest/application-element#allowbackup
         :return: True if ADB backup is allowed, False otherwise.
         """
-        self.printTestInfo("Analyzing backup functionality (adb)")
+        printSubTestInfo("Checking for ADB backup functionality")
         backup_attr = self.parser.allowBackup()
 
         # android:allowBackup default value is true for any android version
         if backup_attr or backup_attr is None:
-            self.logger.info("adb backup can be performed")
+            self.logger.info("ADB backup can be performed")
             return True
-        self.logger.info("APK can not be backup-ed with adb")
+        self.logger.info("APK cannot be backed up with adb")
         return False
 
     def isAutoBackupAllowed(self):
@@ -68,7 +65,7 @@ class Analyzer():
         https://developer.android.com/guide/topics/data/autobackup
         :return: True if Auto Backup is allowed, False otherwise.
         """
-        self.printTestInfo("Analyzing backup functionality (Auto backup)")
+        printSubTestInfo("Checking for auto-backup functionality")
         backup_attr = self.parser.allowBackup()
         MaxAPILevel = self.args.max_sdk_version
         MinAPILevel = self.args.min_sdk_version
@@ -85,7 +82,7 @@ class Analyzer():
                 msg += colored("(E2E encryption is only available from Android 9 (API level 28))", "yellow")
             self.logger.info(msg)
             return True
-        self.logger.info("APK can not be backup-ed with Auto Backup")
+        self.logger.info("APK cannot be backed up with Auto Backup")
         return False
 
     def isBackupAgentImplemented(self):
@@ -97,7 +94,7 @@ class Analyzer():
 
         :return: True if a backupAgent property has been found in Manifest, False otherwise.
         """
-        self.printTestInfo("Checking for own developer backup agent")
+        printSubTestInfo("Checking for own developer backup agent")
         agent = self.parser.backupAgent()
         if agent:
             self.logger.warning(
@@ -110,7 +107,7 @@ class Analyzer():
         """
         todo: vérifier si les 2 balises peuvent coexister
         """
-        self.printTestInfo("Analyzing backup functionality")
+        printSubTestInfo("Checking backup rules files")
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
         # taking into account android 12 backup attribute dataExtractionRules
         dataExtractionRules_xml_rules_files = self.parser.dataExtractionRules()
@@ -127,7 +124,7 @@ class Analyzer():
         return res
 
     def getNetworkConfigFile(self):
-        self.printTestInfo("Checking existence of network_security_config XML file")
+        printTestInfo("Checking the existence of network_security_config XML file")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
         if network_security_config_xml_file is not None:
             self.logger.info(f'APK network security configuration is defined in "{network_security_config_xml_file}" file')
@@ -135,15 +132,21 @@ class Analyzer():
         self.logger.warning("networkSecurityConfig property not found")
         return False
 
-    # Pay attention : Check the default value of exported property for services, broadcast receiver etc.
-    def runAllTests(self):
-        self.analyseBuiltinsPerms()
+    def analyzeBackupFeatures(self):
+        printTestInfo("Analyzing backup functionality")
         isADBBackupAllowed = self.isADBBackupAllowed()
         isAutoBackupAllowed = self.isAutoBackupAllowed()
         if isADBBackupAllowed or isAutoBackupAllowed:
             self.getBackupRulesFile()
-        self.getNetworkConfigFile()
         self.isBackupAgentImplemented()
+
+    # Pay attention : Check the default value of exported property for services, broadcast receiver etc.
+    def runAllTests(self):
+        print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
+        self.analyseBuiltinsPerms()
+        self.analyzeBackupFeatures()
+        self.getNetworkConfigFile()
+
 
         # showcase parser unused features
         print("-" * 20)
