@@ -42,7 +42,7 @@ class Analyzer():
         # ajouter la logique
         self.logger.critical(f"Found vulnerable perms : android.permission.ACCESS_NETWORK_STATE")
 
-
+    '''
     def isBackupAllowed(self):
         #android:allowBackup is true for all version by default but auto back (Google drive) is true by default only from android 6
         #For apps running on and targeting Android 12 (API level 31) or higher, specifying android:allowBackup="false" does disable 
@@ -79,7 +79,55 @@ class Analyzer():
         self.logger.info("APK can not be backuped")
         #use this return to call self.getBackupRulesFile() in runalltests (avoid calling it if backup is prohibited)
         return False
+    '''
+
+
+    def isADBBackupAllowed(self):
+        self.logger.info("Analyzing backup functionnality (adb)")
+        backup_attr = self.parser.allowBackup()
+        MaxAPILevel = self.args.max_sdk_version
+
+        #android:allowBackup default value is true (auto backup only available for API > 23)
+        if backup_attr == None and MaxAPILevel < 23:
+            self.logger.info("APK allowBackup property not found! Default value is true for all Android versions (adb backup can be performed)")
+            return True
+        if backup_attr:
+            self.logger.info("APK allowBackup property found and max_sdk_version < 23. adb backup can be performed")
+            return True
+        self.logger.info("APK can not be backuped with adb")
+        return False
+
+
+
+    def isAutoBackupAllowed(self):
+        self.logger.info("Analyzing backup functionnality (Auto backup)")
+        backup_attr = self.parser.allowBackup()
+        MaxAPILevel = self.args.max_sdk_version
+
+        #android:allowBackup default value is true (auto backup available for API >= 23)
+        if backup_attr == None and MaxAPILevel >= 23:
+            self.logger.warning("APK allowBackup property not found and max_sdk_version > 23. Auto backup funtionnality is activated (end-to-end encrypted Google drive backup for device running Android 9 or higher) and adb backup can be performed")
+            return True
+        if backup_attr and MaxAPILevel >= 23:
+            self.logger.warning("APK allowBackup property value is True and max_sdk_version > 23. Auto backup funtionnality is activated (end-to-end encrypted Google drive backup for device running Android 9 or higher) and adb backup can be performed")
+            return True
+        self.logger.info("APK can not be backuped with Auto Backup")
+        return False
         
+
+    def isBackupAgentImplemented(self):
+        self.logger.info("Checking for own developper backup agent")
+        if self.parser.backupAgent():
+            self.logger.warning(f'APK implements is own backup agent in {self.parser.backupAgent().split(".")[-1]}. Please make deeper checks')
+            return True
+            #après cette info là on n'est pas obligé de la mettre je pense. A la fin de propose de faire une
+            #fonction qui présentera l'ensemble des tests qu'on réalise au début avant de lancer le 
+            #script. Ca évitera de devoir faire des else comme ça qui n'apportent rien finalement car l'évaluateur saura
+            #quels tests ont été fait (et donc que s'il n'y a rien d'écrit c'est que c'est faux).
+        self.logger.info("No backup agent implementation has been found")
+        return False
+
+
     def getBackupRulesFile(self):
         self.logger.info("Analyzing backup functionnality")
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
@@ -105,10 +153,14 @@ class Analyzer():
     #Pay attention : Check the default value of exported property for services, broadcast receiver etc.
     def runAllTests(self):
         self.analyseBuiltinsPerms()
-        isBackupAllowed = self.isBackupAllowed()
-        if isBackupAllowed: 
+        #isBackupAllowed = self.isBackupAllowed()
+        isADBBackupAllowed = self.isADBBackupAllowed()
+        isAutoBackupAllowed = self.isAutoBackupAllowed()
+        if isADBBackupAllowed or isAutoBackupAllowed: 
             self.getBackupRulesFile()
         self.getNetworkConfigFile()
+        self.isBackupAgentImplemented()
+       
        
 
         # showcase parser unused features
