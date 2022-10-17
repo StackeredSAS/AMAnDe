@@ -40,7 +40,6 @@ class Analyzer():
 
             table.append([perm])
         self.logger.info(tabulate(table, header, tablefmt="github"))
-        #self.logger.warning(f"Found dangerous perms :{x for x in }")
 
     def isADBBackupAllowed(self):
         """
