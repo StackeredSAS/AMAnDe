@@ -156,13 +156,9 @@ class Analyzer():
         print(self.parser.exportedServices())
         '''
         print(f'{self.parser.exportedActivities()=}')
-        print(f'{self.parser.exportedActivities2()=}')
-        # check if both functions are the same
-        print(set(self.parser.exportedActivities()) == set(self.parser.exportedActivities2()))
         print(f'{self.parser.exportedServices()=}')
         print(f'{self.parser.exportedBroadcastReceivers()=}')
         print(f'{self.parser.exportedProviders()=}')
-        print(f'{self.parser.activitiesStats()=}')
         print(f'{self.parser.componentStats("provider")=}')
         print(f'{self.parser.exportedComponentStats("activity")=}')
         
