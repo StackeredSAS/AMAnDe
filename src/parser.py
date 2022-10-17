@@ -57,8 +57,47 @@ class Parser():
             res.append(CustomPerm(name, permissionGroup, protectionLevel))
         return res
 
+
+
+    
+    '''
+    For all components, android:exported is false since Android 4.2. However, 
+    if this component specified an intent filter, android:exported is automatically set to True
+    From Android 12, it's mandatory to specified android:exported property if a component
+    contains an intent filter (False or True) -> to avoid error. Otherwise, a runtime error will be delivered.
+    
+    BLOG ARTICLE : https://medium.com/androiddevelopers/lets-be-explicit-about-our-intent-filters-c5dbe2dbdce0
+    An important change is coming to Android 12 that improves both app and platform security. This change affects all apps that target Android 12.
+    Activities, services, and broadcast receivers with declared intent-filters now must explicitly declare whether they should be exported or not.
+    Prior to Android 12, components (activites, services, and broadcast receivers only) with an intent-filter declared were automatically exported
+    '''
+
+    def exportedActivities(self):
+        #check if there is android:exported property set to True (no matter intent filter)
+        exported_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity[@android:exported="true"]', namespaces=self.namespaces)}
+        #check if there an intent filter in activity tag
+        intent_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity/intent-filter/..', namespaces=self.namespaces)}
+        #check if there is android:exported property set to False (no matter intent filter)
+        unexported_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity[@android:exported="false"]', namespaces=self.namespaces)}
+        #update exported_activities (if there android:exported to False and intent-filter, activity it's not exported)
+        exported_activities.update(intent_activities-unexported_activities)
+        return list(exported_activities)
+
+    #Add same intelligence for all components
     def exportedServices(self):
         return [self._getattr(e, "android:name") for e in self.root.findall('application/service[@android:exported="true"]', namespaces=self.namespaces)]
+
+    def exportedBroadcastReceivers(self):
+        return [self._getattr(e, "android:name") for e in self.root.findall('application/receiver[@android:exported="true"]', namespaces=self.namespaces)]
+
+    def exportedProviders(self):
+        return [self._getattr(e, "android:name") for e in self.root.findall('application/provider[@android:exported="true"]', namespaces=self.namespaces)]
+
+    def componentStats(self, component):
+        return len(self.root.findall(f'application/{component}'))
+
+    def exportedComponentStats(self, component):
+        return len(self.root.findall(f'application/{component}[@android:exported="true"]' ,namespaces=self.namespaces))
 
     def fullBackupContent(self):
         return getResourceTypeName(self._getattr(self.root.find("application"), "android:fullBackupContent"))
