@@ -91,8 +91,9 @@ class Parser():
 
     def exportedActivities2(self):
         exported_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity[@android:exported="true"]', namespaces=self.namespaces)}
-        intent_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity/intent-filter/...', namespaces=self.namespaces)}
-        exported_activities.update(intent_activities)
+        intent_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity/intent-filter/..', namespaces=self.namespaces)}
+        unexported_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity[@android:exported="false"]', namespaces=self.namespaces)}
+        exported_activities.update(intent_activities-unexported_activities)
         return list(exported_activities)
 
     #when exportedActivities will be okay, it can be the same intelligence for all components
@@ -112,7 +113,7 @@ class Parser():
     #soit une fonction générique comme ci-dessous
     #Displaying stats about components (how many of each are declared)
     def componentStats(self, component):
-        return sum(1 for perm in self.root.findall(f'application/{component}')) if component in ["activity", "provider", "receiver", "service"] else None
+        return sum(1 for perm in self.root.findall(f'application/{component}'))
 
     def exportedComponentStats(self, component):
         return sum(1 for perm in self.root.findall(f'application/{component}[@android:exported="true"]' ,namespaces=self.namespaces)) if component in ["activity", "provider", "receiver", "service"] else None
