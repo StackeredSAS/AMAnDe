@@ -151,7 +151,6 @@
         <activity
             android:name=".ui.activity.AuthenticatePCloudActivity"
             android:configChanges="orientation|keyboard"
-            android:exported="true"
             android:launchMode="singleTask">
 
             <intent-filter>
@@ -174,7 +173,6 @@
 
         <activity
             android:name=".ui.activity.LicenseCheckActivity"
-            android:exported="true"
             android:launchMode="singleTask">
             <intent-filter android:label="@string/dialog_enter_license_title">
                 <action android:name="android.intent.action.TEST1" />
@@ -216,7 +214,7 @@
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
+            android:exported="true"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"

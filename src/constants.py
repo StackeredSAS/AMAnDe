@@ -41,3 +41,6 @@ dangerous_perms = ['android.permission.ACCEPT_HANDOVER',
 					'android.permission.WRITE_CONTACTS',
 					'android.permission.WRITE_EXTERNAL_STORAGE'
 ]
+
+
+
