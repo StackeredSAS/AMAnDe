@@ -89,6 +89,12 @@ class Parser():
                     exported_activities.append(name) if name not in exported_activities else None
         return exported_activities
 
+    def exportedActivities2(self):
+        exported_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity[@android:exported="true"]', namespaces=self.namespaces)}
+        intent_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity/intent-filter/...', namespaces=self.namespaces)}
+        exported_activities.update(intent_activities)
+        return list(exported_activities)
+
     #when exportedActivities will be okay, it can be the same intelligence for all components
     def exportedServices(self):
         return [self._getattr(e, "android:name") for e in self.root.findall('application/service[@android:exported="true"]', namespaces=self.namespaces)]
