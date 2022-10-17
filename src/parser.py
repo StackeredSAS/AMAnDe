@@ -72,31 +72,18 @@ class Parser():
     Prior to Android 12, components (activites, services, and broadcast receivers only) with an intent-filter declared were automatically exported
     '''
 
-    #maybe change this if we want to return more than the just the name
-    #Just a draft, refactor this
     def exportedActivities(self):
-        exported_activities = []
-        for activity in self.root.findall('application/activity'):
-            exported = self._getattr(activity, "android:exported")
-            name = self._getattr(activity, "android:name")
-            #check if there is android:exported to true (no matter intent filter)
-            if(str2Bool(exported)):
-                exported_activities.append(name)
-            #check if there is intent filter or both intent filter and exported to true 
-            for intent_filter in activity.findall("intent-filter"):
-                if (intent_filter.attrib is not None) or (intent_filter.attrib is not None and str2Bool(exported)):
-                    #to not add already present activitu if there is more than one intent filter
-                    exported_activities.append(name) if name not in exported_activities else None
-        return exported_activities
-
-    def exportedActivities2(self):
+        #check if there is android:exported property set to True (no matter intent filter)
         exported_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity[@android:exported="true"]', namespaces=self.namespaces)}
+        #check if there an intent filter in activity tag
         intent_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity/intent-filter/..', namespaces=self.namespaces)}
+        #check if there is android:exported property set to False (no matter intent filter)
         unexported_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity[@android:exported="false"]', namespaces=self.namespaces)}
+        #update exported_activities (if there android:exported to False and intent-filter, activity it's not exported)
         exported_activities.update(intent_activities-unexported_activities)
         return list(exported_activities)
 
-    #when exportedActivities will be okay, it can be the same intelligence for all components
+    #Add same intelligence for all components
     def exportedServices(self):
         return [self._getattr(e, "android:name") for e in self.root.findall('application/service[@android:exported="true"]', namespaces=self.namespaces)]
 
@@ -106,17 +93,11 @@ class Parser():
     def exportedProviders(self):
         return [self._getattr(e, "android:name") for e in self.root.findall('application/provider[@android:exported="true"]', namespaces=self.namespaces)]
 
-    #soit on fait une fonction pour chaque
-    def activitiesStats(self):
-        return sum(1 for perm in self.root.findall('application/activity'))
-
-    #soit une fonction générique comme ci-dessous
-    #Displaying stats about components (how many of each are declared)
     def componentStats(self, component):
-        return sum(1 for perm in self.root.findall(f'application/{component}'))
+        return len(self.root.findall(f'application/{component}'))
 
     def exportedComponentStats(self, component):
-        return sum(1 for perm in self.root.findall(f'application/{component}[@android:exported="true"]' ,namespaces=self.namespaces)) if component in ["activity", "provider", "receiver", "service"] else None
+        return len(self.root.findall(f'application/{component}[@android:exported="true"]' ,namespaces=self.namespaces))
 
     def fullBackupContent(self):
         return getResourceTypeName(self._getattr(self.root.find("application"), "android:fullBackupContent"))
