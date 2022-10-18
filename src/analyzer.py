@@ -71,7 +71,14 @@ class Analyzer():
         # there is nothing to show above this level
         if self.logger.level <= logging.WARNING:
             if len(table) > 0: print(tabulate(table, header, tablefmt="outline"))
-            if dangerous_perms_number > 0: self.logger.warning(f'APK requires {dangerous_perms_number} dangerous permissions to work properly. Check it out!')
+            if dangerous_perms_number > 0:
+                if dangerous_perms_number == 1:
+                    msg = "permission"
+                else:
+                    msg = "permissions"
+                self.logger.warning(
+                    f'APK requires {dangerous_perms_number} dangerous {msg} to work properly. Check it out!')
+
 
     def isADBBackupAllowed(self):
         """
