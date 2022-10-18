@@ -2,7 +2,7 @@ from termcolor import colored
 from tabulate import tabulate
 from .utils import CustomFormatter, printTestInfo, printSubTestInfo
 import logging
-from .constants import *
+from .constants import dangerous_perms
 
 
 class Analyzer():
@@ -60,13 +60,18 @@ class Analyzer():
         printTestInfo("Analyzing required builtin permissions")
         header = ["builtin Permissions"]
         table = []
-
+        dangerous_perms_number = 0
         for perm in self.parser.builtinsPermissions():
-            if perm in dangerous_perms:
-                perm = colored(perm, "red")
-
-            table.append([perm])
-        self.logger.info(tabulate(table, header, tablefmt="github"))
+            if perm in dangerous_perms :
+                perm = colored(perm, "yellow")
+                table.append([perm])
+                dangerous_perms_number+=1
+            elif self.logger.level <= logging.INFO:
+                table.append([perm])
+        # there is nothing to show above this level
+        if self.logger.level <= logging.WARNING:
+            if len(table) > 0: print(tabulate(table, header, tablefmt="outline"))
+            if dangerous_perms_number > 0: self.logger.warning(f'APK requires {dangerous_perms_number} dangerous permissions to work properly. Check it out!')
 
     def isADBBackupAllowed(self):
         """
