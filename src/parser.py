@@ -72,32 +72,23 @@ class Parser():
     Prior to Android 12, components (activites, services, and broadcast receivers only) with an intent-filter declared were automatically exported
     '''
 
-    def exportedActivities(self):
+    def exportedComponents(self, component):
         #check if there is android:exported property set to True (no matter intent filter)
-        exported_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity[@android:exported="true"]', namespaces=self.namespaces)}
-        #check if there an intent filter in activity tag
-        intent_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity/intent-filter/..', namespaces=self.namespaces)}
+        exported_component = {self._getattr(e, "android:name") for e in self.root.findall(f'application/{component}[@android:exported="true"]', namespaces=self.namespaces)}
+        #check if there an intent filter in component tag
+        intent_component = {self._getattr(e, "android:name") for e in self.root.findall(f'application/{component}/intent-filter/..', namespaces=self.namespaces)}
         #check if there is android:exported property set to False (no matter intent filter)
-        unexported_activities = {self._getattr(e, "android:name") for e in self.root.findall('application/activity[@android:exported="false"]', namespaces=self.namespaces)}
-        #update exported_activities (if there android:exported to False and intent-filter, activity it's not exported)
-        exported_activities.update(intent_activities-unexported_activities)
-        return list(exported_activities)
+        unexported_component = {self._getattr(e, "android:name") for e in self.root.findall(f'application/{component}[@android:exported="false"]', namespaces=self.namespaces)}
+        #update components (if there android:exported to False and intent-filter, component is not exported)
+        exported_component.update(intent_component - unexported_component)
+        return list(exported_component)
 
-    #Add same intelligence for all components
-    def exportedServices(self):
-        return [self._getattr(e, "android:name") for e in self.root.findall('application/service[@android:exported="true"]', namespaces=self.namespaces)]
-
-    def exportedBroadcastReceivers(self):
-        return [self._getattr(e, "android:name") for e in self.root.findall('application/receiver[@android:exported="true"]', namespaces=self.namespaces)]
-
-    def exportedProviders(self):
-        return [self._getattr(e, "android:name") for e in self.root.findall('application/provider[@android:exported="true"]', namespaces=self.namespaces)]
 
     def componentStats(self, component):
         return len(self.root.findall(f'application/{component}'))
 
     def exportedComponentStats(self, component):
-        return len(self.root.findall(f'application/{component}[@android:exported="true"]' ,namespaces=self.namespaces))
+        return len(self.exportedComponents(component))
 
     def fullBackupContent(self):
         return getResourceTypeName(self._getattr(self.root.find("application"), "android:fullBackupContent"))

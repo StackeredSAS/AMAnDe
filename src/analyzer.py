@@ -141,24 +141,7 @@ class Analyzer():
     # Pay attention : Check the default value of exported property for services, broadcast receiver etc.
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
-        '''
         self.analyseBuiltinsPerms()
         self.analyzeBackupFeatures()
         self.getNetworkConfigFile()
-
-
-        # showcase parser unused features
-        print("-" * 20)
-        print(f"{self.parser.debuggable()=}")
-        print(f"{self.parser.usesCleartextTraffic()=}")
-        for e in self.parser.customPermissions():
-            print(f"{e.name} | {e.permissionGroup} | {e.protectionLevel}")
-        print(self.parser.exportedServices())
-        '''
-        print(f'{self.parser.exportedActivities()=}')
-        print(f'{self.parser.exportedServices()=}')
-        print(f'{self.parser.exportedBroadcastReceivers()=}')
-        print(f'{self.parser.exportedProviders()=}')
-        print(f'{self.parser.componentStats("provider")=}')
-        print(f'{self.parser.exportedComponentStats("activity")=}')
-        
+                

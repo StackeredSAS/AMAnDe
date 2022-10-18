@@ -16,4 +16,21 @@ if __name__ == "__main__":
 
     parser = Parser(args.path)
     analyzer = Analyzer(parser, args)
-    analyzer.runAllTests()
+    #analyzer.runAllTests()
+
+
+
+
+
+    # showcase parser unused features
+    '''
+    print("-" * 20)
+    print(f"{parser.debuggable()=}")
+    print(f"{parser.usesCleartextTraffic()=}")
+    for e in parser.customPermissions():
+        print(f"{e.name} | {e.permissionGroup} | {e.protectionLevel}")
+    print(parser.exportedServices())
+    '''
+    print(f'{parser.exportedComponents("dddd")=}')
+    print(f'{parser.componentStats("provider")=}')
+    print(f'{parser.exportedComponentStats("activity")=}')
