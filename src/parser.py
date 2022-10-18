@@ -17,6 +17,15 @@ class Parser():
             attr = f"{{{self.namespaces[prefix]}}}{uri}"
         return elm.attrib.get(attr)
 
+    def getApkInfo(self):
+        from collections import namedtuple
+        # use a namedtuple for more readable access to important attributes
+        Info = namedtuple("Info", "package versionCode versionName")
+        package = self._getattr(self.root, "package")
+        versionCode = self._getattr(self.root, "android:versionCode")
+        versionName = self._getattr(self.root, "android:versionName")
+        return Info(package, versionCode, versionName)
+
 
     def builtinsPermissions(self):
         """
@@ -58,21 +67,18 @@ class Parser():
         return res
 
 
-
-    
-    '''
-    For all components, android:exported is false since Android 4.2. However, 
-    if this component specified an intent filter, android:exported is automatically set to True
-    From Android 12, it's mandatory to specified android:exported property if a component
-    contains an intent filter (False or True) -> to avoid error. Otherwise, a runtime error will be delivered.
-    
-    BLOG ARTICLE : https://medium.com/androiddevelopers/lets-be-explicit-about-our-intent-filters-c5dbe2dbdce0
-    An important change is coming to Android 12 that improves both app and platform security. This change affects all apps that target Android 12.
-    Activities, services, and broadcast receivers with declared intent-filters now must explicitly declare whether they should be exported or not.
-    Prior to Android 12, components (activites, services, and broadcast receivers only) with an intent-filter declared were automatically exported
-    '''
-
     def exportedComponents(self, component):
+        """
+        For all components, android:exported is false since Android 4.2. However, 
+        if this component specified an intent filter, android:exported is automatically set to True
+        From Android 12, it's mandatory to specified android:exported property if a component
+        contains an intent filter (False or True) -> to avoid error. Otherwise, a runtime error will be delivered.
+        
+        BLOG ARTICLE : https://medium.com/androiddevelopers/lets-be-explicit-about-our-intent-filters-c5dbe2dbdce0
+        An important change is coming to Android 12 that improves both app and platform security. This change affects all apps that target Android 12.
+        Activities, services, and broadcast receivers with declared intent-filters now must explicitly declare whether they should be exported or not.
+        Prior to Android 12, components (activites, services, and broadcast receivers only) with an intent-filter declared were automatically exported
+        """
         #check if there is android:exported property set to True (no matter intent filter)
         exported_component = {self._getattr(e, "android:name") for e in self.root.findall(f'application/{component}[@android:exported="true"]', namespaces=self.namespaces)}
         #check if there an intent filter in component tag

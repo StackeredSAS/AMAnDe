@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     parser = Parser(args.path)
     analyzer = Analyzer(parser, args)
-    #analyzer.runAllTests()
+    analyzer.runAllTests()
 
 
 
@@ -34,3 +34,4 @@ if __name__ == "__main__":
     print(f'{parser.exportedComponents("dddd")=}')
     print(f'{parser.componentStats("provider")=}')
     print(f'{parser.exportedComponentStats("activity")=}')
+    #print(parser.getApkInfo())

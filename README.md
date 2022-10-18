@@ -23,6 +23,5 @@ python3 -m unittest -b unitTests/tests.py
 - def isDeepLinkUsed 
 - def receiverAnalysis 
 - def providerAnalysis
-- def apkInfo
 - def servicesAnalysis
 - def activitiesAnalysis

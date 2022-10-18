@@ -29,6 +29,33 @@ class Analyzer():
         else:
             raise NotImplementedError("Unknown logging level")
 
+    def showApkInfo(self):
+        printTestInfo("APK information")
+        info = self.parser.getApkInfo()
+        self.logger.info(f'Package name: {info.package}')
+        if info.versionCode is not None: self.logger.info(f'Version code: {info.versionCode}')
+        if info.versionName is not None: self.logger.info(f'Version name: {info.versionName}')
+
+        self.logger.info(f'Minimal SDK version: {self.args.min_sdk_version}')
+        self.logger.info(f'Maximal SDK version: {self.args.max_sdk_version}')
+
+        activities_number = self.parser.componentStats("activity")
+        exported_activities_number = self.parser.exportedComponentStats("activity")
+        self.logger.info(f'Number of activities: {activities_number} ({exported_activities_number} exported)')
+        
+        receivers_number = self.parser.componentStats("receiver")
+        exported_receivers_number = self.parser.exportedComponentStats("receiver")
+        self.logger.info(f'Number of receivers: {receivers_number} ({exported_receivers_number} exported)')
+
+        providers_number = self.parser.componentStats("provider")
+        exported_providers_number = self.parser.exportedComponentStats("provider")
+        self.logger.info(f'Number of providers: {providers_number} ({exported_providers_number} exported)')
+
+        services_number = self.parser.componentStats("service")
+        exported_services_number = self.parser.exportedComponentStats("service")
+        self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
+
+
     def analyseBuiltinsPerms(self):
         printTestInfo("Analyzing required builtin permissions")
         header = ["builtin Permissions"]
@@ -138,9 +165,9 @@ class Analyzer():
             self.getBackupRulesFile()
         self.isBackupAgentImplemented()
 
-    # Pay attention : Check the default value of exported property for services, broadcast receiver etc.
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
+        self.showApkInfo()
         self.analyseBuiltinsPerms()
         self.analyzeBackupFeatures()
         self.getNetworkConfigFile()
