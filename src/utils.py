@@ -43,6 +43,9 @@ def str2Bool(s):
 
 
 def getResourceTypeName(value):
+    # issue : this crashes when parsing APK
+    # ressources might have this form : @7F140002
+    # we have to handle this case and ideally resolve the reference to the associated ressource
     if value is not None:
         value = value.split("/")[1]
     if value:
