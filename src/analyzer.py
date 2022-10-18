@@ -60,13 +60,15 @@ class Analyzer():
         printTestInfo("Analyzing required builtin permissions")
         header = ["builtin Permissions"]
         table = []
-
         for perm in self.parser.builtinsPermissions():
-            if perm in dangerous_perms:
-                perm = colored(perm, "red")
-
-            table.append([perm])
-        self.logger.info(tabulate(table, header, tablefmt="github"))
+            if perm in dangerous_perms :
+                perm = colored(perm, "yellow")
+                table.append([perm])
+            elif self.logger.level <= logging.INFO:
+                table.append([perm])
+        # there is nothing to show above this level
+        if self.logger.level <= logging.WARNING:
+            print(tabulate(table, header, tablefmt="github"))
 
     def isADBBackupAllowed(self):
         """

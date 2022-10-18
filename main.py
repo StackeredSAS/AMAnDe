@@ -30,8 +30,7 @@ if __name__ == "__main__":
     for e in parser.customPermissions():
         print(f"{e.name} | {e.permissionGroup} | {e.protectionLevel}")
     print(parser.exportedServices())
-    '''
     print(f'{parser.exportedComponents("dddd")=}')
     print(f'{parser.componentStats("provider")=}')
     print(f'{parser.exportedComponentStats("activity")=}')
-    #print(parser.getApkInfo())
+    '''
