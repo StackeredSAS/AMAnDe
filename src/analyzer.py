@@ -70,8 +70,8 @@ class Analyzer():
                 table.append([perm])
         # there is nothing to show above this level
         if self.logger.level <= logging.WARNING:
-            print(tabulate(table, header, tablefmt="outline"))
-            self.logger.warning(f'APK requires {dangerous_perms_number} dangerous permissions to properly works. Check it out!')
+            if len(table) > 0: print(tabulate(table, header, tablefmt="outline"))
+            if dangerous_perms_number > 0: self.logger.warning(f'APK requires {dangerous_perms_number} dangerous permissions to work properly. Check it out!')
 
     def isADBBackupAllowed(self):
         """
