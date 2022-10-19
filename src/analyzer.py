@@ -210,6 +210,10 @@ class Analyzer():
         self.isBackupAgentImplemented()
 
     def isDebuggable(self):
+        """
+        Default value is False
+        https://developer.android.com/guide/topics/manifest/application-element#debug
+        """
         printTestInfo("Checking compilation mode")
         debuggable = self.parser.debuggable()
         if debuggable:
