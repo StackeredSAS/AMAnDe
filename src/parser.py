@@ -69,14 +69,12 @@ class Parser():
         """
         from collections import namedtuple
         # use a namedtuple for more readable access to important attributes
-        CustomPerm = namedtuple("CustomPerm", "name permissionGroup protectionLevel")
+        CustomPerm = namedtuple("CustomPerm", "name protectionLevel")
         res = []
         for perm in self.root.findall('permission'):
             name = self._getattr(perm, "android:name")
-            # not sure if permission group is important or not
-            permissionGroup = self._getattr(perm, "android:permissionGroup")
             protectionLevel = self._getattr(perm, "android:protectionLevel")
-            res.append(CustomPerm(name, permissionGroup, protectionLevel))
+            res.append(CustomPerm(name, protectionLevel))
         return res
 
 
