@@ -29,3 +29,4 @@ python3 -m unittest -b unitTests/tests.py
 - def providerAnalysis
 - def servicesAnalysis
 - def activitiesAnalysis
+- checker si sdk mismatch entre args et manifest (dans apkinfo)
