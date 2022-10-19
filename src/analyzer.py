@@ -56,7 +56,7 @@ class Analyzer():
         self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
 
 
-    def analyseBuiltinsPerms(self):
+    def analyzeBuiltinsPerms(self):
         printTestInfo("Analyzing required builtin permissions")
         header = ["builtin Permissions"]
         table = []
@@ -78,6 +78,39 @@ class Analyzer():
                     msg = "permissions"
                 self.logger.warning(
                     f'APK requires {dangerous_perms_number} dangerous {msg} to work properly. Check it out!')
+
+    def analyzeCustomPerms(self):
+        printTestInfo("Analyzing custom permissions")
+        #Objectif : afficher le tout ce qui est en dessous de dangerous en orange car cela signifie
+        #qu'une app malveillante peut utiliser la permissions (avec l'accord de l'utilisateur pour dangerous mais quand même)
+        table = []
+        header = ["name", "protectionLevel"]
+        custom_permissions = self.parser.customPermissions()
+        dangerous_protection_level = 0
+
+
+        for custom_permission in custom_permissions:
+            name = custom_permission.name
+            protectionLevel = custom_permission.protectionLevel
+
+            if protectionLevel == "normal" or protectionLevel == "dangerous":
+                name = colored(name,"red")
+                protectionLevel = colored(protectionLevel,"red")
+                table.append([name, protectionLevel])
+                dangerous_protection_level+=1
+            elif self.logger.level <= logging.INFO:
+                table.append([name, protectionLevel])
+
+        #if self.logger.level <= logging.CRITICAL:
+        if len(table) > 0: print(tabulate(table, header, tablefmt="outline"))
+        if dangerous_protection_level > 0:
+            if dangerous_protection_level == 1:
+                msg = "permission"
+            else:
+                msg = "permissions"
+            self.logger.critical(
+                f'APK declared {dangerous_protection_level} custom {msg} with a protectionLevel <= dangerous. Check it out!')
+
 
 
     def isADBBackupAllowed(self):
@@ -177,10 +210,44 @@ class Analyzer():
             self.getBackupRulesFile()
         self.isBackupAgentImplemented()
 
+    def isDebuggable(self):
+        """
+        Default value is False
+        https://developer.android.com/guide/topics/manifest/application-element#debug
+        """
+        printTestInfo("Checking compilation mode")
+        debuggable = self.parser.debuggable()
+        if debuggable:
+            self.logger.warning("Debuggable flag found. APK can be debugged on a device running in user mode")
+            return True
+        self.logger.info("APK is not compiled in debug mode")
+        return False
+
+    def isCleartextTrafficAllowed(self):
+        """
+        https://developer.android.com/guide/topics/manifest/application-element#usesCleartextTraffic
+        Indicates whether the app intends to use cleartext network traffic, such as cleartext HTTP. 
+        The default value for apps that target API level 27 or lower is "true". 
+        Apps that target API level 28 or higher default to "false". 
+        """
+        printTestInfo("Checking if http traffic can be used")
+        cleartextTraffic = self.parser.usesCleartextTraffic()
+        if cleartextTraffic or (cleartextTraffic is None and self.args.min_sdk_version <= 27):
+            self.logger.warning("This app may intend to use cleartext network traffic "
+                "such as HTTP to communicate with remote hosts")
+            return True
+        self.logger.info("Usage of cleartext traffic is not allowed "
+            "(this flag is honored as a best effort, please refer to the documentation)")
+        return False
+
+
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
         self.showApkInfo()
-        self.analyseBuiltinsPerms()
+        self.analyzeBuiltinsPerms()
+        self.analyzeCustomPerms()
         self.analyzeBackupFeatures()
         self.getNetworkConfigFile()
+        self.isDebuggable()
+        self.isCleartextTrafficAllowed()
                 

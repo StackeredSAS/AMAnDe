@@ -110,5 +110,44 @@ class TestAnalyzer(unittest.TestCase):
             res = self.analyzer.getNetworkConfigFile()
             self.assertEqual(res, expected, f"{networkSecurityConfig=} should produce {expected} but produced {res}")
 
+    def test_isDebuggable(self):
+        # the tuple elements represents :
+        # debuggable, expectedResult
+        testCases = [
+            (True, True),
+            (False, False),
+            (None,False)
+        ]
+
+        for testCase in testCases:
+            debuggable = testCase[0]
+            expected = testCase[1]
+            self.parser.debuggable = lambda: debuggable
+            res = self.analyzer.isDebuggable()
+            self.assertEqual(res, expected, f"{debuggable=} should produce {expected} but produced {res}")
+
+
+    def test_isCleartextTrafficAllowed(self):
+        # the tuple elements represents :
+        # usesCleartextTraffic, min_sdk_version, expectedResult
+        testCases = [
+            (True, 27, True),
+            (True, 20, True),
+            (True, 28, True),
+            (False, 30, False),
+            (None, 27, True),
+            (None, 20, True),
+            (None, 28, False),
+        ]
+
+        for testCase in testCases:
+            usesCleartextTraffic = testCase[0]
+            min_sdk_version = testCase[1]
+            expected = testCase[2]
+            self.parser.usesCleartextTraffic = lambda: usesCleartextTraffic
+            self.args.min_sdk_version = min_sdk_version
+            res = self.analyzer.isCleartextTrafficAllowed()
+            self.assertEqual(res, expected, f"{usesCleartextTraffic=} and {min_sdk_version} should produce {expected} but produced {res}")
+
 if __name__ == '__main__':
     unittest.main(buffer=True)
