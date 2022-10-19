@@ -80,6 +80,7 @@ class Analyzer():
                     f'APK requires {dangerous_perms_number} dangerous {msg} to work properly. Check it out!')
 
     def analyzeCustomPerms(self):
+        printTestInfo("Analyzing custom permissions")
         #Objectif : afficher le tout ce qui est en dessous de dangerous en orange car cela signifie
         #qu'une app malveillante peut utiliser la permissions (avec l'accord de l'utilisateur pour dangerous mais quand même)
         table = []
