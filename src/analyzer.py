@@ -217,7 +217,7 @@ class Analyzer():
         printTestInfo("Checking compilation mode")
         debuggable = self.parser.debuggable()
         if debuggable:
-            self.logger.warning("Debuggable flag found. APK can be debug on a device running in user mode")
+            self.logger.warning("Debuggable flag found. APK can be debugged on a device running in user mode")
             return True
         self.logger.info("APK is not compiled in debug mode")
         return False
