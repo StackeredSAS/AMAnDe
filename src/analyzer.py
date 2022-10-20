@@ -228,9 +228,14 @@ class Analyzer():
         https://developer.android.com/guide/topics/manifest/application-element#usesCleartextTraffic
         Indicates whether the app intends to use cleartext network traffic, such as cleartext HTTP. 
         The default value for apps that target API level 27 or lower is "true". 
-        Apps that target API level 28 or higher default to "false". 
+        Apps that target API level 28 or higher default to "false".
+        This flag is ignored on Android 7.0 (API level 24) and above if an Android Network Security Config is present.
         """
         printTestInfo("Checking if http traffic can be used")
+        network_security_config_xml_file = self.parser.networkSecurityConfig()
+        if network_security_config_xml_file is not None and self.args.min_sdk_version >= 24:
+            self.logger.info("APK network security configuration is defined. Please refer to this test instead.")
+            return
         cleartextTraffic = self.parser.usesCleartextTraffic()
         if cleartextTraffic or (cleartextTraffic is None and self.args.min_sdk_version <= 27):
             self.logger.warning("This app may intend to use cleartext network traffic "
