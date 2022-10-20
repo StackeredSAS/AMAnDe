@@ -20,9 +20,6 @@ python3 -m unittest -b unitTests/tests.py
 
 ## todo
 - tester avec des APK compilées avec aapt et aapt2
-- corrgier les crash de getResourceTypeName (APK only)
-- terminer la fonction analyseBuiltinsPerms
-- implementer les tests sur les custom perms
 - def isAppLinkUsed 
 - def isDeepLinkUsed 
 - def receiverAnalysis 

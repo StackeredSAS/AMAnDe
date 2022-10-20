@@ -42,5 +42,34 @@ dangerous_perms = [ 'android.permission.ACCEPT_HANDOVER',
 					'android.permission.WRITE_EXTERNAL_STORAGE'
 ]
 
-
+# https://developer.android.com/reference/android/R.attr#protectionLevel
+protection_levels = {
+	200000 : "appPredictor",
+	40 : "appop",
+	800000 : "companion",
+	80000 : "configurator",
+	1 : "dangerous",
+	20 : "development",
+	100000 : "incidentReportApprover",
+	100 : "installer",
+	1000 : "instant",
+	4 : "internal",
+	8000000 : "knownSigner",
+	0 : "normal",
+	4000 : "oem",
+	80 : "pre23",
+	400 : "preinstalled",
+	10 : "privileged",
+	2000000 : "recents",
+	1000000 : "retailDemo",
+	4000000 : "role",
+	2000 : "runtime",
+	800 : "setup",
+	2 : "signature",
+	3 : "signatureOrSystem",
+	# 10 : "system",     # same as privileged but depreciated
+	10000 : "textClassifier",
+	8000 : "vendorPrivileged",
+	200 : "verifier"
+}
 

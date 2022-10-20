@@ -3,24 +3,11 @@ from .utils import (
     str2Bool,
     getResourceTypeName
 )
-from zipfile import ZipFile, BadZipfile
-from pyaxmlparser.axmlprinter import AXMLPrinter
-# for virtual file handling in case of APK
-from io import StringIO
 
 class Parser():
 
     def __init__(self, path):
-        try:
-            # decode AXML file in memory without writing to disk
-            path = StringIO(AXMLPrinter(ZipFile(path).open("AndroidManifest.xml", "r").read()).get_xml().decode())
-            is_apk = True
-        except BadZipfile:
-            is_apk = False
-
         self.namespaces = dict([node for _, node in ET.iterparse(path, events=['start-ns'])])
-        # because it's the same file object, we have to rewind to the beginning before parsing again
-        if is_apk : path.seek(0)
         self.tree = ET.parse(path)
         self.root = self.tree.getroot()
 
@@ -29,6 +16,7 @@ class Parser():
             prefix, uri = attr.split(":", 1)
             attr = f"{{{self.namespaces[prefix]}}}{uri}"
         return elm.attrib.get(attr)
+
 
     def getApkInfo(self):
         from collections import namedtuple
@@ -127,3 +115,7 @@ class Parser():
             return 1
         # if the element is not defined, we don't know
         return 0 # don't use None because it complexifies the code when checking for level>X
+
+    def getNetworkSecurityConfig(self):
+        # will be overwritten in the APKParser class
+        return None
