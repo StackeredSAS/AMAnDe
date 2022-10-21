@@ -197,6 +197,10 @@ class Analyzer():
         printTestInfo("Checking the existence of network_security_config XML file")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
         if network_security_config_xml_file is not None:
+            # dans le cas d'un APK rajouter des sous tests
+            # le cleartext traffic sera probablement géré dans le test a cet effet donc pas besoin de le faire ici
+            # on peut checker le certificate pinning et les trust anchors ici dans 2 sous-tests
+            # si pas un APK ca reste comme ça
             self.logger.info(f'APK network security configuration is defined in "{network_security_config_xml_file}" file')
             return True
         self.logger.warning("networkSecurityConfig property not found")
@@ -228,9 +232,17 @@ class Analyzer():
         https://developer.android.com/guide/topics/manifest/application-element#usesCleartextTraffic
         Indicates whether the app intends to use cleartext network traffic, such as cleartext HTTP. 
         The default value for apps that target API level 27 or lower is "true". 
-        Apps that target API level 28 or higher default to "false". 
+        Apps that target API level 28 or higher default to "false".
+        This flag is ignored on Android 7.0 (API level 24) and above if an Android Network Security Config is present.
         """
         printTestInfo("Checking if http traffic can be used")
+        network_security_config_xml_file = self.parser.networkSecurityConfig()
+        if network_security_config_xml_file is not None and self.args.min_sdk_version >= 24:
+            # a terme remplacer ça par un call vers une autre fonction qui analyse le contenu du network security config
+            # pour specifiquement voir si HTTP est autorisé et pour quels domaines
+            # evidement cela que dans le cas d'un APK, sinon ça reste comme ça je pense
+            self.logger.info("APK network security configuration is defined. Please refer to this test instead.")
+            return
         cleartextTraffic = self.parser.usesCleartextTraffic()
         if cleartextTraffic or (cleartextTraffic is None and self.args.min_sdk_version <= 27):
             self.logger.warning("This app may intend to use cleartext network traffic "

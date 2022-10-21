@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import unittest
 from src.analyzer import Analyzer
-from src.parser import Parser
+from src.apkParser import APKParser
 import logging
 logging.disable(logging.CRITICAL)
 
-class FakeParser(Parser):
+class FakeParser(APKParser):
     # a fake parser class that allows init with no args
     def __init__(self):
         pass
@@ -129,21 +129,29 @@ class TestAnalyzer(unittest.TestCase):
 
     def test_isCleartextTrafficAllowed(self):
         # the tuple elements represents :
-        # usesCleartextTraffic, min_sdk_version, expectedResult
+        # usesCleartextTraffic, min_sdk_version, networkSecurityConfig, expectedResult
         testCases = [
-            (True, 27, True),
-            (True, 20, True),
-            (True, 28, True),
-            (False, 30, False),
-            (None, 27, True),
-            (None, 20, True),
-            (None, 28, False),
+            (True, 27, None, True),
+            (True, 20, None, True),
+            (True, 28, None, True),
+            (False, 30, None, False),
+            (None, 27, None, True),
+            (None, 20, None, True),
+            (None, 28, None, False),
+            (None, 23, "bla", True),
+            (True, 23, "bla", True),
+            (False, 23, "bla", False),
+            (None, 24, "bla", None),
+            (True, 24, "bla", None),
+            (False, 24, "bla", None),
         ]
 
         for testCase in testCases:
             usesCleartextTraffic = testCase[0]
             min_sdk_version = testCase[1]
-            expected = testCase[2]
+            networkSecurityConfig = testCase[2]
+            expected = testCase[3]
+            self.parser.networkSecurityConfig = lambda: networkSecurityConfig
             self.parser.usesCleartextTraffic = lambda: usesCleartextTraffic
             self.args.min_sdk_version = min_sdk_version
             res = self.analyzer.isCleartextTrafficAllowed()
