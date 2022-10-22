@@ -69,7 +69,7 @@
             android:exported="true"
             android:theme="@style/AppTheme.Starting"
             android:windowSoftInputMode="adjustPan">
-            <intent-filter>
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -176,7 +176,7 @@
         <activity
             android:name=".ui.activity.LicenseCheckActivity"
             android:launchMode="singleTask">
-            <intent-filter android:label="@string/dialog_enter_license_title">
+            <intent-filter android:label="@string/dialog_enter_license_title" android:autoVerify="true">
                 <action android:name="android.intent.action.TEST1" />
 
                 <category android:name="android.intent.category.DEFAULT" />
@@ -186,7 +186,7 @@
                     android:host="*"
                     android:scheme="cryptomator" />
             </intent-filter>
-            <intent-filter android:label="@string/dialog_enter_license_title">
+            <intent-filter android:label="@string/dialog_enter_license_title2">
                 <action android:name="android.intent.action.TEST2" />
                 <action android:name="android.intent.action.VIEW" />
 
@@ -200,7 +200,7 @@
                     android:scheme="https" />
             </intent-filter>
 
-            <intent-filter android:label="@string/dialog_enter_license_title">
+            <intent-filter android:label="@string/dialog_enter_license_title3">
                 <action android:name="android.intent.action.TEST3" />
 
                 <category android:name="android.intent.category.DEFAULT" />
