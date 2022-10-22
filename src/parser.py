@@ -108,6 +108,7 @@ class Parser:
             if min_level is not None and max_level is not None:
                 return (int(min_level),int(max_level))
             if min_level is not None:
+                #if max_level does not exist return 0
                 return (int(min_level),0)
             if max_level is not None:
                 return (1,int(max_level))
