@@ -45,17 +45,20 @@ class Analyzer():
         warning_msg_2 = ""
         res = 0
 
-        if uses_sdk_min_sdk_version !=1 and uses_sdk_min_sdk_version != min_sdk_version_args:
+        if uses_sdk_min_sdk_version != 0 and uses_sdk_min_sdk_version != min_sdk_version_args:
             res |= 1
-            warning_msg_1 += colored("(Mismatch between min_sdk_version " 
-                "specified in args and uses-sdk tag)", "yellow")
-        if uses_sdk_max_sdk_version !=0 and uses_sdk_max_sdk_version != max_sdk_version_args:
+            warning_msg_1 += colored("(Mismatch between args "
+                                     f"and uses-sdk tag : {uses_sdk_min_sdk_version})", "yellow")
+        if uses_sdk_max_sdk_version != 0 and uses_sdk_max_sdk_version != max_sdk_version_args:
             res |= 2
-            warning_msg_2 += colored("(Mismatch between max_sdk_version "
-                "specified in args and uses-sdk tag)", "yellow")
+            warning_msg_2 += colored("(Mismatch between args "
+                                     f"and uses-sdk tag : {uses_sdk_max_sdk_version})", "yellow")
 
         self.logger.info(f'Minimal SDK version: {min_sdk_version_args} {warning_msg_1}')
         self.logger.info(f'Maximal SDK version: {max_sdk_version_args} {warning_msg_2}')
+        if uses_sdk_max_sdk_version != 0:
+            self.logger.warning("Declaring the android:maxSdkVersion attribute is not recommended. "
+                                "Please check the official documentation")
 
         activities_number = self.parser.componentStats("activity")
         exported_activities_number = self.parser.exportedComponentStats("activity")
@@ -72,6 +75,8 @@ class Analyzer():
         services_number = self.parser.componentStats("service")
         exported_services_number = self.parser.exportedComponentStats("service")
         self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
+
+        return res
 
     def analyzeBuiltinsPerms(self):
         printTestInfo("Analyzing required builtin permissions")

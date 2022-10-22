@@ -5,7 +5,7 @@
     android:versionCode="10383443434"
     android:versionName="1.2.4">
 
-    <uses-sdk android:minSdkVersion="15" android:targetSdkVersion="26" />
+    <uses-sdk android:minSdkVersion="15" android:targetSdkVersion="26" android:maxSdkVersion="31"/>
 
     <!--Android permissions-->
     <uses-permission android:name="android.permission.INTERNET" />
