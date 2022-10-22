@@ -105,11 +105,9 @@ class Parser:
         min_level = 0
         max_level = 0
         if usesSdk != None:
-            min_level = self._getattr(usesSdk, "android:minSdkVersion") or 1
+            min_level = int(self._getattr(usesSdk, "android:minSdkVersion") or 1)
             # if max_level does not exist return 0
-            max_level = self._getattr(usesSdk, "android:maxSdkVersion") or 0
-            min_level = int(min_level)
-            max_level = int(max_level)
+            max_level = int(self._getattr(usesSdk, "android:maxSdkVersion") or 0)
         return (min_level, max_level)
 
     def getNetworkSecurityConfig(self):
