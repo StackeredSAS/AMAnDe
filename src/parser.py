@@ -95,17 +95,20 @@ class Parser:
     def networkSecurityConfig(self):
         return getResourceTypeName(self._getattr(self.root.find("application"), "android:networkSecurityConfig"))
 
-    def minSdkVersion(self):
+    def getSdkVersion(self):
+        """
+        https://developer.android.com/guide/topics/manifest/uses-sdk-element
+        if uses-sdk exists but the minSdkVersion is not set, the default value is 1
+        """
         usesSdk = self.root.find("uses-sdk")
+        # if not defined return 0
+        min_level = 0
+        max_level = 0
         if usesSdk != None:
-            level = self._getattr(usesSdk, "android:minSdkVersion")
-            if level != None:
-                return int(level)
-            # https://developer.android.com/guide/topics/manifest/uses-sdk-element
-            # if the element exists but the attribute is not set, the default value is 1
-            return 1
-        # if the element is not defined, we don't know
-        return 0 # don't use None because it complexifies the code when checking for level>X
+            min_level = int(self._getattr(usesSdk, "android:minSdkVersion") or 1)
+            # if max_level does not exist return 0
+            max_level = int(self._getattr(usesSdk, "android:maxSdkVersion") or 0)
+        return (min_level, max_level)
 
     def getNetworkSecurityConfig(self):
         # will be overwritten in the APKParser class
@@ -141,13 +144,17 @@ class Parser:
             schemes = {self._getattr(e, "android:scheme") for e in datas} - {None} or {None}
             hosts = {self._getattr(e, "android:host") for e in datas} - {None} or {None}
             port = {self._getattr(e, "android:port") for e in datas} - {None} or {None}
+
             # path, pathPattern and pathPrefix have the same role
-            path = {self._getattr(e, "android:path") for e in datas} - {None} or {None}
-            pathPattern = {self._getattr(e, "android:pathPattern") for e in datas} - {None} or {None}
-            pathPrefix = {self._getattr(e, "android:pathPrefix") for e in datas} - {None} or {None}
+            path = {self._getattr(e, "android:path") for e in datas} - {None}
+            pathPattern = {self._getattr(e, "android:pathPattern") for e in datas} - {None}
+            pathPrefix = {self._getattr(e, "android:pathPrefix") for e in datas} - {None}
+            pathPrefix = {f"{e}/.*" for e in pathPrefix} or {None} # respect syntax of pathPattern
+
             # put them in the same set
             path.update(pathPrefix)
             path.update(pathPattern)
+
             mimeType = {self._getattr(e, "android:mimeType") for e in datas} - {None} or {""}
             mimetypes = "\n".join(mimeType)
 

@@ -7,6 +7,7 @@ Parsing and analyzing AndroidManifest.xml
 ```
 python3 -m pip install -r requirements.txt
 python3 -m unittest -b unitTests/tests.py
+python3 -m cProfile -s 'cumulative' main.py -max 23 -min 18 examples/AndroidManifest.xml
 ```
 
 ## Compiling example APK without Android Studio

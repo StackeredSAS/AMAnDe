@@ -2,6 +2,7 @@
 import unittest
 from src.analyzer import Analyzer
 from src.apkParser import APKParser
+from collections import namedtuple
 import logging
 logging.disable(logging.CRITICAL)
 
@@ -15,7 +16,6 @@ class TestAnalyzer(unittest.TestCase):
     # This allows much simpler unit tests writing. No need to generated custom manifests.
     parser = FakeParser()
     # fake args
-    from collections import namedtuple
     args = namedtuple("a", "log_level max_sdk_version min_sdk_version")
     args.log_level = "INFO"
     analyzer = Analyzer(parser, args)
@@ -59,6 +59,45 @@ class TestAnalyzer(unittest.TestCase):
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.isAutoBackupAllowed()
             self.assertEqual(res, expected, f"{allowBackup=} and {max_sdk_version=} should produce {expected} but produced {res}")
+
+    #Do not manage to handle test with tuple
+    def test_showApkInfo(self):
+        # the tuple elements represents :
+        # getSdkVersion[0] (uses_sdk_min_sdk_version), getSdkVersion[1](uses_sdk_max_sdk_version),
+        # args_min_sdk_version, args_max_sdk_version, expectedResult
+        testCases = [
+            ((15, 30), 15, 30, 0),
+            ((15, 30), 20, 30, 1),
+            ((15, 30), 20, 30, 1),
+            ((15, 30), 20, 31, 3),
+            ((15, 30), 15, 31, 2),
+            ((15, 30), 1, 30, 1),
+            ((15, 30), 1, 31, 3),
+            ((15, 30), 15, 0, 2),
+            ((15, 30), 16, 0, 3),
+            ((15, 30), 1, 0, 3),
+            ((0, 0), 15, 30, 0),
+            ((1, 0), 15, 30, 1),
+            ((0, 4), 15, 30, 2),
+            ((13, 4), 15, 30, 3),
+            ((15, 0), 15, 30, 0),
+            ((0, 30), 15, 30, 0),
+            ((1, 30), 15, 30, 1),
+        ]
+        Info = namedtuple("Info", "package versionCode versionName")
+        self.parser.getApkInfo = lambda: Info("pack", "12", "1.2")
+        self.parser.componentStats = lambda x: 0
+        self.parser.exportedComponentStats = lambda x: 0
+        for testCase in testCases:
+            getSdkVersion = testCase[0]
+            min_sdk_version = testCase[1]
+            max_sdk_version = testCase[2]
+            expected = testCase[3]
+            self.parser.getSdkVersion = lambda: getSdkVersion
+            self.args.min_sdk_version = min_sdk_version
+            self.args.max_sdk_version = max_sdk_version
+            res = self.analyzer.showApkInfo()
+            self.assertEqual(res, expected, f"{getSdkVersion=} and {min_sdk_version=} and {max_sdk_version=} should produce {expected} but produced {res}")
 
     def test_isBackupAgentImplemented(self):
         # the tuple elements represents :

@@ -36,8 +36,29 @@ class Analyzer():
         if info.versionCode is not None: self.logger.info(f'Version code: {info.versionCode}')
         if info.versionName is not None: self.logger.info(f'Version name: {info.versionName}')
 
-        self.logger.info(f'Minimal SDK version: {self.args.min_sdk_version}')
-        self.logger.info(f'Maximal SDK version: {self.args.max_sdk_version}')
+        versions = self.parser.getSdkVersion()
+        uses_sdk_min_sdk_version = versions[0]
+        uses_sdk_max_sdk_version = versions[1]
+        min_sdk_version_args = self.args.min_sdk_version
+        max_sdk_version_args = self.args.max_sdk_version
+        warning_msg_1 = ""
+        warning_msg_2 = ""
+        res = 0
+
+        if uses_sdk_min_sdk_version != 0 and uses_sdk_min_sdk_version != min_sdk_version_args:
+            res |= 1
+            warning_msg_1 += colored("(Mismatch between args "
+                                     f"and uses-sdk tag : {uses_sdk_min_sdk_version})", "yellow")
+        if uses_sdk_max_sdk_version != 0 and uses_sdk_max_sdk_version != max_sdk_version_args:
+            res |= 2
+            warning_msg_2 += colored("(Mismatch between args "
+                                     f"and uses-sdk tag : {uses_sdk_max_sdk_version})", "yellow")
+
+        self.logger.info(f'Minimal SDK version: {min_sdk_version_args} {warning_msg_1}')
+        self.logger.info(f'Maximal SDK version: {max_sdk_version_args} {warning_msg_2}')
+        if uses_sdk_max_sdk_version != 0:
+            self.logger.warning("Declaring the android:maxSdkVersion attribute is not recommended. "
+                                "Please check the official documentation")
 
         activities_number = self.parser.componentStats("activity")
         exported_activities_number = self.parser.exportedComponentStats("activity")
@@ -54,6 +75,8 @@ class Analyzer():
         services_number = self.parser.componentStats("service")
         exported_services_number = self.parser.exportedComponentStats("service")
         self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
+
+        return res
 
     def analyzeBuiltinsPerms(self):
         printTestInfo("Analyzing required builtin permissions")
@@ -260,12 +283,12 @@ class Analyzer():
         print(tabulate(table, headers, tablefmt="fancy_grid"))
 
     def isAppLinkUsed(self):
-        printSubTestInfo("Checking for applinks")
+        printSubTestInfo("Checking for AppLinks")
         self.logger.warning(
             "Found a deeplink in activity AuthenticatePCloudActivity : pcloudoauth://mobile.example.com")
 
     def isDeepLinkUsed(self):
-        printSubTestInfo("Checking for deeplinks")
+        printSubTestInfo("Checking for DeepLinks")
         self.logger.critical("Found a deeplink in activity LicenseCheckActivity : https://android.cryptomator.org")
         return True
 
@@ -277,6 +300,7 @@ class Analyzer():
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
         self.showApkInfo()
+        '''
         self.analyzeBuiltinsPerms()
         self.analyzeCustomPerms()
         self.analyzeBackupFeatures()
@@ -284,4 +308,5 @@ class Analyzer():
         self.isDebuggable()
         self.isCleartextTrafficAllowed()
         self.analyzeIntentFilters()
+        '''
                 
