@@ -31,12 +31,10 @@ class Analyzer():
 
     def showApkInfo(self):
         printTestInfo("APK information")
-        '''
         info = self.parser.getApkInfo()
         self.logger.info(f'Package name: {info.package}')
         if info.versionCode is not None: self.logger.info(f'Version code: {info.versionCode}')
         if info.versionName is not None: self.logger.info(f'Version name: {info.versionName}')
-        '''
 
         versions = self.parser.getSdkVersion()
         uses_sdk_min_sdk_version = versions[0]
