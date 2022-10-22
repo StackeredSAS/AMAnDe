@@ -12,8 +12,16 @@ python3 -m unittest -b unitTests/tests.py
 ## Compiling example APK without Android Studio
 ```
 aapt2 compile --dir <path_to_res_directory> -o <name_of_output_zip>
-unzip -d resources <name_of_output_zip>
-aapt2 link resources/* -o <name_of_output_apk> <path_to_android.jar_resource_file> --manifest <path_to_the_Manifest> -v
+aapt2 link <name_of_output_zip> -o <name_of_output_apk> -I <path_to_android.jar or apk> --manifest <path_to_the_Manifest> -v
+```
+
+example (requires apktool) : 
+
+```
+git clone https://github.com/codepath/intro_android_demo.git
+aapt2 compile --dir intro_android_demo/app/src/main/res/ -o resources.zip
+aapt2 link resources.zip -o test.apk --manifest intro_android_demo/app/src/main/AndroidManifest.xml -I /Users/florianpicca/Library/apktool/framework/1.apk -v
+unzip -l test.apk
 ```
 
 ## Usage
