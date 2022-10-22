@@ -34,7 +34,6 @@ unzip -l test.apk
 ```
 
 ## todo
-- tester avec des APK compilées avec aapt et aapt2
 - def isAppLinkUsed 
 - def isDeepLinkUsed 
 - def receiverAnalysis 
@@ -42,3 +41,4 @@ unzip -l test.apk
 - def servicesAnalysis
 - def activitiesAnalysis
 - checker si sdk mismatch entre args et manifest (dans apkinfo)
+- si apk check for kernel.bin (flutter app)

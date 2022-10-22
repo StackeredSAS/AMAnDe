@@ -3,8 +3,10 @@ from .utils import (
     str2Bool,
     getResourceTypeName
 )
+from itertools import product
 
-class Parser():
+
+class Parser:
 
     def __init__(self, path):
         self.namespaces = dict([node for _, node in ET.iterparse(path, events=['start-ns'])])
@@ -17,7 +19,6 @@ class Parser():
             attr = f"{{{self.namespaces[prefix]}}}{uri}"
         return elm.attrib.get(attr)
 
-
     def getApkInfo(self):
         from collections import namedtuple
         # use a namedtuple for more readable access to important attributes
@@ -27,7 +28,6 @@ class Parser():
         versionName = self._getattr(self.root, "android:versionName")
         return Info(package, versionCode, versionName)
 
-
     def builtinsPermissions(self):
         """
         récupère les builtins permissions
@@ -35,7 +35,6 @@ class Parser():
         """
         return [self._getattr(perm, "android:name") for perm in self.root.findall('uses-permission')]
 
-    #BACKUP 
     def allowBackup(self):
         return str2Bool(self._getattr(self.root.find("application"), "android:allowBackup"))
 
@@ -49,12 +48,6 @@ class Parser():
         return str2Bool(self._getattr(self.root.find("application"), "android:usesCleartextTraffic"))
 
     def customPermissions(self):
-        """
-        J'ai pas encore décidé si cette fonction doit juste renvoyer le nom des customPerms
-        et faire une fonction différente appellant celle-ci pour récupérer des attributs particuliers.
-        Comme-ça ca me semble bien.
-        J'y réfléchirai sérieusement quand on fera le parsing des activité, là c'est plus complexe.
-        """
         from collections import namedtuple
         # use a namedtuple for more readable access to important attributes
         CustomPerm = namedtuple("CustomPerm", "name protectionLevel")
@@ -64,7 +57,6 @@ class Parser():
             protectionLevel = self._getattr(perm, "android:protectionLevel")
             res.append(CustomPerm(name, protectionLevel))
         return res
-
 
     def exportedComponents(self, component):
         """
@@ -78,16 +70,15 @@ class Parser():
         Activities, services, and broadcast receivers with declared intent-filters now must explicitly declare whether they should be exported or not.
         Prior to Android 12, components (activites, services, and broadcast receivers only) with an intent-filter declared were automatically exported
         """
-        #check if there is android:exported property set to True (no matter intent filter)
+        # check if there is android:exported property set to True (no matter intent filter)
         exported_component = {self._getattr(e, "android:name") for e in self.root.findall(f'application/{component}[@android:exported="true"]', namespaces=self.namespaces)}
-        #check if there an intent filter in component tag
+        # check if there is an intent filter in component tag
         intent_component = {self._getattr(e, "android:name") for e in self.root.findall(f'application/{component}/intent-filter/..', namespaces=self.namespaces)}
-        #check if there is android:exported property set to False (no matter intent filter)
+        # check if there is android:exported property set to False (no matter intent filter)
         unexported_component = {self._getattr(e, "android:name") for e in self.root.findall(f'application/{component}[@android:exported="false"]', namespaces=self.namespaces)}
-        #update components (if there android:exported to False and intent-filter, component is not exported)
+        # update components (if there is android:exported to False and intent-filter, component is not exported)
         exported_component.update(intent_component - unexported_component)
         return list(exported_component)
-
 
     def componentStats(self, component):
         return len(self.root.findall(f'application/{component}'))
@@ -119,3 +110,66 @@ class Parser():
     def getNetworkSecurityConfig(self):
         # will be overwritten in the APKParser class
         return None
+
+    def getIntentFilterExportedComponents(self):
+        all_intent = {(self._getattr(e, "android:name"), e.tag) for e in self.root.findall(f'application/*/intent-filter/..')}
+        not_exported = {(self._getattr(e, "android:name"), e.tag) for e in self.root.findall(f'application/*[@android:exported="false"]/intent-filter/..', namespaces=self.namespaces)}
+        return all_intent-not_exported
+
+    def getIntentFilters(self, compname):
+        # get intent-filter element from a Element with given name
+        intents = self.root.findall(f"application/*[@android:name=\"{compname}\"]/intent-filter", namespaces=self.namespaces)
+        res = []
+        # each intent on a separated line
+        for e in intents:
+            # an intent can have multiple actions
+            names = [self._getattr(e, "android:name").split(".")[-1] for e in e.findall("action")]
+            names = "\n".join(names)
+            # an intent can have multiple categories
+            categories = [self._getattr(e, "android:name").split(".")[-1] for e in e.findall("category")]
+            categories = "\n".join(categories)
+            # https://developer.android.com/training/app-links/verify-android-applinks#multi-host
+            """
+            All <data> elements in the same intent filter are merged together to account for all variations of their
+            combined attributes. For example, the first intent filter above includes a <data> element that only declares
+            the HTTPS scheme. But it is combined with the other <data> element so that the intent filter supports both
+            http://www.example.com and https://www.example.com. As such, you must create separate intent filters when
+            you want to define specific combinations of URI schemes and domains.
+            """
+            datas = e.findall("data")
+            # recover all the possible attributes
+            schemes = {self._getattr(e, "android:scheme") for e in datas} - {None} or {None}
+            hosts = {self._getattr(e, "android:host") for e in datas} - {None} or {None}
+            port = {self._getattr(e, "android:port") for e in datas} - {None} or {None}
+            # path, pathPattern and pathPrefix have the same role
+            path = {self._getattr(e, "android:path") for e in datas} - {None} or {None}
+            pathPattern = {self._getattr(e, "android:pathPattern") for e in datas} - {None} or {None}
+            pathPrefix = {self._getattr(e, "android:pathPrefix") for e in datas} - {None} or {None}
+            # put them in the same set
+            path.update(pathPrefix)
+            path.update(pathPattern)
+            mimeType = {self._getattr(e, "android:mimeType") for e in datas} - {None} or {""}
+            mimetypes = "\n".join(mimeType)
+
+            uris = []
+            # Compute all the merged combinations of data attributes
+            for t in product(schemes, hosts, port, path, mimeType):
+                scheme, host, port_, path_, mimeType_ = t
+                # some can be None
+                scheme = scheme or ""
+                host = host or ""
+                port_ = port_ or ""
+                # Do not display ":" if port does not exist
+                if port_ != "":
+                    port_ = f":{port_}"
+                path_ = path_ or ""
+                # https://developer.android.com/guide/topics/manifest/data-element
+                uri = f"{scheme}://{host}{port_}{path_}"
+                # in case there are no link, don't append anything
+                if uri != "://":
+                    uris.append(uri)
+            uris = "\n".join(uris)
+
+            res.append([names, categories, uris, mimetypes])
+
+        return res

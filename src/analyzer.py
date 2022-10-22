@@ -55,29 +55,23 @@ class Analyzer():
         exported_services_number = self.parser.exportedComponentStats("service")
         self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
 
-
     def analyzeBuiltinsPerms(self):
         printTestInfo("Analyzing required builtin permissions")
-        header = ["builtin Permissions"]
-        table = []
         dangerous_perms_number = 0
         for perm in self.parser.builtinsPermissions():
             if perm in dangerous_perms :
-                perm = colored(perm, "yellow")
-                table.append([perm])
+                if self.logger.level <= logging.WARNING:
+                    print(colored(perm, "yellow"))
                 dangerous_perms_number+=1
-            elif self.logger.level <= logging.INFO:
-                table.append([perm])
-        # there is nothing to show above this level
-        if self.logger.level <= logging.WARNING:
-            if len(table) > 0: print(tabulate(table, header, tablefmt="outline"))
-            if dangerous_perms_number > 0:
-                if dangerous_perms_number == 1:
-                    msg = "permission"
-                else:
-                    msg = "permissions"
-                self.logger.warning(
-                    f'APK requires {dangerous_perms_number} dangerous {msg} to work properly. Check it out!')
+            else:
+                self.logger.info(perm)
+        if dangerous_perms_number > 0:
+            if dangerous_perms_number == 1:
+                msg = "permission"
+            else:
+                msg = "permissions"
+            self.logger.warning(
+                f'APK requires {dangerous_perms_number} dangerous {msg} to work properly. Check it out!')
 
     def analyzeCustomPerms(self):
         printTestInfo("Analyzing custom permissions")
@@ -102,7 +96,7 @@ class Analyzer():
                 table.append([name, protectionLevel])
 
         #if self.logger.level <= logging.CRITICAL:
-        if len(table) > 0: print(tabulate(table, header, tablefmt="outline"))
+        if len(table) > 0: print(tabulate(table, header, tablefmt="fancy_grid"))
         if dangerous_protection_level > 0:
             if dangerous_protection_level == 1:
                 msg = "permission"
@@ -252,6 +246,33 @@ class Analyzer():
             "(this flag is honored as a best effort, please refer to the documentation)")
         return False
 
+    def getIntentFilterInfo(self):
+        printTestInfo("Analysing Exported Intents")
+        headers = ["Type", "Name", "Action", "Category", "Link", "Mime Type"]
+        table = []
+        for e, tag in self.parser.getIntentFilterExportedComponents():
+            for intent_data in self.parser.getIntentFilters(e):
+                row = []
+                row.append(tag)
+                row.append(e.split(".")[-1])
+                row += intent_data
+                table.append(row)
+        print(tabulate(table, headers, tablefmt="fancy_grid"))
+
+    def isAppLinkUsed(self):
+        printSubTestInfo("Checking for applinks")
+        self.logger.warning(
+            "Found a deeplink in activity AuthenticatePCloudActivity : pcloudoauth://mobile.example.com")
+
+    def isDeepLinkUsed(self):
+        printSubTestInfo("Checking for deeplinks")
+        self.logger.critical("Found a deeplink in activity LicenseCheckActivity : https://android.cryptomator.org")
+        return True
+
+    def analyzeIntentFilters(self):
+        self.getIntentFilterInfo()
+        if self.isDeepLinkUsed():
+            self.isAppLinkUsed()
 
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
@@ -262,4 +283,5 @@ class Analyzer():
         self.getNetworkConfigFile()
         self.isDebuggable()
         self.isCleartextTrafficAllowed()
+        self.analyzeIntentFilters()
                 
