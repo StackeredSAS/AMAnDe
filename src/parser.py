@@ -27,7 +27,6 @@ class Parser:
         return res
 
     def _getResValue(self, path, name):
-        # will be overwritten in the APKParser class
         filename = path.split("/")[-1]
         res = colored(f"{filename}", attrs=["underline"])
         if name:

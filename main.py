@@ -24,6 +24,4 @@ if __name__ == "__main__":
     analyzer.runAllTests()
 
     # showcase parser unused features
-    '''
-    print(parser.getNetworkSecurityConfig())
-    '''
+    # print(parser.getNetworkSecurityConfig())
