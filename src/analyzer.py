@@ -1,6 +1,6 @@
 from termcolor import colored
 from tabulate import tabulate
-from .utils import CustomFormatter, printTestInfo, printSubTestInfo
+from .utils import CustomFormatter, printTestInfo, printSubTestInfo, checkDigitalAssetLinks
 import logging
 from .constants import dangerous_perms
 
@@ -20,11 +20,11 @@ class Analyzer():
         self.logger.addHandler(stdout_handler)
 
     def setLogLevel(self, level):
-        if level == "INFO":
+        if level == 0:
             self.logger.setLevel(logging.INFO)
-        elif level == "WARNING":
+        elif level == 1:
             self.logger.setLevel(logging.WARNING)
-        elif level == "CRITICAL":
+        elif level == 2:
             self.logger.setLevel(logging.ERROR)
         else:
             raise NotImplementedError("Unknown logging level")
@@ -128,8 +128,6 @@ class Analyzer():
             self.logger.critical(
                 f'APK declared {dangerous_protection_level} custom {msg} with a protectionLevel <= dangerous. Check it out!')
 
-
-
     def isADBBackupAllowed(self):
         """
         Checks if ADB backups are allowed.
@@ -201,10 +199,10 @@ class Analyzer():
 
         res = 0
         if fullBackupContent_xml_file_rules is not None:
-            self.logger.info(f'Custom rules has been defined to control what gets backed up in "{fullBackupContent_xml_file_rules}" file')
+            self.logger.info(f'Custom rules has been defined to control what gets backed up in {fullBackupContent_xml_file_rules} file')
             res |= 1
         if dataExtractionRules_xml_rules_files is not None:
-            self.logger.info(f'Custom rules has been defined to control what gets backed up in "{dataExtractionRules_xml_rules_files}" file')
+            self.logger.info(f'Custom rules has been defined to control what gets backed up in {dataExtractionRules_xml_rules_files} file')
             res |= 2
             return res
         self.logger.warning("fullBackupContent or dataExtractionRules properties not found. Please make a backup for further controls")
@@ -218,7 +216,7 @@ class Analyzer():
             # le cleartext traffic sera probablement géré dans le test a cet effet donc pas besoin de le faire ici
             # on peut checker le certificate pinning et les trust anchors ici dans 2 sous-tests
             # si pas un APK ca reste comme ça
-            self.logger.info(f'APK network security configuration is defined in "{network_security_config_xml_file}" file')
+            self.logger.info(f'APK network security configuration is defined in {network_security_config_xml_file} file')
             return True
         self.logger.warning("networkSecurityConfig property not found")
         return False
@@ -280,17 +278,54 @@ class Analyzer():
                 row.append(e.split(".")[-1])
                 row += intent_data
                 table.append(row)
-        print(tabulate(table, headers, tablefmt="fancy_grid"))
+        if len(table) > 0:
+            self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
 
     def isAppLinkUsed(self):
         printSubTestInfo("Checking for AppLinks")
-        self.logger.warning(
-            "Found a deeplink in activity AuthenticatePCloudActivity : pcloudoauth://mobile.example.com")
+        res = self.parser.getUniversalLinks()
+        verified_hosts = {h for e in res if e.autoVerify for h in e.hosts}
+
+        for host in verified_hosts:
+            # check if the assetlink.json is publicly accessible
+            active_msg = colored("Digital Asset Link JSON file not found", "red")
+            if checkDigitalAssetLinks(host):
+                active_msg = colored(f"Digital Asset Link JSON file found at https://{host}/.well-known/assetlinks.json", "green")
+            self.logger.warning(f'Found an applink with host "{host}":')
+            if self.logger.level <= logging.WARNING:
+                print(active_msg)
+
+            # only applink infos for this particular host
+            applinks = [e for e in res if host in e.hosts]
+            # might be used in multiple activities
+            unique_names = {a.name for a in applinks}
+            # separate by activities
+            for name in unique_names:
+                # only applink infos for this particular host and for this activity
+                applinks_with_this_name = [e for e in applinks if e.name == name]
+                if self.logger.level <= logging.WARNING:
+                    print(colored(f'\tDeclared in {applinks_with_this_name[0].tag} {name.split(".")[-1]} '
+                              f'with the following URI :', "yellow"))
+                    # show the URI
+                    for applink in applinks_with_this_name:
+                        for uri in applink.uris:
+                            print(f"\t\t{uri}")
+        return len(verified_hosts)
 
     def isDeepLinkUsed(self):
         printSubTestInfo("Checking for DeepLinks")
-        self.logger.critical("Found a deeplink in activity LicenseCheckActivity : https://android.cryptomator.org")
-        return True
+        res = self.parser.getUniversalLinks()
+        unique_names = {deeplink.name for deeplink in res}
+        # get component name and uris
+        for name in unique_names:
+            deeplinks = [e for e in res if e.name == name]
+            self.logger.warning(f'Found a deeplink in {deeplinks[0].tag} {deeplinks[0].name.split(".")[-1]}'
+                                f'with the following URI:')
+            for deeplink in deeplinks:
+                for uri in deeplink.uris:
+                    if self.logger.level <= logging.WARNING:
+                        print(f"\t{uri}")
+        return len(unique_names) > 0
 
     def analyzeIntentFilters(self):
         self.getIntentFilterInfo()
@@ -300,7 +335,6 @@ class Analyzer():
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
         self.showApkInfo()
-        '''
         self.analyzeBuiltinsPerms()
         self.analyzeCustomPerms()
         self.analyzeBackupFeatures()
@@ -308,5 +342,3 @@ class Analyzer():
         self.isDebuggable()
         self.isCleartextTrafficAllowed()
         self.analyzeIntentFilters()
-        '''
-                

@@ -7,7 +7,7 @@ from src.constants import ANDROID_MAX_SDK
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(description='Utility to analyse Android Manifest files.')
-    argparser.add_argument('--log-level', '-v', choices=['INFO', 'WARNING', 'CRITICAL'], help='Sets the log level', default="INFO")
+    argparser.add_argument('--log-level', '-v', type=int, choices=[0, 1, 2], help='Sets the log level', default=0)
     argparser.add_argument("path", help="The path to the manifest file.")
     argparser.add_argument("--min-sdk-version", '-min', type=int, choices=range(1,ANDROID_MAX_SDK+1), help='Indicate the minimum version supported by your application', metavar=f"[1,{ANDROID_MAX_SDK}]", required=True)
     argparser.add_argument("--max-sdk-version", '-max', type=int, choices=range(1,ANDROID_MAX_SDK+1), help='Indicate the maximum version supported by your application', metavar=f"[1,{ANDROID_MAX_SDK}]", required=True)
@@ -23,9 +23,7 @@ if __name__ == "__main__":
     analyzer = Analyzer(parser, args)
     analyzer.runAllTests()
 
-
     # showcase parser unused features
     '''
-    print(f'{parser.exportedComponents("dddd")=}')
     print(parser.getNetworkSecurityConfig())
     '''

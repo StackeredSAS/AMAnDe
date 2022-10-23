@@ -81,6 +81,12 @@ class APKParser(Parser):
         self.tree = ET.parse(path)
         self.root = self.tree.getroot()
 
+    def _getResValue(self, path, name):
+        if name:
+            # todo
+            return "todo get resources"
+        return super()._getResValue(path, name)
+
     def customPermissions(self):
         """
         In the case of APK custom permission protection level is an Int.

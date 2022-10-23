@@ -50,7 +50,7 @@
         android:allowBackup="true"
         android:debuggable="true"
         android:backupAgent=".MyBackupAgent"
-        android:dataExtractionRules="@xml/test2.xml"
+        android:dataExtractionRules="@xml/test2"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
@@ -166,6 +166,17 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
+                        <intent-filter android:label="@string/dialog_enter_license_title">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="*"
+                    android:scheme="machin" />
+            </intent-filter>
+
         </activity>
 
         <activity
@@ -177,7 +188,7 @@
             android:name=".ui.activity.LicenseCheckActivity"
             android:launchMode="singleTask">
             <intent-filter android:label="@string/dialog_enter_license_title" android:autoVerify="true">
-                <action android:name="android.intent.action.TEST1" />
+                <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -195,21 +206,23 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="android.cryptomator.org"
+                    android:host="android.cryptomator.org" android:port="9898"
                     android:pathPrefix="/app/license"
                     android:scheme="https" />
             </intent-filter>
 
-            <intent-filter android:label="@string/dialog_enter_license_title3">
-                <action android:name="android.intent.action.TEST3" />
+            <intent-filter android:label="@string/dialog_enter_license_title3" android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="android.cryptomator.org"
-                    android:pathPrefix="/app/license"
-                    android:scheme="https" />
+                    android:host="example"
+                    android:pathPrefix="@string/path_prefix_label"
+                    android:scheme="@string/scheme_label" android:mimeType="txt/json"/>
+                <data
+                    android:scheme="@string/share_with_label" android:mimeType="*/*"/>
             </intent-filter>
         </activity>
 

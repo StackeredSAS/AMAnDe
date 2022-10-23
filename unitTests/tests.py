@@ -196,5 +196,56 @@ class TestAnalyzer(unittest.TestCase):
             res = self.analyzer.isCleartextTrafficAllowed()
             self.assertEqual(res, expected, f"{usesCleartextTraffic=} and {min_sdk_version} should produce {expected} but produced {res}")
 
+    def test_isDeepLinkUsed(self):
+        # the tuple elements represents :
+        # getUniversalLinks, expectedResult
+        UniversalLink = namedtuple("UniversalLink", "name tag autoVerify uris hosts")
+
+        testCases = [
+            ([UniversalLink("","","",["host"],["host"])], True),
+            ([], False),
+        ]
+
+        for testCase in testCases:
+            getUniversalLinks = testCase[0]
+            expected = testCase[1]
+            self.parser.getUniversalLinks = lambda: getUniversalLinks
+            res = self.analyzer.isDeepLinkUsed()
+            self.assertEqual(res, expected, f"{getUniversalLinks=} should produce {expected} but produced {res}")
+
+    def test_isAppLinkUsed(self):
+        # the tuple elements represents :
+        # getUniversalLinks, expectedResult
+        UniversalLink = namedtuple("UniversalLink", "name tag autoVerify uris hosts")
+
+        testCases = [
+            ([UniversalLink("","","",["host"],["host"])], 0),
+            ([], 0),
+            ([UniversalLink("", "", True, ["host"], ["host"])], 1),
+            ([
+                 UniversalLink("", "", True, ["host"], ["host"]),
+                 UniversalLink("", "", None, ["host"], ["host"])
+             ], 1),
+            ([
+                 UniversalLink("", "", True, ["host"], ["host"]),
+                 UniversalLink("", "", False, ["ddzad"], ["ddzad"])
+             ], 1),
+            ([
+                 UniversalLink("", "", True, ["host"], ["host"]),
+                 UniversalLink("", "", True, ["ddzad"], ["ddzad"])
+             ], 2),
+            ([
+                 UniversalLink("", "", True, ["host"], ["host"]),
+                 UniversalLink("", "", True, ["host"], ["host"])
+             ], 1),
+        ]
+
+        for testCase in testCases:
+            getUniversalLinks = testCase[0]
+            expected = testCase[1]
+            self.parser.getUniversalLinks = lambda: getUniversalLinks
+            res = self.analyzer.isAppLinkUsed()
+            self.assertEqual(res, expected,f"{getUniversalLinks=} should produce {expected} but produced {res}")
+
 if __name__ == '__main__':
     unittest.main(buffer=True)

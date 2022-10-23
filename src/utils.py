@@ -2,6 +2,7 @@
 
 from termcolor import *
 import logging
+import requests
 
 
 class CustomFormatter(logging.Formatter):
@@ -43,14 +44,28 @@ def str2Bool(s):
 
 
 def getResourceTypeName(value):
+    path = "res/"
     if value is not None:
-        value = value.split("/")[1]
-    if value:
-        return value
+        resType, value = value.strip("@").split("/")
+        if resType == "string":
+            path += "values/strings.xml"
+        if resType == "xml":
+            path += f"xml/{value}.xml"
+            value = None
+    return path, value
 
 
 def printTestInfo(title):
     print(colored(f"\n[*] {title}", "blue"))
 
+
 def printSubTestInfo(title):
     print(colored(f"[+] {title}", "cyan"))
+
+
+def checkDigitalAssetLinks(host):
+    try:
+        if requests.get(f'https://{host}/.well-known/assetlinks.json').status_code == 200:
+            return True
+    except Exception:
+        return False

@@ -4,6 +4,7 @@ from .utils import (
     getResourceTypeName
 )
 from itertools import product
+from termcolor import colored
 
 
 class Parser:
@@ -12,12 +13,26 @@ class Parser:
         self.namespaces = dict([node for _, node in ET.iterparse(path, events=['start-ns'])])
         self.tree = ET.parse(path)
         self.root = self.tree.getroot()
+        self.apk = None
 
     def _getattr(self, elm, attr):
         if ":" in attr:
             prefix, uri = attr.split(":", 1)
             attr = f"{{{self.namespaces[prefix]}}}{uri}"
-        return elm.attrib.get(attr)
+        res = elm.attrib.get(attr)
+        if res and res.startswith("@"):
+            # resource
+            path, name = getResourceTypeName(res)
+            res = self._getResValue(path, name)
+        return res
+
+    def _getResValue(self, path, name):
+        # will be overwritten in the APKParser class
+        filename = path.split("/")[-1]
+        res = colored(f"{filename}", attrs=["underline"])
+        if name:
+            res = f"{res}({name})"
+        return res
 
     def getApkInfo(self):
         from collections import namedtuple
@@ -87,13 +102,13 @@ class Parser:
         return len(self.exportedComponents(component))
 
     def fullBackupContent(self):
-        return getResourceTypeName(self._getattr(self.root.find("application"), "android:fullBackupContent"))
+        return self._getattr(self.root.find("application"), "android:fullBackupContent")
 
     def dataExtractionRules(self):
-        return getResourceTypeName(self._getattr(self.root.find("application"), "android:dataExtractionRules"))
+        return self._getattr(self.root.find("application"), "android:dataExtractionRules")
 
     def networkSecurityConfig(self):
-        return getResourceTypeName(self._getattr(self.root.find("application"), "android:networkSecurityConfig"))
+        return self._getattr(self.root.find("application"), "android:networkSecurityConfig")
 
     def getSdkVersion(self):
         """
@@ -104,11 +119,11 @@ class Parser:
         # if not defined return 0
         min_level = 0
         max_level = 0
-        if usesSdk != None:
+        if usesSdk is not None:
             min_level = int(self._getattr(usesSdk, "android:minSdkVersion") or 1)
             # if max_level does not exist return 0
             max_level = int(self._getattr(usesSdk, "android:maxSdkVersion") or 0)
-        return (min_level, max_level)
+        return min_level, max_level
 
     def getNetworkSecurityConfig(self):
         # will be overwritten in the APKParser class
@@ -126,57 +141,71 @@ class Parser:
         # each intent on a separated line
         for e in intents:
             # an intent can have multiple actions
-            names = [self._getattr(e, "android:name").split(".")[-1] for e in e.findall("action")]
-            names = "\n".join(names)
+            actions = [self._getattr(e, "android:name").split(".")[-1] for e in e.findall("action")]
+            actions = "\n".join(actions)
             # an intent can have multiple categories
             categories = [self._getattr(e, "android:name").split(".")[-1] for e in e.findall("category")]
             categories = "\n".join(categories)
-            # https://developer.android.com/training/app-links/verify-android-applinks#multi-host
-            """
-            All <data> elements in the same intent filter are merged together to account for all variations of their
-            combined attributes. For example, the first intent filter above includes a <data> element that only declares
-            the HTTPS scheme. But it is combined with the other <data> element so that the intent filter supports both
-            http://www.example.com and https://www.example.com. As such, you must create separate intent filters when
-            you want to define specific combinations of URI schemes and domains.
-            """
-            datas = e.findall("data")
-            # recover all the possible attributes
-            schemes = {self._getattr(e, "android:scheme") for e in datas} - {None} or {None}
-            hosts = {self._getattr(e, "android:host") for e in datas} - {None} or {None}
-            port = {self._getattr(e, "android:port") for e in datas} - {None} or {None}
-
-            # path, pathPattern and pathPrefix have the same role
-            path = {self._getattr(e, "android:path") for e in datas} - {None}
-            pathPattern = {self._getattr(e, "android:pathPattern") for e in datas} - {None}
-            pathPrefix = {self._getattr(e, "android:pathPrefix") for e in datas} - {None}
-            pathPrefix = {f"{e}/.*" for e in pathPrefix} or {None} # respect syntax of pathPattern
-
-            # put them in the same set
-            path.update(pathPrefix)
-            path.update(pathPattern)
-
-            mimeType = {self._getattr(e, "android:mimeType") for e in datas} - {None} or {""}
+            mimeType = {self._getattr(e, "android:mimeType") for e in e.findall("data")} - {None} or {""}
             mimetypes = "\n".join(mimeType)
 
-            uris = []
             # Compute all the merged combinations of data attributes
-            for t in product(schemes, hosts, port, path, mimeType):
-                scheme, host, port_, path_, mimeType_ = t
-                # some can be None
-                scheme = scheme or ""
-                host = host or ""
-                port_ = port_ or ""
-                # Do not display ":" if port does not exist
-                if port_ != "":
-                    port_ = f":{port_}"
-                path_ = path_ or ""
-                # https://developer.android.com/guide/topics/manifest/data-element
-                uri = f"{scheme}://{host}{port_}{path_}"
-                # in case there are no link, don't append anything
-                if uri != "://":
-                    uris.append(uri)
+            # https://developer.android.com/guide/topics/manifest/data-element
+            uris = self._getIntentFiltersUrisInfo(e)
             uris = "\n".join(uris)
 
-            res.append([names, categories, uris, mimetypes])
+            res.append([actions, categories, uris, mimetypes])
 
         return res
+
+    def _getIntentFiltersUrisInfo(self, intent):
+        # https://developer.android.com/training/app-links/verify-android-applinks#multi-host
+        """
+        All <data> elements in the same intent filter are merged together to account for all variations of their
+        combined attributes. For example, the first intent filter above includes a <data> element that only declares
+        the HTTPS scheme. But it is combined with the other <data> element so that the intent filter supports both
+        http://www.example.com and https://www.example.com. As such, you must create separate intent filters when
+        you want to define specific combinations of URI schemes and domains.
+        """
+        datas = intent.findall("data")
+        # recover all the possible attributes
+        schemes = {self._getattr(e, "android:scheme") for e in datas} - {None}
+        schemes = {f"{e}://" for e in schemes} or {""}
+        hosts = {self._getattr(e, "android:host") for e in datas} - {None} or {""}
+        port = {self._getattr(e, "android:port") for e in datas} - {None}
+        port = {f":{e}" for e in port} or {""}
+
+        # path, pathPattern and pathPrefix have the same role
+        path = {self._getattr(e, "android:path") for e in datas} - {None}
+        pathPattern = {self._getattr(e, "android:pathPattern") for e in datas} - {None}
+        pathPrefix = {self._getattr(e, "android:pathPrefix") for e in datas} - {None}
+        pathPrefix = {f"{e}/.*" for e in pathPrefix} or {""}  # respect syntax of pathPattern
+        # put them in the same set
+        path.update(pathPrefix)
+        path.update(pathPattern)
+
+        # Compute all the merged combinations of data attributes
+        # https://developer.android.com/guide/topics/manifest/data-element
+        return ["".join(uri) for uri in product(schemes, hosts, port, path)]
+
+    def getUniversalLinks(self):
+        # do not keep the tag
+        exported_components = self.getIntentFilterExportedComponents()
+        from collections import namedtuple
+        # use a namedtuple for more readable access to important attributes
+        UniversalLink = namedtuple("UniversalLink", "name tag autoVerify uris hosts")
+        deepLinks = []
+        for compname, tag in exported_components:
+            # https://developer.android.com/training/app-links/deep-linking
+            # deep links must have ACTION_VIEW
+            intents = self.root.findall(f'application/*[@android:name=\"{compname}\"]/intent-filter/action[@android:name="android.intent.action.VIEW"]/..', namespaces=self.namespaces)
+            for i in intents:
+                # deep links must have category BROWSABLE
+                if i.find('category[@android:name="android.intent.category.BROWSABLE"]', namespaces=self.namespaces) is not None:
+                    uris = self._getIntentFiltersUrisInfo(i)
+                    # add additional info to check if a deeplink is actually an app link
+                    hosts = {self._getattr(e, "android:host") for e in i.findall("data")} - {None} or {""}
+                    autoVerify = str2Bool(self._getattr(i, "android:autoVerify"))
+                    deepLinks.append(UniversalLink(compname, tag, autoVerify, uris, hosts))
+
+        return deepLinks

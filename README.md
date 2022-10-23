@@ -30,17 +30,22 @@ unzip -l test.apk
 ```
 ./main.py -h
 ./main.py -max 23 -min 18 examples/AndroidManifest.xml
-./main.py -max 23 -min 18 examples/AndroidManifest.xml -v WARNING
+./main.py -max 23 -min 18 examples/AndroidManifest.xml -v 1
 ./main.py -max 23 -min 18 examples/example.apk
 ```
 
 ## todo
-- def isAppLinkUsed 
-- def isDeepLinkUsed 
+- APK info
+  - uses library
+  - counter de activity-alias (a voir si on le regroupe ou pas)
 - def receiverAnalysis 
 - def providerAnalysis
 - def servicesAnalysis
 - def activitiesAnalysis
-- checker si sdk mismatch entre args et manifest (dans apkinfo)
+- grantUriPermissions
+- FileProvider
 - si apk check for kernel.bin (flutter app)
+- Check APK signature (META-INF/BNDLTOOL.SF etc., taille de clé BNDLTOOL.RSA)
+- vérifier les infos du network sec conf (pinning, trust anchors)
+- vérifier les infos des backup rules file (data extract rules et full backup content)
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
