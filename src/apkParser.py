@@ -7,6 +7,7 @@ import re
 from .constants import protection_levels
 # for virtual file handling in case of APK
 from io import StringIO
+from .utils import unformatFilename
 
 class APKParser(Parser):
 
@@ -100,6 +101,22 @@ class APKParser(Parser):
             res.append(CustomPerm(name, protectionLevel))
         return res
 
+    def _realPathFromTypeAndName(self, resType, name, package_name=None):
+        if package_name is None:
+            # I don't know how to handle the case when there are multiple package names yet
+            package_name = self.rsc.get_packages_names()[0]
+        # recover the rid from the resource type and filename
+        rid = self.rsc.resource_keys[package_name][resType][name]
+        # get_res_configs returns a list of tuples
+        # we only care about the first element of this list
+        # and the second element of the tuple is a ARSCResTableEntry
+        # https://github.com/appknox/pyaxmlparser/blob/d111a4fc6330a0c293ffc2f114af360eb78ad2ef/pyaxmlparser/arscutil.py#L509
+        # the key attribute holds a ARSCResStringPoolRef
+        # https://github.com/appknox/pyaxmlparser/blob/d111a4fc6330a0c293ffc2f114af360eb78ad2ef/pyaxmlparser/arscutil.py#L580
+        # the get_data_value function gives us what we are looking for
+        real_path = self.rsc.get_res_configs(rid)[0][1].key.get_data_value()
+        return real_path
+
     def getNetworkSecurityConfig(self):
         """
         Example de truc qu'on peut faire propre aux APK.
@@ -107,5 +124,7 @@ class APKParser(Parser):
         filename = self.networkSecurityConfig()
         if filename is None:
             return
-        return self._getCleanXML(f"res/xml/{filename}.xml").read()
+        # filename is fucked up because of the color and the stuff done in getResourceTypeName
+        path = self._realPathFromTypeAndName("xml", unformatFilename(filename).split(".")[0])
+        return self._getCleanXML(path).read()
 
