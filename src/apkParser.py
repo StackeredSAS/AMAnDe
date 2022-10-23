@@ -46,6 +46,9 @@ class APKParser(Parser):
             package_name = self.rsc.get_packages_names()[0]
         rid = int(rid.strip("@"), 16)
         res_type, name, _ = self.rsc.get_id(package_name, rid)
+        if res_type == "string":
+            # index 0 is name, index 1 is the resolved string
+            return self.rsc.get_string(package_name, name)[1]
         return f"@{res_type}/{name}"
 
     def _getCleanXML(self, path):
@@ -81,12 +84,6 @@ class APKParser(Parser):
         self.tree = ET.parse(path)
         self.root = self.tree.getroot()
 
-    def _getResValue(self, path, name):
-        if name:
-            # todo
-            return "todo get resources"
-        return super()._getResValue(path, name)
-
     def customPermissions(self):
         """
         In the case of APK custom permission protection level is an Int.
@@ -111,3 +108,4 @@ class APKParser(Parser):
         if filename is None:
             return
         return self._getCleanXML(f"res/xml/{filename}.xml").read()
+
