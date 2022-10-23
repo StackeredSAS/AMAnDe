@@ -43,3 +43,4 @@ unzip -l test.apk
 - def activitiesAnalysis
 - checker si sdk mismatch entre args et manifest (dans apkinfo)
 - si apk check for kernel.bin (flutter app)
+- support de ADB pour completer certains tests (ex: backups) et faire du dynamique
