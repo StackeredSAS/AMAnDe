@@ -241,6 +241,20 @@ class Analyzer():
             return True
         self.logger.info("APK is not compiled in debug mode")
         return False
+    
+    def analyzeExportedComponent(self):
+        """
+        Analyzing exported components permissions
+        Je pense faudra faire des checks en plus pour les activités en enlevant les applinks/deeplinks
+        par exemple ou autre mais je n'ai pas encore réfléchi. Donc pour l'instant je laisse comme ça
+        """
+        printTestInfo("Checking if exported components required special permission to be called")
+        headers = ["Name", "Type", "Permission", "readPermission", "writePermission", "grantUriPermissions"]
+        table = []
+        for component in ["activity", "receiver", "provider", "service"]:
+            for e in self.parser.getExportedComponentPermission(component):
+                table.append([e.componentName, e.componentType, e.permission, e.readPermission, e.writePermission, e.grantUriPermissions])
+        print(tabulate(table, headers, tablefmt="fancy_grid"))
 
     def isCleartextTrafficAllowed(self):
         """
@@ -334,6 +348,7 @@ class Analyzer():
 
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
+        '''
         self.showApkInfo()
         self.analyzeBuiltinsPerms()
         self.analyzeCustomPerms()
@@ -342,3 +357,7 @@ class Analyzer():
         self.isDebuggable()
         self.isCleartextTrafficAllowed()
         self.analyzeIntentFilters()
+        '''
+        
+        #print(self.parser.getExportedComponentPermission(component))
+        self.analyzeExportedComponent()

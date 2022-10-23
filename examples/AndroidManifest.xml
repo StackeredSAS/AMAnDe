@@ -134,6 +134,7 @@
             android:exported="false" />
         <activity
             android:name=".ui.activity.LicensesActivity"
+            android:permission="TestPermissions"
             android:exported="true" />
         <activity
             android:name=".ui.activity.SettingsActivity"

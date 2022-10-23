@@ -5,6 +5,7 @@ from .utils import (
 )
 from itertools import product
 from termcolor import colored
+from collections import namedtuple
 
 
 class Parser:
@@ -35,7 +36,6 @@ class Parser:
         return res
 
     def getApkInfo(self):
-        from collections import namedtuple
         # use a namedtuple for more readable access to important attributes
         Info = namedtuple("Info", "package versionCode versionName")
         package = self._getattr(self.root, "package")
@@ -63,7 +63,6 @@ class Parser:
         return str2Bool(self._getattr(self.root.find("application"), "android:usesCleartextTraffic"))
 
     def customPermissions(self):
-        from collections import namedtuple
         # use a namedtuple for more readable access to important attributes
         CustomPerm = namedtuple("CustomPerm", "name protectionLevel")
         res = []
@@ -129,13 +128,53 @@ class Parser:
         # will be overwritten in the APKParser class
         return None
 
+    def getExportedComponentPermission(self, componentType):
+        """
+        https://developer.android.com/guide/topics/manifest/<component>-element
+        From a list of all exported components, check if component requires specific permission
+        to be called
+        PROVIDER: android:permission, android:grantUriPermissions, android:readPermission, android:writePermission 
+        The name of a permission that clients must have to read or write the content provider's data. 
+        This attribute is a convenient way of setting a single permission for both reading and writing. 
+        However, the readPermission, writePermission, and grantUriPermissions attributes take precedence 
+        over this one.
+        ACTIVITY, SERVICE, RECEIVER: android:permission
+
+        Return a list of namedTuple
+        """
+
+        # use a namedtuple for more readable access to important attributes
+        # A la base je voulais faire deux tuples différents (je ne sais pas si c'est une bonne idée)
+        # on aurait peut être même pu faire deux liste différentes avec deux tuples différents. 
+        # Ce qui aurait permis de spécialiser un peu plus l'affichage dans l'analyzer
+        ExportedComponents = namedtuple("exportedComponents", "componentName, componentType permission readPermission writePermission grantUriPermissions")
+        res = []
+        for name in self.exportedComponents(componentType):
+            component = self.root.find(f'application/{componentType}[@android:name="{name}"]', namespaces=self.namespaces)
+            permission = self._getattr(component, "android:permission")
+            readPermission, writePermission, grantUriPermissions = None, None, None
+            if (componentType == "provider"):
+                readPermission = self._getattr(component, "android:readPermission")
+                writePermission = self._getattr(component, "android:writePermission")
+                grantUriPermissions = self._getattr(component, "android:grantUriPermissions")
+            res.append(ExportedComponents(name, componentType, permission, readPermission, writePermission, grantUriPermissions))
+        return res
+       
     def getIntentFilterExportedComponents(self):
+        """
+        Return tuple (componentName, componentType) for each exported component having 
+        one or more intent_filter(s) (android:exported is true or none)
+        """
         all_intent = {(self._getattr(e, "android:name"), e.tag) for e in self.root.findall(f'application/*/intent-filter/..')}
         not_exported = {(self._getattr(e, "android:name"), e.tag) for e in self.root.findall(f'application/*[@android:exported="false"]/intent-filter/..', namespaces=self.namespaces)}
         return all_intent-not_exported
 
     def getIntentFilters(self, compname):
         # get intent-filter element from a Element with given name
+        """
+        Return a list containing intent_filters information (action, category, data_uris, mimetypes) 
+        from an Element with given name
+        """
         intents = self.root.findall(f"application/*[@android:name=\"{compname}\"]/intent-filter", namespaces=self.namespaces)
         res = []
         # each intent on a separated line
@@ -191,7 +230,6 @@ class Parser:
     def getUniversalLinks(self):
         # do not keep the tag
         exported_components = self.getIntentFilterExportedComponents()
-        from collections import namedtuple
         # use a namedtuple for more readable access to important attributes
         UniversalLink = namedtuple("UniversalLink", "name tag autoVerify uris hosts")
         deepLinks = []
