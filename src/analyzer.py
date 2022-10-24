@@ -252,7 +252,7 @@ class Analyzer():
         printTestInfo("Checking if exported components required special permission to be called")
         headers = ["Name", "Type", "Permission", "readPermission", "writePermission", "grantUriPermissions"]
         table = []
-        # Getting deeplink to not analyze exported component which is a deeplink
+        # Getting deeplink (don't analyze exported component which is a deeplink)
         universal_links = self.parser.getUniversalLinks()
         # Getting a set of deeplink components' name
         unique_names = {universal_link.name for universal_link in universal_links}
