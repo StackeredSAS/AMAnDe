@@ -241,6 +241,48 @@ class Analyzer():
             return True
         self.logger.info("APK is not compiled in debug mode")
         return False
+    
+    def analyzeExportedComponent(self):
+        """
+        Analyzing exported components permissions
+        1. If exported component don't specifiy any permission -> self.logger.warning to make deeper check
+            If it's a deeplink or applink -> it can not have specific perm because by default is used to call our app when
+            a specific uri is handled by another app
+        """
+        printTestInfo("Checking if exported components required special permission to be called")
+        headers = ["Name", "Type", "Permission", "readPermission", "writePermission", "grantUriPermissions"]
+        table = []
+        # Getting deeplink (don't analyze exported component which is a deeplink)
+        universal_links = self.parser.getUniversalLinks()
+        # Getting a set of deeplink components' name
+        unique_names = {universal_link.name for universal_link in universal_links}
+        count = 0
+
+        for component in ["activity", "receiver", "provider", "service"]:
+            for e in self.parser.getExportedComponentPermission(component):
+                #print(e)
+                if e.componentName not in unique_names:
+                    n = e.componentName.split(".")[-1]
+                    t = e.componentType
+                    p = e.permission
+                    # Keep entire permission name to make the difference between custom and builtin
+                    rp = e.readPermission
+                    wp = e.writePermission
+
+                    if (t != "provider" and p is None) or (
+                        t == "provider" and wp is None and rp is None and p is None):
+                        cName = colored(n, "yellow")
+                        cType = colored(t, "yellow")
+                        table.append([cName, cType, p, rp, wp])
+                        count += 1
+                    else:
+                        table.append([n, t, p, rp, wp])
+        
+        # There might not be any exported components -> no permission to analyze
+        if len (table) > 0 : 
+            print(tabulate(table, headers, tablefmt="fancy_grid"))
+        if count > 0:
+            self.logger.warning(f'There are {count} exported components which can be called wihtout any permission. Check it out!')
 
     def isCleartextTrafficAllowed(self):
         """
@@ -342,3 +384,5 @@ class Analyzer():
         self.isDebuggable()
         self.isCleartextTrafficAllowed()
         self.analyzeIntentFilters()
+        self.analyzeExportedComponent()
+        

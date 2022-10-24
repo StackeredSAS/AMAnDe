@@ -134,6 +134,7 @@
             android:exported="false" />
         <activity
             android:name=".ui.activity.LicensesActivity"
+            android:permission="TestPermissions"
             android:exported="true" />
         <activity
             android:name=".ui.activity.SettingsActivity"
@@ -230,6 +231,7 @@
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
             android:exported="true"
+            android:readPermission="test1"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"

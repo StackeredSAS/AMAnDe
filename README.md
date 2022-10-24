@@ -38,14 +38,13 @@ unzip -l test.apk
 - APK info
   - uses library
   - counter de activity-alias (a voir si on le regroupe ou pas)
-- def receiverAnalysis 
-- def providerAnalysis
-- def servicesAnalysis
-- def activitiesAnalysis
-- grantUriPermissions
-- FileProvider
+- def providerAnalysis -> perm
+	- grantUriPermissions
+	- FileProvider
 - si apk check for kernel.bin (flutter app)
-- Check APK signature (META-INF/BNDLTOOL.SF etc., taille de clé BNDLTOOL.RSA)
+- tests avec outils tiers si préinstallés
+  - apksigner pour les signatures
 - vérifier les infos du network sec conf (pinning, trust anchors)
 - vérifier les infos des backup rules file (data extract rules et full backup content)
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
+- vérifier qu'un deeplink est forcément sans permission (i.e. analyzeExportedComponent)
