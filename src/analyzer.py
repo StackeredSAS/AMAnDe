@@ -311,13 +311,12 @@ class Analyzer():
 
     def getIntentFilterInfo(self):
         printTestInfo("Analysing Exported Intents")
-        headers = ["Type", "Name", "Action", "Category", "Link", "Mime Type"]
+        headers = ["Name", "Action", "Category", "Link", "Mime Type"]
         table = []
         for e, tag in self.parser.getIntentFilterExportedComponents():
             for intent_data in self.parser.getIntentFilters(e):
                 row = []
-                row.append(tag)
-                row.append(e.split(".")[-1])
+                row.append(f'{e.split(".")[-1]}\n({tag})')
                 row += intent_data
                 table.append(row)
         if len(table) > 0:
