@@ -48,3 +48,4 @@ unzip -l test.apk
 - vérifier les infos des backup rules file (data extract rules et full backup content)
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
 - vérifier qu'un deeplink est forcément sans permission (i.e. analyzeExportedComponent)
+- update analyzeExportedComponent table before displaying it if readperm or writeperm empty
