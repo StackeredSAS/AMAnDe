@@ -245,16 +245,41 @@ class Analyzer():
     def analyzeExportedComponent(self):
         """
         Analyzing exported components permissions
-        Je pense faudra faire des checks en plus pour les activités en enlevant les applinks/deeplinks
-        par exemple ou autre mais je n'ai pas encore réfléchi. Donc pour l'instant je laisse comme ça
+        1. If exported component don't specifiy any permission -> self.logger.warning to make deeper check
+            If it's a deeplink or applink -> it can not have specific perm because by default is used to call our app when
+            a specific uri is handled by another app
         """
         printTestInfo("Checking if exported components required special permission to be called")
         headers = ["Name", "Type", "Permission", "readPermission", "writePermission", "grantUriPermissions"]
         table = []
+        # Getting deeplink to not analyze exported component which is a deeplink
+        universal_links = self.parser.getUniversalLinks()
+        # Getting a set of deeplink components' name
+        unique_names = {universal_link.name for universal_link in universal_links}
+
         for component in ["activity", "receiver", "provider", "service"]:
             for e in self.parser.getExportedComponentPermission(component):
-                table.append([e.componentName, e.componentType, e.permission, e.readPermission, e.writePermission, e.grantUriPermissions])
-        print(tabulate(table, headers, tablefmt="fancy_grid"))
+                #print(e)
+                if e.componentName not in unique_names:
+                    n = e.componentName.split(".")[-1]
+                    t = e.componentType
+                    p = e.permission
+                    # Keep entire permission name to make the difference between custom and builtin
+                    rp = e.readPermission
+                    wp = e.writePermission
+
+                    if (t != "provider" and p is None) or (
+                        t == "provider" and ((wp is None or rp is None) and p is None)):
+                        cName = colored(n, "yellow")
+                        cType = colored(t, "yellow")
+                        table.append([cName, cType, p, rp, wp])                             
+                    else:
+                        table.append([n, t, p, rp, wp])
+        
+        # There might not be any exported components -> no permission to analyze
+        if len (table) > 0 : 
+            print(tabulate(table, headers, tablefmt="fancy_grid"))
+            self.logger.warning(f'There are exported components which can be called wihtout any permission. Check it out!')
 
     def isCleartextTrafficAllowed(self):
         """
@@ -348,7 +373,6 @@ class Analyzer():
 
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
-        '''
         self.showApkInfo()
         self.analyzeBuiltinsPerms()
         self.analyzeCustomPerms()
@@ -357,7 +381,5 @@ class Analyzer():
         self.isDebuggable()
         self.isCleartextTrafficAllowed()
         self.analyzeIntentFilters()
-        '''
-        
-        #print(self.parser.getExportedComponentPermission(component))
         self.analyzeExportedComponent()
+        

@@ -136,7 +136,7 @@ class Parser:
         PROVIDER: android:permission, android:grantUriPermissions, android:readPermission, android:writePermission 
         The name of a permission that clients must have to read or write the content provider's data. 
         This attribute is a convenient way of setting a single permission for both reading and writing. 
-        However, the readPermission, writePermission, and grantUriPermissions attributes take precedence 
+        However, the readPermission, writePermission, and grantUriPermissions (False by default) attributes take precedence 
         over this one.
         ACTIVITY, SERVICE, RECEIVER: android:permission
 
@@ -144,9 +144,6 @@ class Parser:
         """
 
         # use a namedtuple for more readable access to important attributes
-        # A la base je voulais faire deux tuples différents (je ne sais pas si c'est une bonne idée)
-        # on aurait peut être même pu faire deux liste différentes avec deux tuples différents. 
-        # Ce qui aurait permis de spécialiser un peu plus l'affichage dans l'analyzer
         ExportedComponents = namedtuple("exportedComponents", "componentName, componentType permission readPermission writePermission grantUriPermissions")
         res = []
         for name in self.exportedComponents(componentType):
@@ -156,7 +153,7 @@ class Parser:
             if (componentType == "provider"):
                 readPermission = self._getattr(component, "android:readPermission")
                 writePermission = self._getattr(component, "android:writePermission")
-                grantUriPermissions = self._getattr(component, "android:grantUriPermissions")
+                grantUriPermissions = str2Bool(self._getattr(component, "android:grantUriPermissions"))
             res.append(ExportedComponents(name, componentType, permission, readPermission, writePermission, grantUriPermissions))
         return res
        
