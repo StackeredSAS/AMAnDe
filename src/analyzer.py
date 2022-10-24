@@ -270,7 +270,7 @@ class Analyzer():
                     wp = e.writePermission
 
                     if (t != "provider" and p is None) or (
-                        t == "provider" and wp is None and rp is None):
+                        t == "provider" and wp is None and rp is None and p is None):
                         cName = colored(n, "yellow")
                         cType = colored(t, "yellow")
                         table.append([cName, cType, p, rp, wp])
