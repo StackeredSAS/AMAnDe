@@ -44,6 +44,8 @@ def str2Bool(s):
 
 
 def getResourceTypeName(value):
+    # ca ne sert plus à rien de renvoyer le path en fait
+    # a voir pour le virer
     path = "res/"
     if value is not None:
         resType, value = value.strip("@").split("/")
@@ -69,3 +71,8 @@ def checkDigitalAssetLinks(host):
             return True
     except Exception:
         return False
+
+def unformatFilename(name):
+    # because Parser._getResValue formats filenames in a specific way
+    # we must undo the formatting to work with the raw string
+    return name[4:-4]
