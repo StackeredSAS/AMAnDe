@@ -256,6 +256,7 @@ class Analyzer():
         universal_links = self.parser.getUniversalLinks()
         # Getting a set of deeplink components' name
         unique_names = {universal_link.name for universal_link in universal_links}
+        count = 0
 
         for component in ["activity", "receiver", "provider", "service"]:
             for e in self.parser.getExportedComponentPermission(component):
@@ -269,17 +270,19 @@ class Analyzer():
                     wp = e.writePermission
 
                     if (t != "provider" and p is None) or (
-                        t == "provider" and ((wp is None or rp is None) and p is None)):
+                        t == "provider" and wp is None and rp is None):
                         cName = colored(n, "yellow")
                         cType = colored(t, "yellow")
-                        table.append([cName, cType, p, rp, wp])                             
+                        table.append([cName, cType, p, rp, wp])
+                        count += 1
                     else:
                         table.append([n, t, p, rp, wp])
         
         # There might not be any exported components -> no permission to analyze
         if len (table) > 0 : 
             print(tabulate(table, headers, tablefmt="fancy_grid"))
-            self.logger.warning(f'There are exported components which can be called wihtout any permission. Check it out!')
+        if count > 0:
+            self.logger.warning(f'There are {count} exported components which can be called wihtout any permission. Check it out!')
 
     def isCleartextTrafficAllowed(self):
         """
