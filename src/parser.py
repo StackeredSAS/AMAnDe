@@ -164,10 +164,8 @@ class Parser:
         https://blog.oversecured.com/Android-Access-to-app-protected-components/
         https://snyk.io/blog/exploring-android-intent-based-security-vulnerabilities-google-play/
         """
-        unexported_providers = {self._getattr(e, "android:name") for e in self.root.findall(f'application/provider[@android:exported="false"]', namespaces=self.namespaces)}
-        grantUriPermission_providers = {self._getattr(e, "android:name") for e in self.root.findall(f'application/provider[@android:grantUriPermissions="true"]', namespaces=self.namespaces)}
-        return unexported_providers.intersection(grantUriPermission_providers)
-        
+        return {self._getattr(e, "android:name") for e in self.root.findall(f'application/provider[@android:grantUriPermissions="true"][@android:exported="false"]', namespaces=self.namespaces)}
+
     def getIntentFilterExportedComponents(self):
         """
         Return tuple (componentName, componentType) for each exported component having 

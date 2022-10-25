@@ -292,8 +292,9 @@ class Analyzer():
         if len(res) > 1: msg = "providers"
         if len(res) > 0:
             self.logger.warning(f'Found {len(res)} unexported {msg} with grantUriPermissions set to True. Please make deeper checks!')
-        for e in res:
-            print(f'\t{e}')
+        if self.logger.level <= logging.WARNING:
+            for e in res:
+                print(f'\t{e}')
 
     def isCleartextTrafficAllowed(self):
         """
