@@ -155,7 +155,19 @@ class Parser:
                 grantUriPermissions = str2Bool(self._getattr(component, "android:grantUriPermissions"))
             res.append(ExportedComponents(name, componentType, permission, readPermission, writePermission, grantUriPermissions))
         return res
-       
+
+    def getUnexportedProviders(self):
+        """
+        Get unexported provider with grantUriPermission set to True
+        Dangerous because if the app uses getIntent().getParcelableExtra("extra_intent"), this 
+        can grant access to these unexported provider
+        https://blog.oversecured.com/Android-Access-to-app-protected-components/
+        https://snyk.io/blog/exploring-android-intent-based-security-vulnerabilities-google-play/
+        """
+        unexported_providers = {self._getattr(e, "android:name") for e in self.root.findall(f'application/provider[@android:exported="false"]', namespaces=self.namespaces)}
+        grantUriPermission_providers = {self._getattr(e, "android:name") for e in self.root.findall(f'application/provider[@android:grantUriPermissions="true"]', namespaces=self.namespaces)}
+        return unexported_providers.intersection(grantUriPermission_providers)
+        
     def getIntentFilterExportedComponents(self):
         """
         Return tuple (componentName, componentType) for each exported component having 

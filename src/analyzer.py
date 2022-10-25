@@ -284,6 +284,13 @@ class Analyzer():
         if count > 0:
             self.logger.warning(f'There are {count} exported components which can be called wihtout any permission. Check it out!')
 
+    def analyzeUnexportedProviders(self):
+        printTestInfo("Analyzing unexported providers")
+        res = self.parser.getUnexportedProviders()
+        self.logger.warning(f'Found {len(res)} unexported provider with grantUriPermissions set to True. Please make deeper checks!')
+        for e in res:
+            print(f'\t{e}')
+
     def isCleartextTrafficAllowed(self):
         """
         https://developer.android.com/guide/topics/manifest/application-element#usesCleartextTraffic
@@ -375,6 +382,7 @@ class Analyzer():
 
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
+        
         self.showApkInfo()
         self.analyzeBuiltinsPerms()
         self.analyzeCustomPerms()
@@ -384,4 +392,5 @@ class Analyzer():
         self.isCleartextTrafficAllowed()
         self.analyzeIntentFilters()
         self.analyzeExportedComponent()
+        self.analyzeUnexportedProviders()
         
