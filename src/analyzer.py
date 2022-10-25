@@ -287,7 +287,11 @@ class Analyzer():
     def analyzeUnexportedProviders(self):
         printTestInfo("Analyzing unexported providers")
         res = self.parser.getUnexportedProviders()
-        self.logger.warning(f'Found {len(res)} unexported provider with grantUriPermissions set to True. Please make deeper checks!')
+        msg = ""
+        if len(res) == 1: msg = "provider"
+        if len(res) > 1: msg = "providers"
+        if len(res) > 0:
+            self.logger.warning(f'Found {len(res)} unexported {msg} with grantUriPermissions set to True. Please make deeper checks!')
         for e in res:
             print(f'\t{e}')
 
