@@ -243,3 +243,11 @@ class Parser:
                     deepLinks.append(UniversalLink(compname, tag, autoVerify, uris, hosts))
 
         return deepLinks
+
+    def getFullBackupContentRules(self):
+        # will be overwritten in the APKParser class
+        return None
+
+    def getDataExtractionRulesContent(self):
+        # will be overwritten in the APKParser class
+        return None
