@@ -204,8 +204,8 @@ class Analyzer():
         if dataExtractionRules_xml_rules_files is not None:
             self.logger.info(f'Custom rules has been defined to control what gets backed up in {dataExtractionRules_xml_rules_files} file')
             res |= 2
-            return res
-        self.logger.warning("fullBackupContent or dataExtractionRules properties not found. Please make a backup for further controls")
+        if res == 0:
+            self.logger.warning("fullBackupContent or dataExtractionRules properties not found. Please make a backup for further controls")
         return res
 
     def getNetworkConfigFile(self):
