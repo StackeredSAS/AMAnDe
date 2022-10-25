@@ -49,3 +49,5 @@ unzip -l test.apk
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
 - vérifier qu'un deeplink est forcément sans permission (i.e. analyzeExportedComponent)
 - update analyzeExportedComponent table before displaying it if readperm or writeperm empty
+- implement test for analyzeExportedComponent
+- fix getBackupRulesFile to take into account Android versions (< 11 and > 12)
