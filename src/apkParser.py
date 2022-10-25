@@ -8,6 +8,7 @@ from .constants import protection_levels
 # for virtual file handling in case of APK
 from io import StringIO
 from .utils import unformatFilename
+from collections import namedtuple
 
 class APKParser(Parser):
 
@@ -89,7 +90,6 @@ class APKParser(Parser):
         """
         In the case of APK custom permission protection level is an Int.
         """
-        from collections import namedtuple
         # use a namedtuple for more readable access to important attributes
         CustomPerm = namedtuple("CustomPerm", "name protectionLevel")
         res = []
@@ -128,3 +128,58 @@ class APKParser(Parser):
         path = self._realPathFromTypeAndName("xml", unformatFilename(filename).split(".")[0])
         return self._getCleanXML(path).read()
 
+    def getAllRules(self, root):
+        """
+        Convenient function to gather all rules in a backup configuration file element.
+        https://developer.android.com/guide/topics/data/autobackup#xml-include-exclude
+        """
+        # requireFlags is only for type "include"
+        Rule = namedtuple("Rule", "type domain path requireFlags")
+        res = []
+        for e in root:
+            t = e.tag
+            rf = self._getattr(e, "requireFlags")
+            d = self._getattr(e, "domain")
+            p = self._getattr(e, "path")
+            res.append(Rule(t, d, p, rf))
+        return res
+
+    def getFullBackupContentRules(self):
+        """
+        Parses the fullBackupContent file and returns all the rules defined in there.
+        Returns an empty list if this file does not exist.
+        https://developer.android.com/guide/topics/data/autobackup#xml-syntax-android-11
+        """
+        filename = self.fullBackupContent()
+        res = []
+        if filename is not None:
+            path = self._realPathFromTypeAndName("xml", unformatFilename(filename).split(".")[0])
+            xml = self._getCleanXML(path)
+            root = ET.parse(xml).getroot()
+            res = self.getAllRules(root)
+        return res
+
+    def getDataExtractionRulesContent(self):
+        """
+        Parses the dataExtractionRules file.
+        returns None if this file does not exists
+        https://developer.android.com/guide/topics/data/autobackup#xml-syntax-android-12
+        """
+        # disableIfNoEncryptionCapabilities is only for <cloud-Backup>
+        ExtractionRules = namedtuple("ExtractionRules", "cloudBackupRules disableIfNoEncryptionCapabilities deviceTransferRules")
+        filename = self.dataExtractionRules()
+        if filename is not None:
+            path = self._realPathFromTypeAndName("xml", unformatFilename(filename).split(".")[0])
+            xml = self._getCleanXML(path)
+            root = ET.parse(xml).getroot()
+            ExtractionRule = ExtractionRules([], None, [])
+            # cloud backup rules
+            cbr = root.find("cloud-backup")
+            if cbr:
+                ExtractionRule.disableIfNoEncryptionCapabilities = self._getattr(cbr, "disableIfNoEncryptionCapabilities")
+                ExtractionRule.cloudBackupRules = self.getAllRules(cbr)
+            # device transfer rules
+            dt = root.find("device-transfer")
+            if dt:
+                ExtractionRule.deviceTransferRules = self.getAllRules(dt)
+            return ExtractionRule
