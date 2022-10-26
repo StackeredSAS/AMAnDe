@@ -42,6 +42,27 @@ class Parser:
         versionName = self._getattr(self.root, "android:versionName")
         return Info(package, versionCode, versionName)
 
+    def usesLibrary(self):
+        """
+        Default is true for android:required property
+        """
+        UsesLibrary = namedtuple("UsesLibrary", "name required")
+        return [UsesLibrary(self._getattr(e, "android:name"), str2Bool(self._getattr(e, "android:required"))) for e in self.root.findall("application/uses-library")]
+
+    def usesNativeLibrary(self):
+        """
+        Default is true for android:required property
+        """
+        UsesNativeLibrary = namedtuple("UsesNativeLibrary", "name required")
+        return [UsesNativeLibrary(self._getattr(e, "android:name"), str2Bool(self._getattr(e, "android:required"))) for e in self.root.findall("application/uses-native-library")]
+
+    def usesFeatures(self):
+        """
+        Default is true for android:required property
+        """        
+        UsesFeature = namedtuple("UsesFeature", "name required")
+        return [UsesFeature(self._getattr(e, "android:name"), str2Bool(self._getattr(e, "android:required"))) for e in self.root.findall("application/uses-feature")]
+
     def builtinsPermissions(self):
         """
         récupère les builtins permissions

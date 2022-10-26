@@ -6,6 +6,7 @@
     android:versionName="1.2.4">
 
     <uses-sdk android:minSdkVersion="15" android:targetSdkVersion="26" android:maxSdkVersion="31"/>
+    <uses-feature android:name="uses_features_name" android:required="True"/>
 
     <!--Android permissions-->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -63,6 +64,10 @@
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
+
+        <uses-native-library
+            android:name="native-library-example"
+            android:required="true" />
 
         <activity
             android:name=".ui.activity.VaultListActivity"
