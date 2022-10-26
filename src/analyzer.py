@@ -76,6 +76,30 @@ class Analyzer():
         exported_services_number = self.parser.exportedComponentStats("service")
         self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
 
+        libraries = self.parser.usesLibrary()
+        for l in libraries:
+            if l is not None:
+                # Default is true if not set
+                req_l = l.required
+                if req_l is None: req_l = True
+                self.logger.info(f'Shared library "{l.name}" can be used by the application (mandatory for runtime : {req_l})')
+
+        native_libraries = self.parser.usesNativeLibrary()
+        for nl in native_libraries:
+            if nl is not None:
+                # Default is true if not set
+                req_nl = nl.required
+                if req_nl is None: req_nl = True
+                self.logger.info(f'Vendor provided shared native library "{nl.name}" can be used by the application (mandatory for runtime : {req_nl})')
+
+        features = self.parser.usesFeatures()
+        for f in features:
+            if f is not None:
+                # Default is true if not set
+                req_f = f.required
+                if req_f is None: req_f = True
+                self.logger.info(f'Hardware or software feature "{f.name}" can be used by the application (mandatory for runtime : {req_f})')
+
         return res
 
     def analyzeBuiltinsPerms(self):
@@ -190,7 +214,9 @@ class Analyzer():
 
     def getBackupRulesFile(self):
         """
-        todo: vérifier si les 2 balises peuvent coexister
+        Both tag can be specified together in the Manifest
+        However, for all versions equal or higher than Android 12, fullBakcupContent is override
+        with datExtractionRules.
         """
         printSubTestInfo("Checking backup rules files")
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
@@ -391,7 +417,6 @@ class Analyzer():
 
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
-        
         self.showApkInfo()
         self.analyzeBuiltinsPerms()
         self.analyzeCustomPerms()
@@ -402,4 +427,3 @@ class Analyzer():
         self.analyzeIntentFilters()
         self.analyzeExportedComponent()
         self.analyzeUnexportedProviders()
-        
