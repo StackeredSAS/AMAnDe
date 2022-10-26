@@ -60,7 +60,6 @@ class TestAnalyzer(unittest.TestCase):
             res = self.analyzer.isAutoBackupAllowed()
             self.assertEqual(res, expected, f"{allowBackup=} and {max_sdk_version=} should produce {expected} but produced {res}")
 
-    #Do not manage to handle test with tuple
     def test_showApkInfo(self):
         # the tuple elements represents :
         # getSdkVersion[0] (uses_sdk_min_sdk_version), getSdkVersion[1](uses_sdk_max_sdk_version),
@@ -98,6 +97,35 @@ class TestAnalyzer(unittest.TestCase):
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.showApkInfo()
             self.assertEqual(res, expected, f"{getSdkVersion=} and {min_sdk_version=} and {max_sdk_version=} should produce {expected} but produced {res}")
+
+
+    def test_analyzeExportedComponent(self):
+        # the tuple elements represents :
+        # getExportedComponentPermission[0] (name), getExportedComponentPermission[1] (type),
+        # getExportedComponentPermission[2] (permission), getExportedComponentPermission[3] (readPermission),
+        # getExportedComponentPermission[4] (writePermission) getExportedComponentPermission[5] (grantUriPermissions)
+        ExportedComponents = namedtuple("ExportedComponents", "componentName componentType permission readPermission writePermission grantUriPermissions")
+
+        testCases = [
+            ([ExportedComponents("deadbeef", "activity", "deadbeef_perm", None, None, None)], 2),
+            ([ExportedComponents("deadbeef", "service", "deadbeef_perm", None, None, None)], 2),
+            ([ExportedComponents("deadbeef", "receiver", "deadbeef_perm", None, None, None)], 2),
+            ([ExportedComponents("deadbeef", "activity", None, None, None, None)], 1),
+            ([ExportedComponents("deadbeef", "service", None, None, None, None)], 1),
+            ([ExportedComponents("deadbeef", "receiver", None, None, None, None)], 1),
+            ([ExportedComponents("deadbeef", "provider", None, None, None, None)], 1),
+            ([ExportedComponents("deadbeef", "provider", "deadbeef_perm", None, None, None)], 2),
+            ([ExportedComponents("deadbeef", "provider", None, "deadbeef_perm", None, None)], 2),
+            ([ExportedComponents("deadbeef", "provider", None, None, "deadbeef_perm", None)], 2),
+        ]
+
+        self.parser.getUniversalLinks = lambda: []
+        for testCase in testCases:
+            getExportedComponentPermission = testCase[0]
+            expected = testCase[1]
+            self.parser.getExportedComponentPermission = lambda t: [e for e in getExportedComponentPermission if e.componentType == t]
+            res = self.analyzer.analyzeExportedComponent()
+            self.assertEqual(res, expected, f"{getExportedComponentPermission=} should produce {expected} but produced {res}")
 
     def test_isBackupAgentImplemented(self):
         # the tuple elements represents :

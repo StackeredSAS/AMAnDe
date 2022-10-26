@@ -143,7 +143,7 @@ class Parser:
         """
 
         # use a namedtuple for more readable access to important attributes
-        ExportedComponents = namedtuple("exportedComponents", "componentName, componentType permission readPermission writePermission grantUriPermissions")
+        ExportedComponents = namedtuple("ExportedComponents", "componentName componentType permission readPermission writePermission grantUriPermissions")
         res = []
         for name in self.exportedComponents(componentType):
             component = self.root.find(f'application/{componentType}[@android:name="{name}"]', namespaces=self.namespaces)
