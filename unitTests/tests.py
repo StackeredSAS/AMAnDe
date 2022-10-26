@@ -107,16 +107,16 @@ class TestAnalyzer(unittest.TestCase):
         ExportedComponents = namedtuple("ExportedComponents", "componentName componentType permission readPermission writePermission grantUriPermissions")
 
         testCases = [
-            ([ExportedComponents("deadbeef", "activity", "deadbeef_perm", None, None, None)], 0),
-            ([ExportedComponents("deadbeef", "service", "deadbeef_perm", None, None, None)], 0),
-            ([ExportedComponents("deadbeef", "receiver", "deadbeef_perm", None, None, None)], 0),
+            ([ExportedComponents("deadbeef", "activity", "deadbeef_perm", None, None, None)], 2),
+            ([ExportedComponents("deadbeef", "service", "deadbeef_perm", None, None, None)], 2),
+            ([ExportedComponents("deadbeef", "receiver", "deadbeef_perm", None, None, None)], 2),
             ([ExportedComponents("deadbeef", "activity", None, None, None, None)], 1),
             ([ExportedComponents("deadbeef", "service", None, None, None, None)], 1),
             ([ExportedComponents("deadbeef", "receiver", None, None, None, None)], 1),
-            ([ExportedComponents("deadbeef", "provider", None, None, None, None)], 2),
-            ([ExportedComponents("deadbeef", "provider", "deadbeef_perm", None, None, None)], 0),
-            ([ExportedComponents("deadbeef", "provider", None, "deadbeef_perm", None, None)], 0),
-            ([ExportedComponents("deadbeef", "provider", None, None, "deadbeef_perm", None)], 0),
+            ([ExportedComponents("deadbeef", "provider", None, None, None, None)], 1),
+            ([ExportedComponents("deadbeef", "provider", "deadbeef_perm", None, None, None)], 2),
+            ([ExportedComponents("deadbeef", "provider", None, "deadbeef_perm", None, None)], 2),
+            ([ExportedComponents("deadbeef", "provider", None, None, "deadbeef_perm", None)], 2),
         ]
 
         self.parser.getUniversalLinks = lambda: []
