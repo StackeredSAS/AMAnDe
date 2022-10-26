@@ -80,19 +80,17 @@ class Analyzer():
         for l in libraries:
             if l is not None:
                 # Default is true if not set
-                if l.required is None:
-                    # How to handle this to display True in the output
-                    pass
-                self.logger.info(f'Shared library "{l.name}" can be used by the application (mandatory for runtime : {l.required})')
+                req = l.required
+                if req is None: req = True
+                self.logger.info(f'Shared library "{l.name}" can be used by the application (mandatory for runtime : {req})')
 
         native_libraries = self.parser.usesNativeLibrary()
         for nl in native_libraries:
             if nl is not None:
                 # Default is true if not set
-                if nl.required is None:
-                    # How to handle this to display True in the output
-                    pass
-                self.logger.info(f'Vendor provided shared native library "{nl.name}" can be used by the application (mandatory for runtime : {nl.required})')
+                req =  nl.required
+                if req is None: req = True
+                self.logger.info(f'Vendor provided shared native library "{nl.name}" can be used by the application (mandatory for runtime : {req})')
 
         features = self.parser.usesFeatures()
         for f in features:
