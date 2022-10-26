@@ -1,8 +1,16 @@
 from termcolor import colored
 from tabulate import tabulate
-from .utils import CustomFormatter, printTestInfo, printSubTestInfo, checkDigitalAssetLinks
+from .utils import (
+    CustomFormatter,
+    printTestInfo,
+    printSubTestInfo,
+    checkDigitalAssetLinks,
+    runProc
+)
+from .config import EXTERNAL_BINARIES
 import logging
 from .constants import dangerous_perms
+from .apkParser import APKParser
 
 
 class Analyzer():
@@ -75,6 +83,17 @@ class Analyzer():
         services_number = self.parser.componentStats("service")
         exported_services_number = self.parser.exportedComponentStats("service")
         self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
+
+        # for now do it here
+        # if we want to add post treatment we will move those kinds of checks into a new file
+        if type(self.parser) is APKParser:
+            cmd = EXTERNAL_BINARIES["apksigner"] + ["verify", "--print-certs", "--verbose", "--min-sdk-version",
+                                                    str(self.args.min_sdk_version), self.args.path]
+            res = runProc(cmd)
+            if res:
+                printSubTestInfo("Output of apksigner")
+                self.logger.info(colored(f"executed command : {' '.join(cmd)}", "yellow"))
+                self.logger.info(res.decode())
 
         return res
 
