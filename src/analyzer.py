@@ -276,7 +276,7 @@ class Analyzer():
             a specific uri is handled by another app
         """
         printTestInfo("Checking if exported components required special permission to be called")
-        headers = ["Name", "Type", "Permission", "readPermission", "writePermission", "grantUriPermissions"]
+        headers = ["Name", "Type", "Permission", "readPermission", "writePermission"]
         table = []
         # Getting deeplink (don't analyze exported component which is a deeplink)
         universal_links = self.parser.getUniversalLinks()
@@ -308,7 +308,20 @@ class Analyzer():
                         res += 2
         
         # There might not be any exported components -> no permission to analyze
-        if len (table) > 0 : 
+        if len (table) > 0 :
+            # no write permissions
+            nowp = all([e[-1] == None for e in table])
+            # no read permissions
+            norp = all([e[-2] == None for e in table])
+            # remove empty columns
+            # start with the inner most column otherwise the index changes
+            if norp:
+                table = [e[:-2]+e[-1:] for e in table]
+                headers.pop(-2)
+            if nowp:
+                table = [e[:-1] for e in table]
+                headers.pop(-1)
+
             print(tabulate(table, headers, tablefmt="fancy_grid"))
         if count > 0:
             self.logger.warning(f'There are {count} exported components which can be called wihtout any permission. Check it out!')
