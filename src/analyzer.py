@@ -276,10 +276,10 @@ class Analyzer():
                         cType = colored(t, "yellow")
                         table.append([cName, cType, p, rp, wp])
                         count += 1
-                        res = 1
+                        res += 1
                     else:
                         table.append([n, t, p, rp, wp])
-                        res = 2
+                        res += 2
         
         # There might not be any exported components -> no permission to analyze
         if len (table) > 0 : 
