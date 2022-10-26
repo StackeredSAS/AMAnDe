@@ -63,12 +63,16 @@
         <!-- Necessary for OneDrive https://stackoverflow.com/a/50779232/825532 -->
         <uses-library
             android:name="org.apache.http.legacy"
-            android:required="false" />
+             />
 
         <uses-native-library
             android:name="native-library-example"
             android:required="true" />
 
+        <uses-feature
+            android:name="feature-example"
+            android:required="false" />
+            
         <activity
             android:name=".ui.activity.VaultListActivity"
             android:exported="true"
