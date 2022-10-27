@@ -59,7 +59,7 @@ class TestAnalyzer(unittest.TestCase):
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.isAutoBackupAllowed()
             self.assertEqual(res, expected, f"{allowBackup=} and {max_sdk_version=} should produce {expected} but produced {res}")
-
+    
     def test_showApkInfo(self):
         # the tuple elements represents :
         # getSdkVersion[0] (uses_sdk_min_sdk_version), getSdkVersion[1](uses_sdk_max_sdk_version),
@@ -87,6 +87,10 @@ class TestAnalyzer(unittest.TestCase):
         self.parser.getApkInfo = lambda: Info("pack", "12", "1.2")
         self.parser.componentStats = lambda x: 0
         self.parser.exportedComponentStats = lambda x: 0
+        U = namedtuple("Uses", "name required")
+        self.parser.usesLibrary = lambda: [U("test", None)]
+        self.parser.usesNativeLibrary = lambda: [U("test1", None)]
+        self.parser.usesFeatures = lambda: [U("test2", None)]
         for testCase in testCases:
             getSdkVersion = testCase[0]
             min_sdk_version = testCase[1]
@@ -97,7 +101,7 @@ class TestAnalyzer(unittest.TestCase):
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.showApkInfo()
             self.assertEqual(res, expected, f"{getSdkVersion=} and {min_sdk_version=} and {max_sdk_version=} should produce {expected} but produced {res}")
-
+    
 
     def test_analyzeExportedComponent(self):
         # the tuple elements represents :
@@ -145,22 +149,35 @@ class TestAnalyzer(unittest.TestCase):
 
     def test_getBackupRulesFile(self):
         # the tuple elements represents :
-        # fullBackupContent, dataExtractionRules, expectedResult
+        # fullBackupContent, dataExtractionRules, args_min_sdk, args_max_sdk, expectedResult
         testCases = [
-            ("test.xml", "test.xml", 3),
-            (None, "test.xml", 2),
-            ("test.xml", None, 1),
-            (None, None, 0),
+            ("test.xml", "test.xml", 15, 30, 1),
+            ("test.xml", "test.xml", 15, 31, 3),
+            ("test.xml", "test.xml", 31, 32, 2),
+            ("test.xml", "test.xml", 30, 31, 3),
+            (None, "test.xml", 15, 30, 0),
+            (None, "test.xml", 31, 32, 2),
+            (None, "test.xml", 17, 31, 2),
+            ("test.xml", None, 15, 30, 1),
+            ("test.xml", None, 31, 32, 0),
+            ("test.xml", None, 17, 31, 1),
+            (None, None, 15, 30, 0),
+            (None, None, 15, 31, 0),
+            (None, None, 31, 32, 0),
         ]
 
         for testCase in testCases:
             fullBackupContent = testCase[0]
             dataExtractionRules = testCase[1]
-            expected = testCase[2]
+            min_sdk_version = testCase[2]
+            max_sdk_version = testCase[3]
+            expected = testCase[4]
             self.parser.fullBackupContent = lambda: fullBackupContent
             self.parser.dataExtractionRules = lambda : dataExtractionRules
+            self.args.min_sdk_version = min_sdk_version
+            self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.getBackupRulesFile()
-            self.assertEqual(res, expected, f"{fullBackupContent=} and {dataExtractionRules=} should produce {expected} but produced {res}")
+            self.assertEqual(res, expected, f"{fullBackupContent=} and {dataExtractionRules=} and {min_sdk_version} and {max_sdk_version} should produce {expected} but produced {res}")
 
     def test_getNetworkConfigFile(self):
         # the tuple elements represents :
