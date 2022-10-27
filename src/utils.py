@@ -76,3 +76,35 @@ def unformatFilename(name):
     # because Parser._getResValue formats filenames in a specific way
     # we must undo the formatting to work with the raw string
     return name[4:-4]
+
+def runProc(*args, **kwargs):
+    """
+    Launches a subprocess that kills itself when its parent dies.
+
+    :param args: The arguments to launch the subprocess.
+    :type args: list[str]
+
+    :return: The STDOUT output of the subprocess launched or None if the program does not exist.
+    :rtype: bytes
+
+    **Examples** ::
+
+        >>> runProc(["pwd"])
+        b'/tmp/test\\n'
+        >>> runProc(["echo", "hello"])
+        b'hello\\n'
+    """
+    import subprocess
+    p = None
+    output = None
+    try:
+        p = subprocess.Popen(stdout=subprocess.PIPE, *args, **kwargs)
+        p.wait()
+        output = p.stdout.read()
+        p.stdout.close()
+    finally:
+        if p is not None and p.poll() is None:
+            p.terminate()  # send sigterm, or ...
+            p.kill()  # send sigkill
+        return output
+

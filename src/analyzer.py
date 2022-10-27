@@ -1,8 +1,16 @@
 from termcolor import colored
 from tabulate import tabulate
-from .utils import CustomFormatter, printTestInfo, printSubTestInfo, checkDigitalAssetLinks
+from .utils import (
+    CustomFormatter,
+    printTestInfo,
+    printSubTestInfo,
+    checkDigitalAssetLinks,
+    runProc
+)
+from .config import EXTERNAL_BINARIES
 import logging
 from .constants import dangerous_perms
+from .apkParser import APKParser
 
 
 class Analyzer():
@@ -99,6 +107,17 @@ class Analyzer():
                 req_f = f.required
                 if req_f is None: req_f = True
                 self.logger.info(f'Hardware or software feature "{f.name}" can be used by the application (mandatory for runtime : {req_f})')
+                
+        # for now do it here
+        # if we want to add post treatment we will move those kinds of checks into a new file
+        if type(self.parser) is APKParser:
+            cmd = EXTERNAL_BINARIES["apksigner"] + ["verify", "--print-certs", "--verbose", "--min-sdk-version",
+                                                    str(self.args.min_sdk_version), self.args.path]
+            cmdres = runProc(cmd)
+            if cmdres:
+                printSubTestInfo("Output of apksigner")
+                self.logger.info(colored(f"executed command : {' '.join(cmd)}", "yellow"))
+                self.logger.info(cmdres.decode())
 
         return res
 
