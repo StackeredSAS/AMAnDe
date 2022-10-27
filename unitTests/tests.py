@@ -87,12 +87,10 @@ class TestAnalyzer(unittest.TestCase):
         self.parser.getApkInfo = lambda: Info("pack", "12", "1.2")
         self.parser.componentStats = lambda x: 0
         self.parser.exportedComponentStats = lambda x: 0
-        Ul = namedtuple("UsesLibrary", "name required")
-        Unl = namedtuple("UsesNativeLibrary", "name required")
-        F = namedtuple("UsesFeature", "name required")
-        self.parser.usesLibrary = lambda: [Ul("test", None)]
-        self.parser.usesNativeLibrary = lambda: [Unl("test1", None)]
-        self.parser.usesFeatures = lambda: [F("test2", None)]
+        U = namedtuple("Uses", "name required")
+        self.parser.usesLibrary = lambda: [U("test", None)]
+        self.parser.usesNativeLibrary = lambda: [U("test1", None)]
+        self.parser.usesFeatures = lambda: [U("test2", None)]
         for testCase in testCases:
             getSdkVersion = testCase[0]
             min_sdk_version = testCase[1]
