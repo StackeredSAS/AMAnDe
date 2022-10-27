@@ -84,16 +84,40 @@ class Analyzer():
         exported_services_number = self.parser.exportedComponentStats("service")
         self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
 
+        libraries = self.parser.usesLibrary()
+        for l in libraries:
+            if l is not None:
+                # Default is true if not set
+                req_l = l.required
+                if req_l is None: req_l = True
+                self.logger.info(f'Shared library "{l.name}" can be used by the application (mandatory for runtime : {req_l})')
+
+        native_libraries = self.parser.usesNativeLibrary()
+        for nl in native_libraries:
+            if nl is not None:
+                # Default is true if not set
+                req_nl = nl.required
+                if req_nl is None: req_nl = True
+                self.logger.info(f'Vendor provided shared native library "{nl.name}" can be used by the application (mandatory for runtime : {req_nl})')
+
+        features = self.parser.usesFeatures()
+        for f in features:
+            if f is not None:
+                # Default is true if not set
+                req_f = f.required
+                if req_f is None: req_f = True
+                self.logger.info(f'Hardware or software feature "{f.name}" can be used by the application (mandatory for runtime : {req_f})')
+                
         # for now do it here
         # if we want to add post treatment we will move those kinds of checks into a new file
         if type(self.parser) is APKParser:
             cmd = EXTERNAL_BINARIES["apksigner"] + ["verify", "--print-certs", "--verbose", "--min-sdk-version",
                                                     str(self.args.min_sdk_version), self.args.path]
-            res = runProc(cmd)
-            if res:
+            cmdres = runProc(cmd)
+            if cmdres:
                 printSubTestInfo("Output of apksigner")
                 self.logger.info(colored(f"executed command : {' '.join(cmd)}", "yellow"))
-                self.logger.info(res.decode())
+                self.logger.info(cmdres.decode())
 
         return res
 
@@ -209,7 +233,9 @@ class Analyzer():
 
     def getBackupRulesFile(self):
         """
-        todo: vérifier si les 2 balises peuvent coexister
+        Both tag can be specified together in the Manifest
+        However, for all versions equal or higher than Android 12, fullBakcupContent is override
+        with datExtractionRules.
         """
         printSubTestInfo("Checking backup rules files")
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
@@ -269,7 +295,7 @@ class Analyzer():
             a specific uri is handled by another app
         """
         printTestInfo("Checking if exported components required special permission to be called")
-        headers = ["Name", "Type", "Permission", "readPermission", "writePermission", "grantUriPermissions"]
+        headers = ["Name", "Type", "Permission", "readPermission", "writePermission"]
         table = []
         # Getting deeplink (don't analyze exported component which is a deeplink)
         universal_links = self.parser.getUniversalLinks()
@@ -301,7 +327,20 @@ class Analyzer():
                         res += 2
         
         # There might not be any exported components -> no permission to analyze
-        if len (table) > 0 : 
+        if len (table) > 0 :
+            # no write permissions
+            nowp = all([e[-1] == None for e in table])
+            # no read permissions
+            norp = all([e[-2] == None for e in table])
+            # remove empty columns
+            # start with the inner most column otherwise the index changes
+            if norp:
+                table = [e[:-2]+e[-1:] for e in table]
+                headers.pop(-2)
+            if nowp:
+                table = [e[:-1] for e in table]
+                headers.pop(-1)
+
             print(tabulate(table, headers, tablefmt="fancy_grid"))
         if count > 0:
             self.logger.warning(f'There are {count} exported components which can be called wihtout any permission. Check it out!')
@@ -410,7 +449,6 @@ class Analyzer():
 
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
-        
         self.showApkInfo()
         self.analyzeBuiltinsPerms()
         self.analyzeCustomPerms()
@@ -421,4 +459,3 @@ class Analyzer():
         self.analyzeIntentFilters()
         self.analyzeExportedComponent()
         self.analyzeUnexportedProviders()
-        

@@ -36,10 +36,8 @@ unzip -l test.apk
 
 ## todo
 - APK info
-  - uses library
   - counter de activity-alias (a voir si on le regroupe ou pas)
-- def providerAnalysis -> perm
-	- grantUriPermissions
+- def providerAnalysis
 	- FileProvider
 - si apk check for kernel.bin (flutter app)
 - tests avec outils tiers si préinstallés
@@ -48,6 +46,4 @@ unzip -l test.apk
 - vérifier les infos des backup rules file (data extract rules et full backup content)
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
 - vérifier qu'un deeplink est forcément sans permission (i.e. analyzeExportedComponent)
-- update analyzeExportedComponent table before displaying it if readperm or writeperm empty
-- implement test for analyzeExportedComponent
 - fix getBackupRulesFile to take into account Android versions (< 11 and > 12)
