@@ -224,12 +224,14 @@ class Analyzer():
         dataExtractionRules_xml_rules_files = self.parser.dataExtractionRules()
 
         res = 0
-        if fullBackupContent_xml_file_rules is not None:
-            self.logger.info(f'Custom rules has been defined to control what gets backed up in {fullBackupContent_xml_file_rules} file')
-            res |= 1
-        if dataExtractionRules_xml_rules_files is not None:
-            self.logger.info(f'Custom rules has been defined to control what gets backed up in {dataExtractionRules_xml_rules_files} file')
-            res |= 2
+        if self.args.max_sdk_version <=30 or (self.args.min_sdk_version <=30 and self.args.max_sdk_version >=30):
+            if fullBackupContent_xml_file_rules is not None:
+                self.logger.info(f'For Android versions <=11 (API 30), custom rules has been defined to control what gets backed up in {fullBackupContent_xml_file_rules} file')
+                res |= 1
+        if self.args.min_sdk_version >= 31 or (self.args.max_sdk_version >= 31 and self.args.min_sdk_version <31):
+            if dataExtractionRules_xml_rules_files is not None:
+                self.logger.info(f'For Android versions <=12 (API 31), custom rules has been defined to control what gets backed up in {dataExtractionRules_xml_rules_files} file')
+                res |= 2
         if res == 0:
             self.logger.warning("fullBackupContent or dataExtractionRules properties not found. Please make a backup for further controls")
         return res
