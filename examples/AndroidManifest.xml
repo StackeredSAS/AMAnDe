@@ -51,8 +51,8 @@
         android:allowBackup="true"
         android:debuggable="true"
         android:backupAgent=".MyBackupAgent"
-        android:dataExtractionRules="@xml/test2"
-        android:fullBackupContent="@xml/test1"
+        
+        android:fullBackupContent="@xml/test"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"

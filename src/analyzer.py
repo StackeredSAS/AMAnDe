@@ -9,7 +9,10 @@ from .utils import (
 )
 from .config import EXTERNAL_BINARIES
 import logging
-from .constants import dangerous_perms
+from .constants import (
+    dangerous_perms,
+    ANDROID_MAX_SDK
+)
 from .apkParser import APKParser
 
 
@@ -247,10 +250,16 @@ class Analyzer():
             if fullBackupContent_xml_file_rules is not None:
                 self.logger.info(f'For Android versions <=11 (API 30), custom rules has been defined to control what gets backed up in {fullBackupContent_xml_file_rules} file')
                 res |= 1
+            else:
+                self.logger.warning(f'Target SDK versions {[self.args.min_sdk_version, self.args.max_sdk_version]}'
+                f' are included between 1 and 30 and no exclusion custom rules files has been specified')
         if self.args.max_sdk_version >= 31:
             if dataExtractionRules_xml_rules_files is not None:
                 self.logger.info(f'For Android versions >=12 (API 31), custom rules has been defined to control what gets backed up in {dataExtractionRules_xml_rules_files} file')
                 res |= 2
+            else:
+                self.logger.warning(f'Target SDK versions {[self.args.min_sdk_version, self.args.max_sdk_version]}'
+                f' are included between 1 and {ANDROID_MAX_SDK} and no exclusion custom rules files has been specified')
         if res == 0:
             self.logger.warning("fullBackupContent or dataExtractionRules properties not found. Please make a backup for further controls")
         return res
