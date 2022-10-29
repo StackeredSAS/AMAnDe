@@ -58,7 +58,7 @@ def getResourceTypeName(value):
 
 
 def printTestInfo(title):
-    print(colored(f"\n[*] {title}", "blue"))
+    print(colored(f"\n[*] {title}", "blue", attrs=['bold']))
 
 
 def printSubTestInfo(title):
