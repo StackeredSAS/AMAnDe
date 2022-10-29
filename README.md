@@ -45,4 +45,4 @@ unzip -l test.apk
 - vérifier les infos des backup rules file (data extract rules et full backup content)
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
 - vérifier qu'un deeplink est forcément sans permission (i.e. analyzeExportedComponent)
-- fix getBackupRulesFile to take into account Android versions (< 11 and > 12)
+- Check if flutter app with kernel_blob.bin is necessarily debuggable (android:debuggable in Manifest)
