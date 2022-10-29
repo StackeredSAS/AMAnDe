@@ -4,6 +4,7 @@ from src.parser import Parser
 from src.apkParser import APKParser
 from src.analyzer import Analyzer
 from src.constants import ANDROID_MAX_SDK
+import logging
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(description='Utility to analyse Android Manifest files.')
@@ -14,6 +15,11 @@ if __name__ == "__main__":
     args = argparser.parse_args()
 
     assert args.min_sdk_version <= args.max_sdk_version, "min SDK version cannot be higher than max SDK version"
+
+    # silence https://github.com/appknox/pyaxmlparser/blob/d111a4fc6330a0c293ffc2f114af360eb78ad2ef/pyaxmlparser/stringblock.py#L208
+    logging.getLogger("pyaxmlparser.stringblock").setLevel(logging.CRITICAL)
+    # silence https://github.com/appknox/pyaxmlparser/blob/d111a4fc6330a0c293ffc2f114af360eb78ad2ef/pyaxmlparser/arscparser.py#L150
+    logging.getLogger("pyaxmlparser.arscparser").setLevel(logging.CRITICAL)
 
     # try as APK
     parser = APKParser(args.path)
