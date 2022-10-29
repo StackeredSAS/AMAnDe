@@ -62,7 +62,7 @@ def printTestInfo(title):
 
 
 def printSubTestInfo(title):
-    print(colored(f"[+] {title}", "cyan"))
+    print(colored(f"\n[+] {title}", "cyan"))
 
 
 def checkDigitalAssetLinks(host):
