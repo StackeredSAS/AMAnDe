@@ -17,11 +17,9 @@ if __name__ == "__main__":
     assert args.min_sdk_version <= args.max_sdk_version, "min SDK version cannot be higher than max SDK version"
 
     # silence https://github.com/appknox/pyaxmlparser/blob/d111a4fc6330a0c293ffc2f114af360eb78ad2ef/pyaxmlparser/stringblock.py#L208
-    log = logging.getLogger("pyaxmlparser.stringblock")
-    log.setLevel(logging.CRITICAL)
+    logging.getLogger("pyaxmlparser.stringblock").setLevel(logging.CRITICAL)
     # silence https://github.com/appknox/pyaxmlparser/blob/d111a4fc6330a0c293ffc2f114af360eb78ad2ef/pyaxmlparser/arscparser.py#L150
-    log = logging.getLogger("pyaxmlparser.arscparser")
-    log.setLevel(logging.CRITICAL)
+    logging.getLogger("pyaxmlparser.arscparser").setLevel(logging.CRITICAL)
 
     # try as APK
     parser = APKParser(args.path)
