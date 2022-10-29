@@ -285,3 +285,8 @@ class Parser:
     def getDataExtractionRulesContent(self):
         # will be overwritten in the APKParser class
         return None
+
+    def getFlutterKernelBlob(self):
+        # will be overwritten in the APKParser class
+        return None
+

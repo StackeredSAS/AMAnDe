@@ -183,3 +183,10 @@ class APKParser(Parser):
             if dt:
                 ExtractionRule.deviceTransferRules = self.getAllRules(dt)
             return ExtractionRule
+
+
+    def getFlutterKernelBlob(self):
+        path = 'assets/flutter_assets/kernel_blob.bin'
+        if path in self.apk.namelist():
+            return path
+
