@@ -39,7 +39,6 @@ unzip -l test.apk
   - counter de activity-alias (a voir si on le regroupe ou pas)
 - def providerAnalysis
 	- FileProvider
-- si apk check for kernel.bin (flutter app)
 - tests avec outils tiers si préinstallés
   - apksigner pour les signatures
 - vérifier les infos du network sec conf (pinning, trust anchors)

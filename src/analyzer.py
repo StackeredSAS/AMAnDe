@@ -285,6 +285,9 @@ class Analyzer():
         debuggable = self.parser.debuggable()
         if debuggable:
             self.logger.warning("Debuggable flag found. APK can be debugged on a device running in user mode")
+            flutterkernelBlob = self.parser.getFlutterKernelBlob()
+            if flutterkernelBlob:
+                self.logger.critical(f"Flutter app is debuggable and source code can be found in the strings of {flutterkernelBlob}")
             return True
         self.logger.info("APK is not compiled in debug mode")
         return False
