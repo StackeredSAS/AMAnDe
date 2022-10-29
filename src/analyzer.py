@@ -345,7 +345,7 @@ class Analyzer():
 
             print(tabulate(table, headers, tablefmt="fancy_grid"))
         if count > 0:
-            self.logger.warning(f'There are {count} exported components which can be called wihtout any permission. Check it out!')
+            self.logger.warning(f'There are {count} exported components which can be called without any permission. Check it out!')
         return res
 
     def analyzeUnexportedProviders(self):
@@ -422,7 +422,7 @@ class Analyzer():
                 applinks_with_this_name = [e for e in applinks if e.name == name]
                 if self.logger.level <= logging.WARNING:
                     print(colored(f'\tDeclared in {applinks_with_this_name[0].tag} {name.split(".")[-1]} '
-                              f'with the following URI :', "yellow"))
+                              f' with the following URI :', "yellow"))
                     # show the URI
                     for applink in applinks_with_this_name:
                         for uri in applink.uris:
@@ -437,7 +437,7 @@ class Analyzer():
         for name in unique_names:
             deeplinks = [e for e in res if e.name == name]
             self.logger.warning(f'Found a deeplink in {deeplinks[0].tag} {deeplinks[0].name.split(".")[-1]}'
-                                f'with the following URI:')
+                                f' with the following URI:')
             for deeplink in deeplinks:
                 for uri in deeplink.uris:
                     if self.logger.level <= logging.WARNING:
