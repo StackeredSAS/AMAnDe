@@ -166,6 +166,12 @@ class TestAnalyzer(unittest.TestCase):
             (None, None, 31, 32, 0),
         ]
 
+        Rule = namedtuple("Rule", "type domain path requireFlags")
+        ExtractionRules = namedtuple("ExtractionRules", "cloudBackupRules disableIfNoEncryptionCapabilities deviceTransferRules")
+        r = Rule("a", "b", "c", "d")
+        self.parser.getFullBackupContentRules = lambda: [r]
+        self.parser.getDataExtractionRulesContent = lambda: ExtractionRules([r], True, [r])
+
         for testCase in testCases:
             fullBackupContent = testCase[0]
             dataExtractionRules = testCase[1]
