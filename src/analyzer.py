@@ -406,7 +406,8 @@ class Analyzer():
             self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
 
     def isAppLinkUsed(self):
-        printTestInfo("Checking for AppLinks (based on previous table)")
+        self.logger.info("")
+        printSubTestInfo("Checking for AppLinks")
         res = self.parser.getUniversalLinks()
         verified_hosts = {h for e in res if e.autoVerify for h in e.hosts}
 
@@ -437,7 +438,8 @@ class Analyzer():
         return len(verified_hosts)
 
     def isDeepLinkUsed(self):
-        printTestInfo("Checking for DeepLinks (based on previous table)")
+        self.logger.info("")
+        printSubTestInfo("Checking for DeepLinks")
         res = self.parser.getUniversalLinks()
         unique_names = {deeplink.name for deeplink in res}
         # get component name and uris
