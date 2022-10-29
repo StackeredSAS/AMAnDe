@@ -172,17 +172,19 @@ class APKParser(Parser):
             path = self._realPathFromTypeAndName("xml", unformatFilename(filename).split(".")[0])
             xml = self._getCleanXML(path)
             root = ET.parse(xml).getroot()
-            ExtractionRule = ExtractionRules([], None, [])
+            cloudBackupRules = []
+            disableIfNoEncryptionCapabilities = None
+            deviceTransferRules = []
             # cloud backup rules
             cbr = root.find("cloud-backup")
             if cbr:
-                ExtractionRule.disableIfNoEncryptionCapabilities = self._getattr(cbr, "disableIfNoEncryptionCapabilities")
-                ExtractionRule.cloudBackupRules = self.getAllRules(cbr)
+                disableIfNoEncryptionCapabilities = self._getattr(cbr, "disableIfNoEncryptionCapabilities")
+                cloudBackupRules = self.getAllRules(cbr)
             # device transfer rules
             dt = root.find("device-transfer")
             if dt:
-                ExtractionRule.deviceTransferRules = self.getAllRules(dt)
-            return ExtractionRule
+                deviceTransferRules = self.getAllRules(dt)
+            return ExtractionRules(cloudBackupRules, disableIfNoEncryptionCapabilities, deviceTransferRules)
 
 
     def getFlutterKernelBlob(self):
