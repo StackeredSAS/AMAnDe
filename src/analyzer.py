@@ -245,14 +245,18 @@ class Analyzer():
         res = 0
         if self.args.min_sdk_version <= 30:
             if fullBackupContent_xml_file_rules is not None:
-                self.logger.info(f'For Android versions <=11 (API 30), custom rules has been defined to control what gets backed up in {fullBackupContent_xml_file_rules} file')
+                self.logger.info(f'For Android versions <= 11 (API 30), custom rules has been defined to control what gets backed up in {fullBackupContent_xml_file_rules} file')
                 res |= 1
+            else:
+                self.logger.warning(f'Minimal supported SDK version ({self.args.min_sdk_version})'
+                f' allows Android versions <= 11 (API 30) and no exclusion custom rules file has been specified in the fullBackupContent attribute.')
         if self.args.max_sdk_version >= 31:
             if dataExtractionRules_xml_rules_files is not None:
-                self.logger.info(f'For Android versions >=12 (API 31), custom rules has been defined to control what gets backed up in {dataExtractionRules_xml_rules_files} file')
+                self.logger.info(f'For Android versions >= 12 (API 31), custom rules has been defined to control what gets backed up in {dataExtractionRules_xml_rules_files} file')
                 res |= 2
-        if res == 0:
-            self.logger.warning("fullBackupContent or dataExtractionRules properties not found. Please make a backup for further controls")
+            else:
+                self.logger.warning(f'Maximal supported SDK version ({self.args.max_sdk_version})'
+                f' allows Android versions >= 12 (API 31) and no exclusion custom rules file has been specified in the dataExtractionRules attribute.')
         return res
 
     def getNetworkConfigFile(self):
