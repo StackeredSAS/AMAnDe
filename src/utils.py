@@ -58,11 +58,11 @@ def getResourceTypeName(value):
 
 
 def printTestInfo(title):
-    print(colored(f"\n[*] {title}", "blue"))
+    print(colored(f"\n[*] {title}", "blue", attrs=['bold']))
 
 
 def printSubTestInfo(title):
-    print(colored(f"[+] {title}", "cyan"))
+    print(colored(f"\n[+] {title}", "cyan"))
 
 
 def checkDigitalAssetLinks(host):
