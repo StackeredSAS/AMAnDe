@@ -192,8 +192,9 @@ class APKParser(Parser):
 
     def searchInStrings(self, pattern):
         res = []
-        # get_resolved_strings does not recompute all the strings every time so its fine
-        for s in self.rsc.get_resolved_strings()[self.rsc.get_packages_names()[0]]["DEFAULT"].values():
-            if re.search(pattern, s, re.IGNORECASE):
-                res.append(s)
+        if self.rsc:
+            # get_resolved_strings does not recompute all the strings every time so its fine
+            for s in self.rsc.get_resolved_strings()[self.rsc.get_packages_names()[0]]["DEFAULT"].values():
+                if re.search(pattern, s, re.IGNORECASE):
+                    res.append(s)
         return res

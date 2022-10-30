@@ -18,6 +18,7 @@ class Analyzer():
     def __init__(self, parser, args):
         self.parser = parser
         self.args = args
+        self.isAPK = type(self.parser) is APKParser
         self.logger = logging.getLogger(__name__)
         self.setLogLevel(args.log_level)
 
@@ -110,7 +111,7 @@ class Analyzer():
                 
         # for now do it here
         # if we want to add post treatment we will move those kinds of checks into a new file
-        if type(self.parser) is APKParser:
+        if self.isAPK:
             cmd = EXTERNAL_BINARIES["apksigner"] + ["verify", "--print-certs", "--verbose", "--min-sdk-version",
                                                     str(self.args.min_sdk_version), self.args.path]
             cmdres = runProc(cmd)
@@ -247,7 +248,7 @@ class Analyzer():
             if fullBackupContent_xml_file_rules is not None:
                 self.logger.info(f'For Android versions <= 11 (API 30), custom rules has been defined to control what gets backed up in {fullBackupContent_xml_file_rules} file')
                 res |= 1
-                rules = self.parser.getFullBackupContentRules()
+                rules = self.parser.getFullBackupContentRules() or []
                 headers = ["type", "domain", "path", "requireFlags"]
                 table = [[e.type, e.domain, e.path, e.requireFlags] for e in rules]
                 if len(table) > 0:
@@ -473,6 +474,8 @@ class Analyzer():
             self.isAppLinkUsed()
 
     def checkInterestingStuffs(self):
+        # the rest of the code will do nothing if not an APK
+        if self.isAPK: printTestInfo("Looking for interesting files/strings")
         # flutter kernel_blob.bin
         path = 'assets/flutter_assets/kernel_blob.bin'
         if  self.parser.hasFile(path):
