@@ -11,6 +11,7 @@ from .config import EXTERNAL_BINARIES
 import logging
 from .constants import dangerous_perms
 from .apkParser import APKParser
+from .networkSecParser import NetworkSecParser
 
 
 class Analyzer():
@@ -292,6 +293,7 @@ class Analyzer():
             # on peut checker le certificate pinning et les trust anchors ici dans 2 sous-tests
             # si pas un APK ca reste comme ça
             self.logger.info(f'APK network security configuration is defined in {network_security_config_xml_file} file')
+            if self.isAPK : self.analyseNetworkSecurityConfigFile()
             return True
         self.logger.warning("networkSecurityConfig property not found")
         return False
@@ -506,6 +508,12 @@ class Analyzer():
             for e in res:
                 self.logger.info(f"\t{e}")
 
+    def analyseNetworkSecurityConfigFile(self):
+        printSubTestInfo("Analysing Network security config file")
+        nsf = self.parser.getNetworkSecurityConfigFile()
+        if nsf:
+            nsParser = NetworkSecParser(nsf)
+            nsParser.printXML()
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
         self.showApkInfo()

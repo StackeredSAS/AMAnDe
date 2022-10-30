@@ -117,7 +117,7 @@ class APKParser(Parser):
         real_path = self.rsc.get_res_configs(rid)[0][1].key.get_data_value()
         return real_path
 
-    def getNetworkSecurityConfig(self):
+    def getNetworkSecurityConfigFile(self):
         """
         Example de truc qu'on peut faire propre aux APK.
         """
@@ -126,7 +126,7 @@ class APKParser(Parser):
             return
         # filename is fucked up because of the color and the stuff done in getResourceTypeName
         path = self._realPathFromTypeAndName("xml", unformatFilename(filename).split(".")[0])
-        return self._getCleanXML(path).read()
+        return self._getCleanXML(path)
 
     def getAllRules(self, root):
         """
@@ -185,7 +185,6 @@ class APKParser(Parser):
             if dt:
                 deviceTransferRules = self.getAllRules(dt)
             return ExtractionRules(cloudBackupRules, disableIfNoEncryptionCapabilities, deviceTransferRules)
-
 
     def hasFile(self, path):
         return path in self.apk.namelist()

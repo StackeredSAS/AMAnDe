@@ -28,7 +28,7 @@ class Parser:
         return res
 
     def _getResValue(self, path, name):
-        filename = path.split("/")[-1]
+        filename = path
         res = colored(f"{filename}", attrs=["underline"])
         if name:
             res = f"{res}({name})"
@@ -146,10 +146,6 @@ class Parser:
             # if max_level does not exist return 0
             max_level = int(self._getattr(usesSdk, "android:maxSdkVersion") or 0)
         return min_level, max_level
-
-    def getNetworkSecurityConfig(self):
-        # will be overwritten in the APKParser class
-        return None
 
     def getExportedComponentPermission(self, componentType):
         """
@@ -305,3 +301,7 @@ class Parser:
     def searchInStrings(self, pattern):
         # will be overwritten in the APKParser class
         return []
+
+    def getNetworkSecurityConfigFile(self):
+        # will be overwritten in the APKParser class
+        return None

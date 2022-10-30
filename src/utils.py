@@ -44,15 +44,16 @@ def str2Bool(s):
 
 
 def getResourceTypeName(value):
-    # ca ne sert plus à rien de renvoyer le path en fait
-    # a voir pour le virer
-    path = "res/"
+    path = ""
     if value is not None:
         resType, value = value.strip("@").split("/")
         if resType == "string":
-            path += "values/strings.xml"
+            path += "strings.xml"
         if resType == "xml":
-            path += f"xml/{value}.xml"
+            path += f"{value}.xml"
+            value = None
+        if resType == "raw":
+            path += value
             value = None
     return path, value
 
