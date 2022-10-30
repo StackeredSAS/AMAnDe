@@ -286,7 +286,10 @@ class Parser:
         # will be overwritten in the APKParser class
         return None
 
-    def getFlutterKernelBlob(self):
+    def hasFile(self, path):
         # will be overwritten in the APKParser class
-        return None
+        return False
 
+    def searchInStrings(self, pattern):
+        # will be overwritten in the APKParser class
+        return []

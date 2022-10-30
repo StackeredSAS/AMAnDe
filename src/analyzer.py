@@ -18,6 +18,7 @@ class Analyzer():
     def __init__(self, parser, args):
         self.parser = parser
         self.args = args
+        self.isAPK = type(self.parser) is APKParser
         self.logger = logging.getLogger(__name__)
         self.setLogLevel(args.log_level)
 
@@ -110,7 +111,7 @@ class Analyzer():
                 
         # for now do it here
         # if we want to add post treatment we will move those kinds of checks into a new file
-        if type(self.parser) is APKParser:
+        if self.isAPK:
             cmd = EXTERNAL_BINARIES["apksigner"] + ["verify", "--print-certs", "--verbose", "--min-sdk-version",
                                                     str(self.args.min_sdk_version), self.args.path]
             cmdres = runProc(cmd)
@@ -247,6 +248,11 @@ class Analyzer():
             if fullBackupContent_xml_file_rules is not None:
                 self.logger.info(f'For Android versions <= 11 (API 30), custom rules has been defined to control what gets backed up in {fullBackupContent_xml_file_rules} file')
                 res |= 1
+                rules = self.parser.getFullBackupContentRules() or []
+                headers = ["type", "domain", "path", "requireFlags"]
+                table = [[e.type, e.domain, e.path, e.requireFlags] for e in rules]
+                if len(table) > 0:
+                    self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
             else:
                 self.logger.warning(f'Minimal supported SDK version ({self.args.min_sdk_version})'
                 f' allows Android versions <= 11 (API 30) and no exclusion custom rules file has been specified in the fullBackupContent attribute.')
@@ -254,6 +260,20 @@ class Analyzer():
             if dataExtractionRules_xml_rules_files is not None:
                 self.logger.info(f'For Android versions >= 12 (API 31), custom rules has been defined to control what gets backed up in {dataExtractionRules_xml_rules_files} file')
                 res |= 2
+                cloudBackupRules, disableIfNoEncryptionCapabilities, deviceTransferRules = self.parser.getDataExtractionRulesContent()
+                headers = ["type", "domain", "path", "requireFlags"]
+                # show cloudBackupRules
+                table = [[e.type, e.domain, e.path, e.requireFlags] for e in cloudBackupRules]
+                if len(table) > 0:
+                    # améliorer l'affichage de cette info
+                    self.logger.info(f"{disableIfNoEncryptionCapabilities=}")
+                    self.logger.info("Cloud backup rules have been defined :")
+                    self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
+                # show device transfer rules
+                table = [[e.type, e.domain, e.path, e.requireFlags] for e in deviceTransferRules]
+                if len(table) > 0:
+                    self.logger.info("Cloud backup rules have been defined :")
+                    self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
             else:
                 self.logger.warning(f'Maximal supported SDK version ({self.args.max_sdk_version})'
                 f' allows Android versions >= 12 (API 31) and no exclusion custom rules file has been specified in the dataExtractionRules attribute.')
@@ -289,9 +309,10 @@ class Analyzer():
         debuggable = self.parser.debuggable()
         if debuggable:
             self.logger.warning("Debuggable flag found. APK can be debugged on a device running in user mode")
-            flutterkernelBlob = self.parser.getFlutterKernelBlob()
-            if flutterkernelBlob:
-                self.logger.critical(f"Flutter app is debuggable and source code can be found in the strings of {flutterkernelBlob}")
+            # flutter kernel_blob.bin
+            path = 'assets/flutter_assets/kernel_blob.bin'
+            if self.parser.hasFile(path):
+                self.logger.critical(f"Flutter app is debuggable and source code can be found in the strings of {path}")
             return True
         self.logger.info("APK is not compiled in debug mode")
         return False
@@ -463,7 +484,14 @@ class Analyzer():
         for component in ["activity", "receiver", "provider", "service"]:
             for e in self.parser.exportedComponents(component):
                 self.logger.info(f'{e.split(".")[-1]} ({component})')
-                #self.logger.info(f'{component.upper()}: {e.split(".")[-1]}')
+
+    def checkForFirebaseURL(self):
+        # the rest of the code will do nothing if not an APK
+        if self.isAPK: printTestInfo("Looking for Firebase URL")
+        res = self.parser.searchInStrings("https://.*firebaseio.com")
+        if len(res) > 0:
+            for e in res:
+                self.logger.info(f"\t{e}")
 
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
@@ -478,3 +506,4 @@ class Analyzer():
         self.analyzeIntentFilters()
         self.analyzeExportedComponent()
         self.analyzeUnexportedProviders()
+        self.checkForFirebaseURL()

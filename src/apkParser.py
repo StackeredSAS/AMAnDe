@@ -172,21 +172,29 @@ class APKParser(Parser):
             path = self._realPathFromTypeAndName("xml", unformatFilename(filename).split(".")[0])
             xml = self._getCleanXML(path)
             root = ET.parse(xml).getroot()
-            ExtractionRule = ExtractionRules([], None, [])
+            cloudBackupRules = []
+            disableIfNoEncryptionCapabilities = None
+            deviceTransferRules = []
             # cloud backup rules
             cbr = root.find("cloud-backup")
             if cbr:
-                ExtractionRule.disableIfNoEncryptionCapabilities = self._getattr(cbr, "disableIfNoEncryptionCapabilities")
-                ExtractionRule.cloudBackupRules = self.getAllRules(cbr)
+                disableIfNoEncryptionCapabilities = self._getattr(cbr, "disableIfNoEncryptionCapabilities")
+                cloudBackupRules = self.getAllRules(cbr)
             # device transfer rules
             dt = root.find("device-transfer")
             if dt:
-                ExtractionRule.deviceTransferRules = self.getAllRules(dt)
-            return ExtractionRule
+                deviceTransferRules = self.getAllRules(dt)
+            return ExtractionRules(cloudBackupRules, disableIfNoEncryptionCapabilities, deviceTransferRules)
 
 
-    def getFlutterKernelBlob(self):
-        path = 'assets/flutter_assets/kernel_blob.bin'
-        if path in self.apk.namelist():
-            return path
+    def hasFile(self, path):
+        return path in self.apk.namelist()
 
+    def searchInStrings(self, pattern):
+        res = []
+        if self.rsc:
+            # get_resolved_strings does not recompute all the strings every time so its fine
+            for s in self.rsc.get_resolved_strings()[self.rsc.get_packages_names()[0]]["DEFAULT"].values():
+                if re.search(pattern, s, re.IGNORECASE):
+                    res.append(s)
+        return res
