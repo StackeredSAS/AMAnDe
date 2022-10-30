@@ -320,7 +320,7 @@ class Analyzer():
             If it's a deeplink or applink -> it can not have specific perm because by default is used to call our app when
             a specific uri is handled by another app
         """
-        printTestInfo("Checking if exported components required special permission to be called")
+        printTestInfo("Analyzing permissions set on exported components")
         headers = ["Name", "Type", "Permission", "readPermission", "writePermission"]
         table = []
         # Getting deeplink (don't analyze exported component which is a deeplink)
@@ -410,7 +410,7 @@ class Analyzer():
         return False
 
     def getIntentFilterInfo(self):
-        printTestInfo("Analysing Exported Intents")
+        printTestInfo("Gathering information on exported components which specified Intents")
         headers = ["Name", "Action", "Category", "Link", "Mime Type"]
         table = []
         for e, tag in self.parser.getIntentFilterExportedComponents():
@@ -473,6 +473,13 @@ class Analyzer():
         if self.isDeepLinkUsed():
             self.isAppLinkUsed()
 
+    def getExportedComponents(self):
+        printTestInfo("Listing exported components")
+        for component in ["activity", "receiver", "provider", "service"]:
+            for e in self.parser.exportedComponents(component):
+                self.logger.info(f'{e.split(".")[-1]} ({component})')
+                #self.logger.info(f'{component.upper()}: {e.split(".")[-1]}')
+                
     def checkInterestingStuffs(self):
         # the rest of the code will do nothing if not an APK
         if self.isAPK: printTestInfo("Looking for interesting files/strings")
@@ -502,6 +509,7 @@ class Analyzer():
         self.getNetworkConfigFile()
         self.isDebuggable()
         self.isCleartextTrafficAllowed()
+        self.getExportedComponents()
         self.analyzeIntentFilters()
         self.analyzeExportedComponent()
         self.analyzeUnexportedProviders()
