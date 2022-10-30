@@ -72,6 +72,10 @@ class Analyzer():
         activities_number = self.parser.componentStats("activity")
         exported_activities_number = self.parser.exportedComponentStats("activity")
         self.logger.info(f'Number of activities: {activities_number} ({exported_activities_number} exported)')
+
+        alias_activities_number = self.parser.componentStats("activity-alias")
+        exported_alias_activities_number = self.parser.exportedComponentStats("activity-alias")
+        self.logger.info(f'Number of activity-aliases: {alias_activities_number} ({exported_alias_activities_number} exported)')
         
         receivers_number = self.parser.componentStats("receiver")
         exported_receivers_number = self.parser.exportedComponentStats("receiver")
@@ -336,9 +340,12 @@ class Analyzer():
 
         for component in ["activity", "receiver", "provider", "service"]:
             for e in self.parser.getExportedComponentPermission(component):
-                #print(e)
                 if e.componentName not in unique_names:
                     n = e.componentName.split(".")[-1]
+                    # Main activity is the entrypoint of our app. It's always exported without permission
+                    # So do not add it
+                    if n == "MainActivity":
+                        continue
                     t = e.componentType
                     p = e.permission
                     # Keep entire permission name to make the difference between custom and builtin
@@ -373,6 +380,7 @@ class Analyzer():
                 table = [e[:-1] for e in table]
                 headers.pop(-1)
 
+            self.logger.info("Deeplinks are not shown in table below because they never have permissions")
             print(tabulate(table, headers, tablefmt="fancy_grid"))
         if count > 0:
             self.logger.warning(f'There are {count} exported components which can be called without any permission. Check it out!')
@@ -423,6 +431,11 @@ class Analyzer():
             for intent_data in self.parser.getIntentFilters(e):
                 row = []
                 row.append(f'{e.split(".")[-1]}\n({tag})')
+                # split mime types over two lines if too big
+                mt = intent_data[-1]
+                if len(mt) > 40:
+                    mt = "/\n".join(mt.split("/"))
+                    intent_data[-1] = mt
                 row += intent_data
                 table.append(row)
         if len(table) > 0:

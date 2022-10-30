@@ -35,15 +35,8 @@ unzip -l test.apk
 ```
 
 ## todo
-- APK info
-  - counter de activity-alias (a voir si on le regroupe ou pas)
-- def providerAnalysis
-    - FileProvider
 - tests avec outils tiers si préinstallés
   - surcouche apksigner ?
   - faire une fonction séparée ?
 - Extraire les infos du network sec conf (pinning, trust anchors)
-- colorer les infos des backup rules file ?
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
-- vérifier qu'un deeplink est forcément sans permission (i.e. analyzeExportedComponent)
-- faire un test séparé pour firebase avec check automatique de l'accès autorisé à l'URL

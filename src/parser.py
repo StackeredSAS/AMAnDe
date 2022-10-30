@@ -220,14 +220,14 @@ class Parser:
 
             # Compute all the merged combinations of data attributes
             # https://developer.android.com/guide/topics/manifest/data-element
-            uris = self._getIntentFiltersUrisInfo(e)
+            uris = self._getIntentFiltersUrisInfo(e, len(mimeType) > 1)
             uris = "\n".join(uris)
 
             res.append([actions, categories, uris, mimetypes])
 
         return res
 
-    def _getIntentFiltersUrisInfo(self, intent):
+    def _getIntentFiltersUrisInfo(self, intent, hasMimeType):
         # https://developer.android.com/training/app-links/verify-android-applinks#multi-host
         """
         All <data> elements in the same intent filter are merged together to account for all variations of their
@@ -240,6 +240,10 @@ class Parser:
         # recover all the possible attributes
         schemes = {self._getattr(e, "android:scheme") for e in datas} - {None}
         schemes = {f"{e}://" for e in schemes} or {""}
+        # https://developer.android.com/guide/topics/manifest/data-element
+        if hasMimeType and schemes == {""}:
+            schemes = {"content://", "file://"}
+
         hosts = {self._getattr(e, "android:host") for e in datas} - {None} or {""}
         port = {self._getattr(e, "android:port") for e in datas} - {None}
         port = {f":{e}" for e in port} or {""}
@@ -252,6 +256,13 @@ class Parser:
         # put them in the same set
         path.update(pathPrefix)
         path.update(pathPattern)
+
+        # https://developer.android.com/guide/topics/manifest/data-element
+        if schemes == {""}:
+            return []
+
+        if hosts == {""}:
+            return schemes
 
         # Compute all the merged combinations of data attributes
         # https://developer.android.com/guide/topics/manifest/data-element
@@ -270,7 +281,8 @@ class Parser:
             for i in intents:
                 # deep links must have category BROWSABLE
                 if i.find('category[@android:name="android.intent.category.BROWSABLE"]', namespaces=self.namespaces) is not None:
-                    uris = self._getIntentFiltersUrisInfo(i)
+                    mimeType = {self._getattr(e, "android:mimeType") for e in i.findall("data")}
+                    uris = self._getIntentFiltersUrisInfo(i, len(mimeType) > 1)
                     # add additional info to check if a deeplink is actually an app link
                     hosts = {self._getattr(e, "android:host") for e in i.findall("data")} - {None} or {""}
                     autoVerify = str2Bool(self._getattr(i, "android:autoVerify"))
