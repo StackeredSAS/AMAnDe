@@ -187,8 +187,13 @@ class APKParser(Parser):
             return ExtractionRules(cloudBackupRules, disableIfNoEncryptionCapabilities, deviceTransferRules)
 
 
-    def getFlutterKernelBlob(self):
-        path = 'assets/flutter_assets/kernel_blob.bin'
-        if path in self.apk.namelist():
-            return path
+    def hasFile(self, path):
+        return path in self.apk.namelist()
 
+    def searchInStrings(self, pattern):
+        res = []
+        # get_resolved_strings does not recompute all the strings every time so its fine
+        for s in self.rsc.get_resolved_strings()[self.rsc.get_packages_names()[0]]["DEFAULT"].values():
+            if re.search(pattern, s, re.IGNORECASE):
+                res.append(s)
+        return res

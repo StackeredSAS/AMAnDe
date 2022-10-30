@@ -308,9 +308,6 @@ class Analyzer():
         debuggable = self.parser.debuggable()
         if debuggable:
             self.logger.warning("Debuggable flag found. APK can be debugged on a device running in user mode")
-            flutterkernelBlob = self.parser.getFlutterKernelBlob()
-            if flutterkernelBlob:
-                self.logger.critical(f"Flutter app is debuggable and source code can be found in the strings of {flutterkernelBlob}")
             return True
         self.logger.info("APK is not compiled in debug mode")
         return False
@@ -475,6 +472,24 @@ class Analyzer():
         if self.isDeepLinkUsed():
             self.isAppLinkUsed()
 
+    def checkInterestingStuffs(self):
+        # flutter kernel_blob.bin
+        path = 'assets/flutter_assets/kernel_blob.bin'
+        if  self.parser.hasFile(path):
+            self.logger.critical(f"Flutter app source code can be found in the strings of {path}")
+
+        # might do firebase checks separately because there is stuff to be done dynamically
+        # wa can add more regex here
+        keywords = ["firebase"]
+        # search keywords
+        for k in keywords:
+            res = self.parser.searchInStrings(k)
+            if len(res) > 0:
+                self.logger.info(f"Found {k} keyword :")
+                for e in res:
+                    # would be nice to color the pattern that matched
+                    self.logger.info(f"\t{e}")
+
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
         self.showApkInfo()
@@ -487,3 +502,4 @@ class Analyzer():
         self.analyzeIntentFilters()
         self.analyzeExportedComponent()
         self.analyzeUnexportedProviders()
+        self.checkInterestingStuffs()
