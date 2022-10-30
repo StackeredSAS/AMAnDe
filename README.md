@@ -40,3 +40,4 @@ unzip -l test.apk
   - faire une fonction séparée ?
 - Extraire les infos du network sec conf (pinning, trust anchors)
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
+- voir ce que c'est la balise queries

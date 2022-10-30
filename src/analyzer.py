@@ -127,7 +127,7 @@ class Analyzer():
         return res
 
     def analyzeBuiltinsPerms(self):
-        printTestInfo("Analyzing required builtin permissions")
+        printTestInfo("Analyzing required permissions")
         dangerous_perms_number = 0
         for perm in self.parser.builtinsPermissions():
             if perm in dangerous_perms :
@@ -142,10 +142,10 @@ class Analyzer():
             else:
                 msg = "permissions"
             self.logger.warning(
-                f'APK requires {dangerous_perms_number} dangerous {msg} to work properly. Check it out!')
+                f'APK requires {dangerous_perms_number} dangerous builtin {msg} to work properly. Check it out!')
 
     def analyzeCustomPerms(self):
-        printTestInfo("Analyzing custom permissions")
+        printTestInfo("Analyzing custom permissions definition")
         #Objectif : afficher le tout ce qui est en dessous de dangerous en orange car cela signifie
         #qu'une app malveillante peut utiliser la permissions (avec l'accord de l'utilisateur pour dangerous mais quand même)
         table = []
