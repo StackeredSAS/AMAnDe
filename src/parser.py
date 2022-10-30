@@ -50,7 +50,7 @@ class Parser:
         """
         List useful information found in the <manifest> element.
         https://developer.android.com/guide/topics/manifest/manifest-element
-        The informations are package, version code and version name.
+        The information is package, version code and version name.
         """
         # use a namedtuple for more readable access to important attributes
         Info = namedtuple("Info", "package versionCode versionName")
