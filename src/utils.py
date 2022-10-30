@@ -48,7 +48,7 @@ def str2Bool(s):
 
 def getResourceTypeName(value):
     """
-    Parses resources like @XXX/XXX and gets its values
+    Parses resources like @XXX/XXX and gets their values
     """
     path = ""
     if value is not None:
