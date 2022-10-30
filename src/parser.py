@@ -96,7 +96,7 @@ class Parser:
                 for e in self.root.findall("application/uses-feature")]
 
     # a renommer
-    def builtinsPermissions(self):
+    def requiredPermissions(self):
         """
         Lists all the permissions requested by the application.
         https://developer.android.com/guide/topics/manifest/uses-permission-element
@@ -248,7 +248,7 @@ class Parser:
 
     def getUnexportedProviders(self):
         """
-        Lists unexported provider with grantUriPermission set to True.
+        Lists unexported providers with grantUriPermission set to True.
         Dangerous because if the app uses getIntent().getParcelableExtra("extra_intent"), this
         can grant access to these unexported provider.
         https://blog.oversecured.com/Android-Access-to-app-protected-components/

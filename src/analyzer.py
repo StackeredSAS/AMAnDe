@@ -127,10 +127,10 @@ class Analyzer():
 
         return res
 
-    def analyzeBuiltinsPerms(self):
+    def analyzeRequiredPerms(self):
         printTestInfo("Analyzing required permissions")
         dangerous_perms_number = 0
-        for perm in self.parser.builtinsPermissions():
+        for perm in self.parser.requiredPermissions():
             if perm in dangerous_perms :
                 if self.logger.level <= logging.WARNING:
                     print(colored(perm, "yellow"))
@@ -517,7 +517,7 @@ class Analyzer():
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
         self.showApkInfo()
-        self.analyzeBuiltinsPerms()
+        self.analyzeRequiredPerms()
         self.analyzeCustomPerms()
         self.analyzeBackupFeatures()
         self.getNetworkConfigFile()
