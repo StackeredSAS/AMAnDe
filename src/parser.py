@@ -64,38 +64,46 @@ class Parser:
         Parses the libraries used by the application.
         https://developer.android.com/guide/topics/manifest/uses-library-element
         """
-        # Default is true for android:required property
-        # je serait d'avis de gérer le cas par défaut ici vu qu'il ne dépend pas de la version d'android
-        # cela simplifierai la fonction de l'analyzer
         UsesLibrary = namedtuple("UsesLibrary", "name required")
-        return [UsesLibrary(self._getattr(e, "android:name"), str2Bool(self._getattr(e, "android:required"))) 
-                for e in self.root.findall("application/uses-library")]
+        res = []
+        for e in self.root.findall("application/uses-library"):
+            name = self._getattr(e, "android:name")
+            required = str2Bool(self._getattr(e, "android:required"))
+            # Default is true for android:required property
+            if required is None: required = True
+            res.append(UsesLibrary(name, required))
+        return res
 
     def usesNativeLibrary(self):
         """
         Parses the native libraries used by the application.
         https://developer.android.com/guide/topics/manifest/uses-native-library-element
         """
-        # Default is true for android:required property
-        # je serait d'avis de gérer le cas par défaut ici vu qu'il ne dépend pas de la version d'android
-        # cela simplifierai la fonction de l'analyzer
         UsesNativeLibrary = namedtuple("UsesNativeLibrary", "name required")
-        return [UsesNativeLibrary(self._getattr(e, "android:name"), str2Bool(self._getattr(e, "android:required"))) 
-                for e in self.root.findall("application/uses-native-library")]
+        res = []
+        for e in self.root.findall("application/uses-native-library"):
+            name = self._getattr(e, "android:name")
+            required = str2Bool(self._getattr(e, "android:required"))
+            # Default is true for android:required property
+            if required is None: required = True
+            res.append(UsesNativeLibrary(name, required))
+        return res
 
     def usesFeatures(self):
         """
         Parses the hardware or software features used by the application.
         https://developer.android.com/guide/topics/manifest/uses-feature-element
         """
-        # Default is true for android:required property
-        # je serait d'avis de gérer le cas par défaut ici vu qu'il ne dépend pas de la version d'android
-        # cela simplifierai la fonction de l'analyzer
         UsesFeature = namedtuple("UsesFeature", "name required")
-        return [UsesFeature(self._getattr(e, "android:name"), str2Bool(self._getattr(e, "android:required"))) 
-                for e in self.root.findall("application/uses-feature")]
+        res = []
+        for e in self.root.findall("application/uses-feature"):
+            name = self._getattr(e, "android:name")
+            required = str2Bool(self._getattr(e, "android:required"))
+            # Default is true for android:required property
+            if required is None: required = True
+            res.append(UsesFeature(name, required))
+        return res
 
-    # a renommer
     def requiredPermissions(self):
         """
         Lists all the permissions requested by the application.

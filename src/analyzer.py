@@ -90,29 +90,14 @@ class Analyzer():
         exported_services_number = self.parser.exportedComponentStats("service")
         self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
 
-        libraries = self.parser.usesLibrary()
-        for l in libraries:
-            if l is not None:
-                # Default is true if not set
-                req_l = l.required
-                if req_l is None: req_l = True
-                self.logger.info(f'Shared library "{l.name}" can be used by the application (mandatory for runtime : {req_l})')
+        for l in self.parser.usesLibrary():
+            self.logger.info(f'Shared library "{l.name}" can be used by the application (mandatory for runtime : {l.required})')
 
-        native_libraries = self.parser.usesNativeLibrary()
-        for nl in native_libraries:
-            if nl is not None:
-                # Default is true if not set
-                req_nl = nl.required
-                if req_nl is None: req_nl = True
-                self.logger.info(f'Vendor provided shared native library "{nl.name}" can be used by the application (mandatory for runtime : {req_nl})')
+        for nl in self.parser.usesNativeLibrary():
+            self.logger.info(f'Vendor provided shared native library "{nl.name}" can be used by the application (mandatory for runtime : {nl.required})')
 
-        features = self.parser.usesFeatures()
-        for f in features:
-            if f is not None:
-                # Default is true if not set
-                req_f = f.required
-                if req_f is None: req_f = True
-                self.logger.info(f'Hardware or software feature "{f.name}" can be used by the application (mandatory for runtime : {req_f})')
+        for f in self.parser.usesFeatures():
+            self.logger.info(f'Hardware or software feature "{f.name}" can be used by the application (mandatory for runtime : {f.required})')
                 
         # for now do it here
         # if we want to add post treatment we will move those kinds of checks into a new file
