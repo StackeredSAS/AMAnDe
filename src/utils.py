@@ -35,6 +35,9 @@ class CustomFormatter(logging.Formatter):
 
 
 def str2Bool(s):
+    """
+    Associates true or false string with their corresponding boolean
+    """
     if s == "true":
         return True
     elif s == "false":
@@ -44,6 +47,9 @@ def str2Bool(s):
 
 
 def getResourceTypeName(value):
+    """
+    Parses resources like @XXX/XXX and gets its values
+    """
     path = ""
     if value is not None:
         resType, value = value.strip("@").split("/")
@@ -59,14 +65,23 @@ def getResourceTypeName(value):
 
 
 def printTestInfo(title):
+    """
+    Formats titles
+    """
     print(colored(f"\n[*] {title}", "blue", attrs=['bold']))
 
 
 def printSubTestInfo(title):
+    """
+    Formats subtitles (useful when there are multiple subtests associated with a kind of test)
+    """
     print(colored(f"\n[+] {title}", "cyan"))
 
 
 def checkDigitalAssetLinks(host):
+    """
+    Checks if Digital Asset Link JSON file is publicly available
+    """
     try:
         if requests.get(f'https://{host}/.well-known/assetlinks.json').status_code == 200:
             return True
@@ -74,8 +89,10 @@ def checkDigitalAssetLinks(host):
         return False
 
 def unformatFilename(name):
-    # because Parser._getResValue formats filenames in a specific way
-    # we must undo the formatting to work with the raw string
+    """
+    Because Parser._getResValue formats filenames in a specific way
+    we must undo the formatting to work with the raw string
+    """
     return name[4:-4]
 
 def runProc(*args, **kwargs):
