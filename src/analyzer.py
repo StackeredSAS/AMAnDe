@@ -309,6 +309,10 @@ class Analyzer():
         debuggable = self.parser.debuggable()
         if debuggable:
             self.logger.warning("Debuggable flag found. APK can be debugged on a device running in user mode")
+            # flutter kernel_blob.bin
+            path = 'assets/flutter_assets/kernel_blob.bin'
+            if self.parser.hasFile(path):
+                self.logger.critical(f"Flutter app is debuggable and source code can be found in the strings of {path}")
             return True
         self.logger.info("APK is not compiled in debug mode")
         return False
@@ -478,27 +482,14 @@ class Analyzer():
         for component in ["activity", "receiver", "provider", "service"]:
             for e in self.parser.exportedComponents(component):
                 self.logger.info(f'{e.split(".")[-1]} ({component})')
-                #self.logger.info(f'{component.upper()}: {e.split(".")[-1]}')
-                
-    def checkInterestingStuffs(self):
-        # the rest of the code will do nothing if not an APK
-        if self.isAPK: printTestInfo("Looking for interesting files/strings")
-        # flutter kernel_blob.bin
-        path = 'assets/flutter_assets/kernel_blob.bin'
-        if  self.parser.hasFile(path):
-            self.logger.critical(f"Flutter app source code can be found in the strings of {path}")
 
-        # might do firebase checks separately because there is stuff to be done dynamically
-        # wa can add more regex here
-        keywords = ["firebase"]
-        # search keywords
-        for k in keywords:
-            res = self.parser.searchInStrings(k)
-            if len(res) > 0:
-                self.logger.info(f"Found {k} keyword :")
-                for e in res:
-                    # would be nice to color the pattern that matched
-                    self.logger.info(f"\t{e}")
+    def checkForFirebaseURL(self):
+        # the rest of the code will do nothing if not an APK
+        if self.isAPK: printTestInfo("Looking for Firebase URL")
+        res = self.parser.searchInStrings("https://.*firebaseio.com")
+        if len(res) > 0:
+            for e in res:
+                self.logger.info(f"\t{e}")
 
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
@@ -513,4 +504,4 @@ class Analyzer():
         self.analyzeIntentFilters()
         self.analyzeExportedComponent()
         self.analyzeUnexportedProviders()
-        self.checkInterestingStuffs()
+        self.checkForFirebaseURL()

@@ -208,7 +208,7 @@ class TestAnalyzer(unittest.TestCase):
             (False, False),
             (None,False)
         ]
-        self.parser.getFlutterKernelBlob = lambda : "bla"
+        self.parser.hasFile = lambda x: True
         for testCase in testCases:
             debuggable = testCase[0]
             expected = testCase[1]
