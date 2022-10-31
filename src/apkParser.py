@@ -26,6 +26,9 @@ class APKParser(Parser):
             self.apk = None
 
     def _getApkFileContent(self, path):
+        """
+        Reads a file from the APK.
+        """
         # the pythonic way of checking if a file exists
         try:
             return self.apk.open(path, "r").read()
@@ -55,8 +58,8 @@ class APKParser(Parser):
 
     def _getCleanXML(self, path):
         """
-        Transform an AXML converted XML file into something more closer to the original XML.
-        All resource IDs are replaced with their original value.
+        Transforms an AXML converted XML file into something closer to the original XML.
+        All resource IDs are replaced with their original values.
         """
         file_content = self._getApkFileContent(path)
         if file_content is None:
@@ -88,9 +91,11 @@ class APKParser(Parser):
 
     def customPermissions(self):
         """
+        Lists all the custom permissions defined by the application.
+        https://developer.android.com/guide/topics/manifest/permission-element
+
         In the case of APK custom permission protection level is an Int.
         """
-        # use a namedtuple for more readable access to important attributes
         CustomPerm = namedtuple("CustomPerm", "name protectionLevel")
         res = []
         for perm in self.root.findall('permission'):
@@ -102,6 +107,11 @@ class APKParser(Parser):
         return res
 
     def _realPathFromTypeAndName(self, resType, name, package_name=None):
+        """
+        Recovers the real path in the ZIP archive of a resource with given type and name.
+        Sometimes resources are named differently in the ZIP.
+        Ex: res/xml/network_security_config.xml => res/a7.xml
+        """
         if package_name is None:
             # I don't know how to handle the case when there are multiple package names yet
             package_name = self.rsc.get_packages_names()[0]
@@ -119,12 +129,12 @@ class APKParser(Parser):
 
     def getNetworkSecurityConfigFile(self):
         """
-        Example de truc qu'on peut faire propre aux APK.
+        Extracts the network_security_config file content.
         """
         filename = self.networkSecurityConfig()
         if filename is None:
             return
-        # filename is fucked up because of the color and the stuff done in getResourceTypeName
+        # filename is messed up because of the color and the stuff done in getResourceTypeName
         path = self._realPathFromTypeAndName("xml", unformatFilename(filename).split(".")[0])
         return self._getCleanXML(path)
 
@@ -162,7 +172,7 @@ class APKParser(Parser):
     def getDataExtractionRulesContent(self):
         """
         Parses the dataExtractionRules file.
-        returns None if this file does not exists
+        returns None if this file does not exist.
         https://developer.android.com/guide/topics/data/autobackup#xml-syntax-android-12
         """
         # disableIfNoEncryptionCapabilities is only for <cloud-Backup>
@@ -187,13 +197,21 @@ class APKParser(Parser):
             return ExtractionRules(cloudBackupRules, disableIfNoEncryptionCapabilities, deviceTransferRules)
 
     def hasFile(self, path):
+        """
+        Simply checks if a file is present in the ZIP archive.
+        """
         return path in self.apk.namelist()
 
     def searchInStrings(self, pattern):
+        """
+        Searches for the occurrences of a pattern in all the resources of type string.
+        """
         res = []
         if self.rsc:
-            # get_resolved_strings does not recompute all the strings every time so its fine
-            for s in self.rsc.get_resolved_strings()[self.rsc.get_packages_names()[0]]["DEFAULT"].values():
+            # I don't know how to handle the case when there are multiple package names yet
+            package_name = self.rsc.get_packages_names()[0]
+            # get_resolved_strings does not recompute all the strings every time so it's fine
+            for s in self.rsc.get_resolved_strings()[package_name]["DEFAULT"].values():
                 if re.search(pattern, s, re.IGNORECASE):
                     res.append(s)
         return res
