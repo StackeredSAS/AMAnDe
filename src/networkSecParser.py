@@ -15,10 +15,17 @@ class NetworkSecParser(Parser):
         self.root = self.tree.getroot()
 
     def printXML(self):
+        # todo : remove this function when done implementing the analyzer
         self.path.seek(0)
         print(self.path.read())
 
     def parseCertificate(self, elm, default=False):
+        """
+        Parses the <certificate> element.
+        The default argument is used to specify the default value for the overridePins attribute.
+        It is False by default unless specified in a <debug-overrides> element.
+        https://developer.android.com/training/articles/security-config?hl=en#certificates
+        """
         cert = namedtuple("Cert", "src overridePins")
         src = self._getattr(elm, "src")
         overridePins = str2Bool(self._getattr(elm, "overridePins"))
@@ -27,10 +34,23 @@ class NetworkSecParser(Parser):
         return cert(src, overridePins)
 
     def parseTrustAnchors(self, elm, default=False):
+        """
+        Parses the <trust-anchors> elements of the specified parent.
+        Returns a list of all the certificates' information.
+        The default argument is used to specify the default value for the overridePins attribute
+        of the child <certificate> elements.
+        It is False by default unless specified in a <debug-overrides> element.
+        https://developer.android.com/training/articles/security-config?hl=en#trust-anchors
+        """
         certs = elm.findall("trust-anchors/certificates")
         return [self.parseCertificate(e, default) for e in certs]
 
     def getBaseConfig(self):
+        """
+        Parses the <base-config> elements of the network security config file.
+        https://developer.android.com/training/articles/security-config?hl=en#base-config
+        Default values are API level dependant.
+        """
         config = namedtuple("BConfig", "cleartextTrafficPermitted trustanchors")
         bc = self.root.find("base-config")
         if bc is not None:
@@ -39,16 +59,30 @@ class NetworkSecParser(Parser):
             return config(cleartextTrafficPermitted, trustanchors)
 
     def getDebugOverrides(self):
+        """
+        Parses the <debug-overrides> elements of the network security config file.
+        https://developer.android.com/training/articles/security-config?hl=en#debug-overrides
+        """
         bc = self.root.find("debug-overrides")
         if bc is not None:
             return self.parseTrustAnchors(bc, True)
 
     def parsePinSet(self, elm):
+        """
+        Parses the <pin-set> elements of the specified parent.
+        https://developer.android.com/training/articles/security-config?hl=en#pin-set
+        Only the expiration attribute is interesting in our case.
+        """
         ps = elm.find("pin-set")
         if ps is not None:
             return self._getattr(ps, "expiration")
 
     def parseDomains(self, elm):
+        """
+        Parses the <domain> elements of the specified parent.
+        https://developer.android.com/training/articles/security-config?hl=en#domain
+        If the includeSubdomains attribute is True, the domain will be prefixed with "*.".
+        """
         res = []
         for e in elm.findall("domain"):
             includeSubdomains = str2Bool(self._getattr(e, "includeSubdomains"))
@@ -59,6 +93,11 @@ class NetworkSecParser(Parser):
         return res
 
     def parseDomainConfig(self, elm=None):
+        """
+        Recursively parses the <domain-config> elements of the specified parent.
+        https://developer.android.com/training/articles/security-config?hl=en#domain-config
+        Any number of nested <domain-config> elements can be present.
+        """
         if elm is None:
             elm = self.root
         config = namedtuple("DConfig", "domains trustanchors pinset domainConfigs")
@@ -68,6 +107,7 @@ class NetworkSecParser(Parser):
             domains = self.parseDomains(e)
             trustanchors = self.parseTrustAnchors(e)
             pinset = self.parsePinSet(e)
+            # recursive call to handle nested <domain-config> elements
             dcs = self.parseDomainConfig(e)
             res.append(config(domains, trustanchors, pinset, dcs))
         return res
