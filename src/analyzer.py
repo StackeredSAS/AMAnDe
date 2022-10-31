@@ -130,7 +130,7 @@ class Analyzer():
 
         return res
 
-     def analyzeRequiredPerms(self):
+    def analyzeRequiredPerms(self):
         """
         Lists all permissions required by the target APK
         Provides an analysis of builtin ones based on protectionLevel
