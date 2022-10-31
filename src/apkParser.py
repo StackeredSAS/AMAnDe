@@ -7,7 +7,7 @@ import re
 from .constants import protection_levels
 # for virtual file handling in case of APK
 from io import StringIO
-from .utils import unformatFilename
+from .utils import unformatFilename, str2Bool
 from collections import namedtuple
 
 class APKParser(Parser):
@@ -188,7 +188,7 @@ class APKParser(Parser):
             # cloud backup rules
             cbr = root.find("cloud-backup")
             if cbr:
-                disableIfNoEncryptionCapabilities = self._getattr(cbr, "disableIfNoEncryptionCapabilities")
+                disableIfNoEncryptionCapabilities = str2Bool(self._getattr(cbr, "disableIfNoEncryptionCapabilities"))
                 cloudBackupRules = self.getAllRules(cbr)
             # device transfer rules
             dt = root.find("device-transfer")

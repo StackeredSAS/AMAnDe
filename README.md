@@ -42,9 +42,7 @@ unzip -l test.apk
   - pinning
   - trust anchors
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
-- voir ce que c'est la balise queries
 - fullBackupOnly
 - revoir toutes les fonctions avec intervalles de version
   - isAutoBackupAllowed (a l'air ok, a refire aven handle version ?)
   - getBackupRulesFile
-  - showAPKInfo

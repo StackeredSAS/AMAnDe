@@ -263,7 +263,7 @@ class Analyzer():
             dataExtractionRules files content in a table.
         
         Both tag can be specified together in the Manifest
-        However, for all versions higher or equal than Android 12 (API 31), fullBakcupContent is overriden
+        However, for all versions higher or equal than Android 12 (API 31), fullBackupContent is overriden
         with datExtractionRules.
         """
         printSubTestInfo("Checking backup rules files")
@@ -294,8 +294,10 @@ class Analyzer():
                 # show cloudBackupRules
                 table = [[e.type, e.domain, e.path, e.requireFlags] for e in cloudBackupRules]
                 if len(table) > 0:
-                    # TODO :améliorer l'affichage de cette info
-                    self.logger.info(f"{disableIfNoEncryptionCapabilities=}")
+                    if disableIfNoEncryptionCapabilities:
+                        self.logger.info("Cloud backup are performed only if they can be encrypted, such as when the user has a lock screen.")
+                    else:
+                        self.logger.warning("Cloud backup are performed even if they cannot be encrypted.")
                     self.logger.info("Cloud backup rules have been defined :")
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
                 # show device transfer rules
