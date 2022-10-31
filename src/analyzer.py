@@ -30,6 +30,9 @@ class Analyzer():
         self.logger.addHandler(stdout_handler)
 
     def setLogLevel(self, level):
+        """
+        Associates log levels to their corresponding logger levels
+        """
         if level == 0:
             self.logger.setLevel(logging.INFO)
         elif level == 1:
@@ -40,6 +43,21 @@ class Analyzer():
             raise NotImplementedError("Unknown logging level")
 
     def showApkInfo(self):
+        """
+        With a Manifest as input file: 
+            Shows general information, including : 
+                - Package name
+                - VersionCode
+                - VersionName
+                - uses-sdk min and max version
+                - Number of activities, services, receivers and providers (exported or not)
+                - Required shared libraries
+                - Required vendor-provided native shared librairies
+                - Required hardware or software features
+
+        With an APK as input file:
+            Shows all the above information as well as the signature verification
+        """
         printTestInfo("APK information")
         info = self.parser.getApkInfo()
         self.logger.info(f'Package name: {info.package}')
@@ -112,7 +130,11 @@ class Analyzer():
 
         return res
 
-    def analyzeRequiredPerms(self):
+     def analyzeRequiredPerms(self):
+        """
+        Lists all permissions required by the target APK
+        Provides an analysis of builtin ones based on protectionLevel
+        """
         printTestInfo("Analyzing required permissions")
         dangerous_perms_number = 0
         for perm in self.parser.requiredPermissions():
@@ -131,9 +153,12 @@ class Analyzer():
                 f'APK requires {dangerous_perms_number} dangerous builtin {msg} to work properly. Check it out!')
 
     def analyzeCustomPerms(self):
+        """
+        Analyzes custom permissions definitions based on protectionLevel
+        """
         printTestInfo("Analyzing custom permissions definition")
-        #Objectif : afficher le tout ce qui est en dessous de dangerous en orange car cela signifie
-        #qu'une app malveillante peut utiliser la permissions (avec l'accord de l'utilisateur pour dangerous mais quand même)
+        # Purpose : display custom permissions whose protectionLevel is inferior or equal to dangerous
+        # because this means another malicious apps can require and get the permission
         table = []
         header = ["name", "protectionLevel"]
         custom_permissions = self.parser.customPermissions()
@@ -152,7 +177,6 @@ class Analyzer():
             elif self.logger.level <= logging.INFO:
                 table.append([name, protectionLevel])
 
-        #if self.logger.level <= logging.CRITICAL:
         if len(table) > 0: print(tabulate(table, header, tablefmt="fancy_grid"))
         if dangerous_protection_level > 0:
             if dangerous_protection_level == 1:
@@ -164,7 +188,8 @@ class Analyzer():
 
     def isADBBackupAllowed(self):
         """
-        Checks if ADB backups are allowed.
+        Checks if ADB backups are allowed (taking into account 
+        Android versions and their corresponding default values).
         https://developer.android.com/guide/topics/manifest/application-element#allowbackup
         :return: True if ADB backup is allowed, False otherwise.
         """
@@ -180,7 +205,8 @@ class Analyzer():
 
     def isAutoBackupAllowed(self):
         """
-        Checks if Auto Backup are allowed.
+        Checks if Auto Backup are allowed (taking into account 
+        Android versions and their corresponding default values).
         https://developer.android.com/guide/topics/data/autobackup
         :return: True if Auto Backup is allowed, False otherwise.
         """
@@ -224,13 +250,20 @@ class Analyzer():
 
     def getBackupRulesFile(self):
         """
+        With a Manifest as input file: 
+            Checks the presence of attributes related to backup rules files (taking into account Android versions) 
+            Analyses if the result is in line with min_sdk_version and max_sdk_version args.
+
+        With an APK as input file:
+            If there are one of those files, does the above and summarizes fullBackupContent and 
+            dataExtractionRules files content in a table.
+        
         Both tag can be specified together in the Manifest
-        However, for all versions equal or higher than Android 12, fullBakcupContent is override
+        However, for all versions higher or equal than Android 12 (API 31), fullBakcupContent is overriden
         with datExtractionRules.
         """
         printSubTestInfo("Checking backup rules files")
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
-        # taking into account android 12 backup attribute dataExtractionRules
         dataExtractionRules_xml_rules_files = self.parser.dataExtractionRules()
 
         res = 0
@@ -255,7 +288,7 @@ class Analyzer():
                 # show cloudBackupRules
                 table = [[e.type, e.domain, e.path, e.requireFlags] for e in cloudBackupRules]
                 if len(table) > 0:
-                    # améliorer l'affichage de cette info
+                    # TODO :améliorer l'affichage de cette info
                     self.logger.info(f"{disableIfNoEncryptionCapabilities=}")
                     self.logger.info("Cloud backup rules have been defined :")
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
@@ -270,10 +303,18 @@ class Analyzer():
         return res
 
     def getNetworkConfigFile(self):
+        """
+        With a Manifest as input file: 
+            Checks the presence of network_security_config_file attribute
+
+        With an APK as input file:
+            Does the above and if applicable, summarizes network_security_config file content in a table (taking into account Android
+            versions and their corresponding default values and configurations)
+        """
         printTestInfo("Checking the existence of network_security_config XML file")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
         if network_security_config_xml_file is not None:
-            # dans le cas d'un APK rajouter des sous tests
+            # TOTO : dans le cas d'un APK rajouter des sous tests
             # le cleartext traffic sera probablement géré dans le test a cet effet donc pas besoin de le faire ici
             # on peut checker le certificate pinning et les trust anchors ici dans 2 sous-tests
             # si pas un APK ca reste comme ça
@@ -284,6 +325,9 @@ class Analyzer():
         return False
 
     def analyzeBackupFeatures(self):
+        """
+        Regroups all functions related to backup analysis
+        """
         printTestInfo("Analyzing backup functionality")
         isADBBackupAllowed = self.isADBBackupAllowed()
         isAutoBackupAllowed = self.isAutoBackupAllowed()
@@ -293,6 +337,7 @@ class Analyzer():
 
     def isDebuggable(self):
         """
+        Checks if APK is compiled in debug mode
         Default value is False
         https://developer.android.com/guide/topics/manifest/application-element#debug
         """
@@ -310,10 +355,11 @@ class Analyzer():
     
     def analyzeExportedComponent(self):
         """
-        Analyzing exported components permissions
-        1. If exported component don't specifiy any permission -> self.logger.warning to make deeper check
-            If it's a deeplink or applink -> it can not have specific perm because by default is used to call our app when
-            a specific uri is handled by another app
+        Analyzes exported components permissions
+         - If the exported component does not specify any permission, highlight it with self.logger.warning
+           to indicate deeper checks are required.
+         - Do not add deeplinks or applinks, as they cannot have specific permissions (by default they are used to call our app when
+           a specific URI is handled by another app)
         """
         printTestInfo("Analyzing permissions set on exported components")
         headers = ["Name", "Type", "Permission", "readPermission", "writePermission"]
@@ -374,6 +420,11 @@ class Analyzer():
         return res
 
     def analyzeUnexportedProviders(self):
+        """
+        Analyses unexported providers whose grantUriPermissions attribute is set to True
+        This information is useful because in combination with other vulnerabilities it 
+        is possible to exploit those components
+        """
         printTestInfo("Analyzing unexported providers")
         res = self.parser.getUnexportedProviders()
         msg = ""
@@ -387,16 +438,23 @@ class Analyzer():
 
     def isCleartextTrafficAllowed(self):
         """
-        https://developer.android.com/guide/topics/manifest/application-element#usesCleartextTraffic
-        Indicates whether the app intends to use cleartext network traffic, such as cleartext HTTP. 
+        With a Manifest as input file:
+            Checks if the app intends to use cleartext network traffic, such as cleartext HTTP.
+            https://developer.android.com/guide/topics/manifest/application-element#usesCleartextTraffic
+
         The default value for apps that target API level 27 or lower is "true". 
         Apps that target API level 28 or higher default to "false".
         This flag is ignored on Android 7.0 (API level 24) and above if an Android Network Security Config is present.
+
+        With an APK as input file:
+            Does the above and if applicable, summarizes network_security_config file content in a table (taking into account Android
+            versions and there corresponding default values and configurations)
+            
         """
         printTestInfo("Checking if http traffic can be used")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
         if network_security_config_xml_file is not None and self.args.min_sdk_version >= 24:
-            # a terme remplacer ça par un call vers une autre fonction qui analyse le contenu du network security config
+            # TODO : a terme remplacer ça par un call vers une autre fonction qui analyse le contenu du network security config
             # pour specifiquement voir si HTTP est autorisé et pour quels domaines
             # evidement cela que dans le cas d'un APK, sinon ça reste comme ça je pense
             self.logger.info("APK network security configuration is defined. Please refer to this test instead.")
@@ -411,7 +469,10 @@ class Analyzer():
         return False
 
     def getIntentFilterInfo(self):
-        printTestInfo("Gathering information on exported components which specified Intents")
+        """
+        Displays information about exported components Intent Filter (scheme, host, port, path)
+        """
+        printTestInfo("Gathering information on exported components which specified Intent Filters")
         headers = ["Name", "Action", "Category", "Link", "Mime Type"]
         table = []
         for e, tag in self.parser.getIntentFilterExportedComponents():
@@ -429,6 +490,11 @@ class Analyzer():
             self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
 
     def isAppLinkUsed(self):
+        """
+        Checks if APK defines AppLink(s)
+        Applink is a specific type of deeplink which is itself a component specifying 
+        android:autoVerify property in its intent filter 
+        """
         printSubTestInfo("Checking for AppLinks")
         res = self.parser.getUniversalLinks()
         verified_hosts = {h for e in res if e.autoVerify for h in e.hosts}
@@ -460,6 +526,10 @@ class Analyzer():
         return len(verified_hosts)
 
     def isDeepLinkUsed(self):
+        """
+        Checks if APK defines DeepLink(s)
+        DeepLink is a component specifying an intent filter (with action = VIEW and category = BROWSABLE) 
+        """
         printSubTestInfo("Checking for DeepLinks")
         res = self.parser.getUniversalLinks()
         unique_names = {deeplink.name for deeplink in res}
@@ -475,17 +545,26 @@ class Analyzer():
         return len(unique_names) > 0
 
     def analyzeIntentFilters(self):
+        """
+        Regroups all functions related to Intent Filters analysis
+        """
         self.getIntentFilterInfo()
         if self.isDeepLinkUsed():
             self.isAppLinkUsed()
 
     def getExportedComponents(self):
+        """
+        Lists all exported components
+        """
         printTestInfo("Listing exported components")
         for component in ["activity", "receiver", "provider", "service"]:
             for e in self.parser.exportedComponents(component):
                 self.logger.info(f'{e.split(".")[-1]} ({component})')
 
     def checkForFirebaseURL(self):
+        """
+        Checks if Firebase is used and returns the associated URL
+        """
         # the rest of the code will do nothing if not an APK
         if self.isAPK: printTestInfo("Looking for Firebase URL")
         res = self.parser.searchInStrings("https://.*firebaseio.com")
@@ -494,11 +573,15 @@ class Analyzer():
                 self.logger.info(f"\t{e}")
 
     def analyseNetworkSecurityConfigFile(self):
+        """
+        Analyses network_security_config file
+        """
         printSubTestInfo("Analysing Network security config file")
         nsf = self.parser.getNetworkSecurityConfigFile()
         if nsf:
             nsParser = NetworkSecParser(nsf)
             nsParser.printXML()
+
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
         self.showApkInfo()
