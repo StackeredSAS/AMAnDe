@@ -492,8 +492,7 @@ class Analyzer():
     def isAppLinkUsed(self):
         """
         Checks if APK defines AppLink(s)
-        Applink is a specific type of deeplink which is itself a component specifying 
-        android:autoVerify property in its intent filter 
+        Applink is a specific type of deeplink with android:autoVerify property in its intent filter.
         """
         printSubTestInfo("Checking for AppLinks")
         res = self.parser.getUniversalLinks()

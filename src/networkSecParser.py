@@ -47,7 +47,7 @@ class NetworkSecParser(Parser):
 
     def getBaseConfig(self):
         """
-        Parses the <base-config> elements of the network security config file.
+        Parses the <base-config> element of the network security config file.
         https://developer.android.com/training/articles/security-config?hl=en#base-config
         Default values are API level dependant.
         """
@@ -60,7 +60,7 @@ class NetworkSecParser(Parser):
 
     def getDebugOverrides(self):
         """
-        Parses the <debug-overrides> elements of the network security config file.
+        Parses the <debug-overrides> element of the network security config file.
         https://developer.android.com/training/articles/security-config?hl=en#debug-overrides
         """
         bc = self.root.find("debug-overrides")

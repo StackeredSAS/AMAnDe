@@ -94,7 +94,7 @@ class APKParser(Parser):
         Lists all the custom permissions defined by the application.
         https://developer.android.com/guide/topics/manifest/permission-element
 
-        In the case of APK custom permission protection level is an Int.
+        In the case of APK, custom permission protection level is an Int.
         """
         CustomPerm = namedtuple("CustomPerm", "name protectionLevel")
         res = []
