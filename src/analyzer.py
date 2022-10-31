@@ -618,8 +618,7 @@ class Analyzer():
             return
         printSubTestInfo("Analysing Network security config file")
         nsParser = NetworkSecParser(nsf)
-        nsParser.printXML()
-        print(nsParser.parseDomainConfig()[1].trustanchors[0].src)
+
 
     def analyzeNSCClearTextTraffic(self, nsParser=None):
         # for unit tests allow to give a custom parser
