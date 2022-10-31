@@ -45,4 +45,5 @@ unzip -l test.apk
 - fullBackupOnly
 - revoir toutes les fonctions avec intervalles de version
   - isAutoBackupAllowed (a l'air ok, a refire aven handle version ?)
-  - getBackupRulesFile
+- isADBBackupAllowed
+- isAutoBackupAllowed
