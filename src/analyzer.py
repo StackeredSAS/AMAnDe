@@ -194,6 +194,7 @@ class Analyzer():
         """
         Checks if ADB backups are allowed (taking into account 
         Android versions and their corresponding default values).
+        Before Android 12, a malicious user can perform ADB backup to leak data or modify app behaviour
         https://developer.android.com/guide/topics/manifest/application-element#allowbackup
         https://developer.android.com/about/versions/12/behavior-changes-12#adb-backup-restrictions
         :return: True if ADB backup is allowed, False otherwise.
@@ -201,10 +202,22 @@ class Analyzer():
         printSubTestInfo("Checking for ADB backup functionality")
         backup_attr = self.parser.allowBackup()
 
+        def allowed(condition=False):
+            if condition:
+                print(colored("On Android 11 (API 30) and lower", attrs=["bold"]))
+            self.logger.warning("ADB backup can be performed to export sandbox data")
+            return True
+
+        def notAllowed(condition=False):
+            if condition:
+                print(colored("On Android 12 (API 31) and higher", attrs=["bold"]))
+            self.logger.info("ADB backup can be performed but exported data no longer contains the target "
+                             "application's sandbox ones")
+            return False
+
         # android:allowBackup default value is true for any android version
         if backup_attr or backup_attr is None:
-            self.logger.info("ADB backup can be performed")
-            return True
+            return handleVersion(allowed, notAllowed, 31, self.args.min_sdk_version, self.args.max_sdk_version)
         self.logger.info("APK cannot be backed up with adb")
         return False
 
@@ -221,7 +234,8 @@ class Analyzer():
         MaxAPILevel = self.args.max_sdk_version
         MinAPILevel = self.args.min_sdk_version
 
-        # android:allowBackup default value is true for any android version but auto backup is only available for API >= 23
+        # android:allowBackup default value is true for any android version but auto backup
+        # is only available for API >= 23
         if (backup_attr or backup_attr is None) and MaxAPILevel >= 23:
             msg = "Google drive Auto backup functionality is activated "
             # Android 9 => API level >= 28

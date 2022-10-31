@@ -22,19 +22,33 @@ class TestAnalyzer(unittest.TestCase):
 
     def test_isADBBackupAllowed(self):
         # the tuple elements represents :
-        # allowBackup, expectedResult
+        # allowBackup, min_sdk_version, max_sdk_version, expectedResult
         testCases = [
-            (True, True),
-            (False, False),
-            (None, True)
+            (True, 20, 25, True),
+            (True, 20, 30, True),
+            (True, 30, 31, (True, False)),
+            (True, 31, 32, False),
+            (False, 20, 25, False),
+            (False, 20, 30, False),
+            (False, 30, 31, False),
+            (False, 31, 32, False),
+            (None, 20, 25, True),
+            (None, 20, 30, True),
+            (None, 30, 31, (True, False)),
+            (None, 31, 32, False),
         ]
 
         for testCase in testCases:
             allowBackup = testCase[0]
-            expected = testCase[1]
+            min_sdk_version = testCase[1]
+            max_sdk_version = testCase[2]
+            expected = testCase[3]
             self.parser.allowBackup = lambda: allowBackup
+            self.args.min_sdk_version = min_sdk_version
+            self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.isADBBackupAllowed()
-            self.assertEqual(res, expected, f"{allowBackup=} should produce {expected} but produced {res}")
+            self.assertEqual(expected, res, f"{allowBackup=} and {min_sdk_version} and {max_sdk_version } should "
+                                            f"produce {expected} but produced {res}")
 
     def test_isAutoBackupAllowed(self):
         # the tuple elements represents :
