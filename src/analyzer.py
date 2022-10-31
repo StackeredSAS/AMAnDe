@@ -5,7 +5,8 @@ from .utils import (
     printTestInfo,
     printSubTestInfo,
     checkDigitalAssetLinks,
-    runProc
+    runProc,
+    handleVersion
 )
 from .config import EXTERNAL_BINARIES
 import logging
@@ -94,8 +95,9 @@ class Analyzer():
 
         alias_activities_number = self.parser.componentStats("activity-alias")
         exported_alias_activities_number = self.parser.exportedComponentStats("activity-alias")
-        self.logger.info(f'Number of activity-aliases: {alias_activities_number} ({exported_alias_activities_number} exported)')
-        
+        self.logger.info(
+            f'Number of activity-aliases: {alias_activities_number} ({exported_alias_activities_number} exported)')
+
         receivers_number = self.parser.componentStats("receiver")
         exported_receivers_number = self.parser.exportedComponentStats("receiver")
         self.logger.info(f'Number of receivers: {receivers_number} ({exported_receivers_number} exported)')
@@ -109,14 +111,17 @@ class Analyzer():
         self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
 
         for l in self.parser.usesLibrary():
-            self.logger.info(f'Shared library "{l.name}" can be used by the application (mandatory for runtime : {l.required})')
+            self.logger.info(
+                f'Shared library "{l.name}" can be used by the application (mandatory for runtime : {l.required})')
 
         for nl in self.parser.usesNativeLibrary():
-            self.logger.info(f'Vendor provided shared native library "{nl.name}" can be used by the application (mandatory for runtime : {nl.required})')
+            self.logger.info(
+                f'Vendor provided shared native library "{nl.name}" can be used by the application (mandatory for runtime : {nl.required})')
 
         for f in self.parser.usesFeatures():
-            self.logger.info(f'Hardware or software feature "{f.name}" can be used by the application (mandatory for runtime : {f.required})')
-                
+            self.logger.info(
+                f'Hardware or software feature "{f.name}" can be used by the application (mandatory for runtime : {f.required})')
+
         # for now do it here
         # if we want to add post treatment we will move those kinds of checks into a new file
         if self.isAPK:
@@ -138,10 +143,10 @@ class Analyzer():
         printTestInfo("Analyzing required permissions")
         dangerous_perms_number = 0
         for perm in self.parser.requiredPermissions():
-            if perm in dangerous_perms :
+            if perm in dangerous_perms:
                 if self.logger.level <= logging.WARNING:
                     print(colored(perm, "yellow"))
-                dangerous_perms_number+=1
+                dangerous_perms_number += 1
             else:
                 self.logger.info(perm)
         if dangerous_perms_number > 0:
@@ -164,16 +169,15 @@ class Analyzer():
         custom_permissions = self.parser.customPermissions()
         dangerous_protection_level = 0
 
-
         for custom_permission in custom_permissions:
             name = custom_permission.name
             protectionLevel = custom_permission.protectionLevel
 
             if protectionLevel == "normal" or protectionLevel == "dangerous":
-                name = colored(name,"red")
-                protectionLevel = colored(protectionLevel,"red")
+                name = colored(name, "red")
+                protectionLevel = colored(protectionLevel, "red")
                 table.append([name, protectionLevel])
-                dangerous_protection_level+=1
+                dangerous_protection_level += 1
             elif self.logger.level <= logging.INFO:
                 table.append([name, protectionLevel])
 
@@ -269,7 +273,8 @@ class Analyzer():
         res = 0
         if self.args.min_sdk_version <= 30:
             if fullBackupContent_xml_file_rules is not None:
-                self.logger.info(f'For Android versions <= 11 (API 30), custom rules has been defined to control what gets backed up in {fullBackupContent_xml_file_rules} file')
+                self.logger.info(
+                    f'For Android versions <= 11 (API 30), custom rules has been defined to control what gets backed up in {fullBackupContent_xml_file_rules} file')
                 res |= 1
                 rules = self.parser.getFullBackupContentRules() or []
                 headers = ["type", "domain", "path", "requireFlags"]
@@ -278,10 +283,11 @@ class Analyzer():
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
             else:
                 self.logger.warning(f'Minimal supported SDK version ({self.args.min_sdk_version})'
-                f' allows Android versions <= 11 (API 30) and no exclusion custom rules file has been specified in the fullBackupContent attribute.')
+                                    f' allows Android versions <= 11 (API 30) and no exclusion custom rules file has been specified in the fullBackupContent attribute.')
         if self.args.max_sdk_version >= 31:
             if dataExtractionRules_xml_rules_files is not None:
-                self.logger.info(f'For Android versions >= 12 (API 31), custom rules has been defined to control what gets backed up in {dataExtractionRules_xml_rules_files} file')
+                self.logger.info(
+                    f'For Android versions >= 12 (API 31), custom rules has been defined to control what gets backed up in {dataExtractionRules_xml_rules_files} file')
                 res |= 2
                 cloudBackupRules, disableIfNoEncryptionCapabilities, deviceTransferRules = self.parser.getDataExtractionRulesContent()
                 headers = ["type", "domain", "path", "requireFlags"]
@@ -299,7 +305,7 @@ class Analyzer():
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
             else:
                 self.logger.warning(f'Maximal supported SDK version ({self.args.max_sdk_version})'
-                f' allows Android versions >= 12 (API 31) and no exclusion custom rules file has been specified in the dataExtractionRules attribute.')
+                                    f' allows Android versions >= 12 (API 31) and no exclusion custom rules file has been specified in the dataExtractionRules attribute.')
         return res
 
     def getNetworkConfigFile(self):
@@ -314,12 +320,13 @@ class Analyzer():
         printTestInfo("Checking the existence of network_security_config XML file")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
         if network_security_config_xml_file is not None:
-            # TOTO : dans le cas d'un APK rajouter des sous tests
+            # TODO : dans le cas d'un APK rajouter des sous tests
             # le cleartext traffic sera probablement géré dans le test a cet effet donc pas besoin de le faire ici
             # on peut checker le certificate pinning et les trust anchors ici dans 2 sous-tests
             # si pas un APK ca reste comme ça
-            self.logger.info(f'APK network security configuration is defined in {network_security_config_xml_file} file')
-            if self.isAPK : self.analyseNetworkSecurityConfigFile()
+            self.logger.info(
+                f'APK network security configuration is defined in {network_security_config_xml_file} file')
+            if self.isAPK: self.analyseNetworkSecurityConfigFile()
             return True
         self.logger.warning("networkSecurityConfig property not found")
         return False
@@ -352,7 +359,7 @@ class Analyzer():
             return True
         self.logger.info("APK is not compiled in debug mode")
         return False
-    
+
     def analyzeExportedComponent(self):
         """
         Analyzes exported components permissions
@@ -386,7 +393,7 @@ class Analyzer():
                     wp = e.writePermission
 
                     if (t != "provider" and p is None) or (
-                        t == "provider" and wp is None and rp is None and p is None):
+                            t == "provider" and wp is None and rp is None and p is None):
                         cName = colored(n, "yellow")
                         cType = colored(t, "yellow")
                         if self.logger.level <= logging.WARNING:
@@ -397,9 +404,9 @@ class Analyzer():
                         if self.logger.level == logging.INFO:
                             table.append([n, t, p, rp, wp])
                             res += 2
-        
+
         # There might not be any exported components -> no permission to analyze
-        if len (table) > 0 :
+        if len(table) > 0:
             # no write permissions
             nowp = all([e[-1] == None for e in table])
             # no read permissions
@@ -407,7 +414,7 @@ class Analyzer():
             # remove empty columns
             # start with the inner most column otherwise the index changes
             if norp:
-                table = [e[:-2]+e[-1:] for e in table]
+                table = [e[:-2] + e[-1:] for e in table]
                 headers.pop(-2)
             if nowp:
                 table = [e[:-1] for e in table]
@@ -416,7 +423,8 @@ class Analyzer():
             self.logger.info("Deeplinks are not shown in table below because they never have permissions")
             print(tabulate(table, headers, tablefmt="fancy_grid"))
         if count > 0:
-            self.logger.warning(f'There are {count} exported components which can be called without any permission. Check it out!')
+            self.logger.warning(
+                f'There are {count} exported components which can be called without any permission. Check it out!')
         return res
 
     def analyzeUnexportedProviders(self):
@@ -431,7 +439,8 @@ class Analyzer():
         if len(res) == 1: msg = "provider"
         if len(res) > 1: msg = "providers"
         if len(res) > 0:
-            self.logger.warning(f'Found {len(res)} unexported {msg} with grantUriPermissions set to True. Please make deeper checks!')
+            self.logger.warning(
+                f'Found {len(res)} unexported {msg} with grantUriPermissions set to True. Please make deeper checks!')
         if self.logger.level <= logging.WARNING:
             for e in res:
                 print(f'\t{e}')
@@ -453,20 +462,48 @@ class Analyzer():
         """
         printTestInfo("Checking if http traffic can be used")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
-        if network_security_config_xml_file is not None and self.args.min_sdk_version >= 24:
-            # TODO : a terme remplacer ça par un call vers une autre fonction qui analyse le contenu du network security config
-            # pour specifiquement voir si HTTP est autorisé et pour quels domaines
-            # evidement cela que dans le cas d'un APK, sinon ça reste comme ça je pense
-            self.logger.info("APK network security configuration is defined. Please refer to this test instead.")
-            return
-        cleartextTraffic = self.parser.usesCleartextTraffic()
-        if cleartextTraffic or (cleartextTraffic is None and self.args.min_sdk_version <= 27):
+        print(self.parser.usesCleartextTraffic())
+        print(network_security_config_xml_file)
+
+        def allowed(condition=False):
+            if condition:
+                print(colored("On Android 8.1 (API 27) and lower", attrs=["bold"]))
             self.logger.warning("This app may intend to use cleartext network traffic "
-                "such as HTTP to communicate with remote hosts")
+                                "such as HTTP to communicate with remote hosts")
             return True
-        self.logger.info("Usage of cleartext traffic is not allowed "
-            "(this flag is honored as a best effort, please refer to the documentation)")
-        return False
+
+        def forbidden(condition=False):
+            if condition:
+                print(colored("On Android 9 (API 28) and higher", attrs=["bold"]))
+            self.logger.info("Usage of cleartext traffic is not allowed "
+                             "(this flag is honored as a best effort, please refer to the documentation)")
+            return False
+
+        def notIgnored(condition=False):
+            if condition:
+                print(colored("On Android 6 (API 23) and lower", attrs=["bold"]))
+            cleartextTraffic = self.parser.usesCleartextTraffic()
+            if cleartextTraffic:
+                return allowed()
+            if cleartextTraffic is None:
+                if condition:
+                    # was already in the case <= 23
+                    return allowed()
+                return handleVersion(allowed, forbidden, 28, self.args.min_sdk_version, self.args.max_sdk_version)
+            return forbidden()
+
+        def ignored(condition=False):
+            if condition:
+                print(colored("On Android 7.0 (API 24) and higher", attrs=["bold"]))
+            self.logger.info("The usesCleartextTraffic attribute is overridden by the network security configuration.")
+            self.analyzeNSCClearTextTraffic()
+            if not self.isAPK:
+                self.logger.info("APK network security configuration is defined. Please refer to this test instead.")
+
+        if network_security_config_xml_file is not None:
+            return handleVersion(notIgnored, ignored, 24, self.args.min_sdk_version, self.args.max_sdk_version)
+
+        return notIgnored()
 
     def getIntentFilterInfo(self):
         """
@@ -502,7 +539,8 @@ class Analyzer():
             # check if the assetlink.json is publicly accessible
             active_msg = colored("Digital Asset Link JSON file not found", "red")
             if checkDigitalAssetLinks(host):
-                active_msg = colored(f"Digital Asset Link JSON file found at https://{host}/.well-known/assetlinks.json", "green")
+                active_msg = colored(
+                    f"Digital Asset Link JSON file found at https://{host}/.well-known/assetlinks.json", "green")
             self.logger.warning(f'Found an applink with host "{host}":')
             if self.logger.level <= logging.WARNING:
                 print(active_msg)
@@ -517,7 +555,7 @@ class Analyzer():
                 applinks_with_this_name = [e for e in applinks if e.name == name]
                 if self.logger.level <= logging.WARNING:
                     print(colored(f'\tDeclared in {applinks_with_this_name[0].tag} {name.split(".")[-1]} '
-                              f' with the following URI :', "yellow"))
+                                  f' with the following URI :', "yellow"))
                     # show the URI
                     for applink in applinks_with_this_name:
                         for uri in applink.uris:
@@ -575,11 +613,51 @@ class Analyzer():
         """
         Analyses network_security_config file
         """
-        printSubTestInfo("Analysing Network security config file")
         nsf = self.parser.getNetworkSecurityConfigFile()
-        if nsf:
+        if nsf is None:
+            return
+        printSubTestInfo("Analysing Network security config file")
+        nsParser = NetworkSecParser(nsf)
+        nsParser.printXML()
+        print(nsParser.parseDomainConfig()[1].trustanchors[0].src)
+
+    def analyzeNSCClearTextTraffic(self, nsParser=None):
+        # for unit tests allow to give a custom parser
+        if nsParser == None:
+            nsf = self.parser.getNetworkSecurityConfigFile()
+            if nsf is None:
+                return
+            printSubTestInfo("Analysing Network security cleartext traffic configuration")
             nsParser = NetworkSecParser(nsf)
-            nsParser.printXML()
+
+        def ctallowed(condition=False):
+            if condition:
+                print(colored("On Android 8.1 (API 27) and lower", attrs=["bold"]))
+            self.logger.warning("Clear text traffic is allowed for all domains.")
+            doms = nsParser.getAllDomains(inheritedCT=True, withCT=False)
+            doms = [f'\t{e}' for e in doms]
+            if len(doms) > 0:
+                self.logger.info("Except for:")
+                self.logger.info("\n".join(doms))
+            return True
+
+        def ctNotAllowed(condition=False):
+            if condition:
+                print(colored("On Android 9 (API 28) and higher", attrs=["bold"]))
+            self.logger.info(f"Clear text traffic is not allowed for all domains.")
+            doms = nsParser.getAllDomains(inheritedCT=False, withCT=True)
+            doms = [f'\t{e}' for e in doms]
+            if len(doms) > 0:
+                self.logger.info(colored("Except for:", "yellow"))
+                self.logger.info(colored("\n".join(doms), "yellow"))
+            return False
+
+        baseConfig = nsParser.getBaseConfig()
+        if baseConfig is None or baseConfig.cleartextTrafficPermitted is None:
+            return handleVersion(ctallowed, ctNotAllowed, 28, self.args.min_sdk_version, self.args.max_sdk_version)
+        if baseConfig.cleartextTrafficPermitted:
+            return ctallowed()
+        return ctNotAllowed()
 
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))

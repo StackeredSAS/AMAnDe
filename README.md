@@ -38,7 +38,13 @@ unzip -l test.apk
 - tests avec outils tiers si préinstallés
   - surcouche apksigner ?
   - faire une fonction séparée ?
-- Extraire les infos du network sec conf (pinning, trust anchors)
+- Analyser les infos du network sec conf:
+  - pinning
+  - trust anchors
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
 - voir ce que c'est la balise queries
 - fullBackupOnly
+- revoir toutes les fonctions avec intervalles de version
+  - isAutoBackupAllowed (a l'air ok, a refire aven handle version ?)
+  - getBackupRulesFile
+  - showAPKInfo

@@ -219,33 +219,76 @@ class TestAnalyzer(unittest.TestCase):
 
     def test_isCleartextTrafficAllowed(self):
         # the tuple elements represents :
-        # usesCleartextTraffic, min_sdk_version, networkSecurityConfig, expectedResult
+        # usesCleartextTraffic, min_sdk_version, max_sdk_version, networkSecurityConfig, expectedResult
         testCases = [
-            (True, 27, None, True),
-            (True, 20, None, True),
-            (True, 28, None, True),
-            (False, 30, None, False),
-            (None, 27, None, True),
-            (None, 20, None, True),
-            (None, 28, None, False),
-            (None, 23, "bla", True),
-            (True, 23, "bla", True),
-            (False, 23, "bla", False),
-            (None, 24, "bla", None),
-            (True, 24, "bla", None),
-            (False, 24, "bla", None),
-        ]
+            (True, 20, 21, None, True),
+            (True, 20, 21, "sd", True),
+            (False, 20, 21, None, False),
+            (False, 20, 21, "sd", False),
+            (None, 20, 21, None, True),
+            (None, 20, 21, "sd", True),
 
+            (True, 20, 24, None, True),
+            (True, 20, 24, "sd", (True, None)),
+            (False, 20, 24, None, False),
+            (False, 20, 24, "sd", (False, None)),
+            (None, 20, 24, None, True),
+            (None, 20, 24, "sd", (True, None)),
+
+            (True, 23, 25, None, True),
+            (True, 23, 25, "sd", (True, None)),
+            (False, 23, 25, None, False),
+            (False, 23, 25, "sd", (False, None)),
+            (None, 23, 25, None, True),
+            (None, 23, 25, "sd", (True, None)),
+
+            (True, 24, 25, None, True),
+            (True, 24, 25, "sd", None),
+            (False, 24, 25, None, False),
+            (False, 24, 25, "sd", None),
+            (None, 24, 25, None, True),
+            (None, 24, 25, "sd", None),
+            (True, 26, 27, None, True),
+            (True, 26, 27, "sd", None),
+            (False, 26, 27, None, False),
+            (False, 26, 27, "sd", None),
+            (None, 26, 27, None, True),
+            (None, 26, 27, "sd", None),
+
+            (True, 27, 28, None, True),
+            (True, 27, 28, "sd", None),
+            (False, 27, 28, None, False),
+            (False, 27, 28, "sd", None),
+            (None, 27, 28, None, (True, False)),
+            (None, 27, 28, "sd", None),
+
+            (True, 28, 30, None, True),
+            (True, 28, 30, "sd", None),
+            (False, 28, 30, None, False),
+            (False, 28, 30, "sd", None),
+            (None, 28, 30, None, False),
+            (None, 28, 30, "sd", None),
+
+            (True, 10, 30, None, True),
+            (True, 10, 30, "sd", (True, None)),
+            (False, 10, 30, None, False),
+            (False, 10, 30, "sd", (False, None)),
+            (None, 10, 30, None, (True, False)),
+            (None, 10, 30, "sd", (True, None)),
+        ]
+        self.analyzer.analyzeNSCClearTextTraffic = lambda: None
         for testCase in testCases:
             usesCleartextTraffic = testCase[0]
             min_sdk_version = testCase[1]
-            networkSecurityConfig = testCase[2]
-            expected = testCase[3]
+            max_sdk_version = testCase[2]
+            networkSecurityConfig = testCase[3]
+            expected = testCase[4]
             self.parser.networkSecurityConfig = lambda: networkSecurityConfig
             self.parser.usesCleartextTraffic = lambda: usesCleartextTraffic
             self.args.min_sdk_version = min_sdk_version
+            self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.isCleartextTrafficAllowed()
-            self.assertEqual(res, expected, f"{usesCleartextTraffic=} and {min_sdk_version} should produce {expected} but produced {res}")
+            self.assertEqual(expected, res, f"{usesCleartextTraffic=} and {min_sdk_version=} and {max_sdk_version=} and {networkSecurityConfig=} should produce {expected} but produced {res}")
 
     def test_isDeepLinkUsed(self):
         # the tuple elements represents :
@@ -297,6 +340,45 @@ class TestAnalyzer(unittest.TestCase):
             self.parser.getUniversalLinks = lambda: getUniversalLinks
             res = self.analyzer.isAppLinkUsed()
             self.assertEqual(res, expected,f"{getUniversalLinks=} should produce {expected} but produced {res}")
+
+
+    def test_analyzeNSCClearTextTraffic(self):
+        # the tuple elements represents :
+        # min_sdk_version, ma_sdk_version, BConfig.cleartextTrafficPermitted, expectedResult
+        testCases = [
+            (25, 27, True, True),
+            (25, 30, True, True),
+            (29, 30, True, True),
+            (28, 29, True, True),
+            (27, 28, True, True),
+            (25, 27, False, False),
+            (25, 30, False, False),
+            (29, 30, False, False),
+            (28, 29, False, False),
+            (27, 28, False, False),
+            (25, 27, None, True),
+            (25, 30, None, (True, False)),
+            (29, 30, None, False),
+            (28, 29, None, False),
+            (27, 28, None, (True, False)),
+        ]
+
+        config = namedtuple("BConfig", "cleartextTrafficPermitted trustanchors")
+        def d(dcs=None, inheritedCT=False, withCT=True):
+            return ["a", "b"]
+        self.parser.getAllDomains = d
+        for testCase in testCases:
+            min_sdk_version = testCase[0]
+            max_sdk_version = testCase[1]
+            cleartextTrafficPermitted = testCase[2]
+            expected = testCase[3]
+            self.parser.getBaseConfig = lambda: config(cleartextTrafficPermitted, [])
+            self.args.min_sdk_version = min_sdk_version
+            self.args.max_sdk_version = max_sdk_version
+            res = self.analyzer.analyzeNSCClearTextTraffic(self.parser)
+            self.assertEqual(expected, res,
+                             f"{min_sdk_version=} and {max_sdk_version=} and {cleartextTrafficPermitted=} should produce {expected} but produced {res}")
+
 
 if __name__ == '__main__':
     unittest.main(buffer=True)

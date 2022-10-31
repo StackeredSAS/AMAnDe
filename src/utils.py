@@ -126,3 +126,23 @@ def runProc(*args, **kwargs):
             p.kill()  # send sigkill
         return output
 
+
+def handleVersion(lower_func, higher_func, trigger, min_sdk, max_sdk):
+    """
+
+    :param lower_func: Function taking a single boolean argument indicating if we need to print the condition.
+    :param higher_func:
+    :param trigger:
+    :param min_sdk:
+    :param max_sdk:
+    :return:
+    """
+
+    if max_sdk < trigger:
+        return lower_func()
+    elif min_sdk >= trigger:
+        return higher_func()
+    else:
+        a = lower_func(True)
+        b = higher_func(True)
+        return (a, b)

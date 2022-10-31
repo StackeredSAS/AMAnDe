@@ -100,14 +100,39 @@ class NetworkSecParser(Parser):
         """
         if elm is None:
             elm = self.root
-        config = namedtuple("DConfig", "domains trustanchors pinset domainConfigs")
+        config = namedtuple("DConfig", "cleartextTrafficPermitted domains trustanchors pinset domainConfigs")
         dc = elm.findall("domain-config")
         res = []
         for e in dc:
+            cleartextTrafficPermitted = str2Bool(self._getattr(e, "cleartextTrafficPermitted"))
             domains = self.parseDomains(e)
             trustanchors = self.parseTrustAnchors(e)
             pinset = self.parsePinSet(e)
             # recursive call to handle nested <domain-config> elements
             dcs = self.parseDomainConfig(e)
-            res.append(config(domains, trustanchors, pinset, dcs))
+            res.append(config(cleartextTrafficPermitted, domains, trustanchors, pinset, dcs))
+        return res
+
+
+    def getAllDomains(self, dcs=None, inheritedCT=False, withCT=True):
+        """
+        Recursively lists all the domains with cleartext traffic allowed or not.
+        Takes into consideration the inheriting properties of the parent.
+        """
+        if dcs is None:
+            dcs = self.parseDomainConfig()
+        res = []
+        for dc in dcs:
+            if dc.cleartextTrafficPermitted == withCT:
+                res += dc.domains
+            if dc.cleartextTrafficPermitted is None and not (inheritedCT ^ withCT):
+                res += dc.domains
+            # recursive call with inherited value
+            if dc.cleartextTrafficPermitted is not None:
+                # parent defined cleartextTrafficPermitted
+                res += self.getAllDomains(dc.domainConfigs, dc.cleartextTrafficPermitted, withCT=withCT)
+            else:
+                # parent did not define cleartextTrafficPermitted
+                # use parent inherited value
+                res += self.getAllDomains(dc.domainConfigs, inheritedCT, withCT=withCT)
         return res
