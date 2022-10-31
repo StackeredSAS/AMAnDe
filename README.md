@@ -37,13 +37,14 @@ unzip -l test.apk
 ## todo
 - tests avec outils tiers si préinstallés
   - surcouche apksigner ?
-  - faire une fonction séparée ?
-- Analyser les infos du network sec conf:
+  - faire une fonction séparée ?s
+- Analyser les infos du network sec conf (FPI):
   - pinning
   - trust anchors
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
-- fullBackupOnly
-- revoir toutes les fonctions avec intervalles de version
-  - isAutoBackupAllowed (a l'air ok, a refire aven handle version ?)
-- isADBBackupAllowed
-- isAutoBackupAllowed
+- fullBackupOnly (ABE)
+- revoir toutes les fonctions avec intervalles de version (ABE)
+  - isAutoBackupAllowed (a l'air ok, a refaire aven handle version ?)
+  - getBackupRulesFile
+- isADBBackupAllowed (ABE)
+- isAutoBackupAllowed (ABE)
