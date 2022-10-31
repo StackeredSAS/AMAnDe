@@ -13,6 +13,7 @@ import logging
 from .constants import dangerous_perms
 from .apkParser import APKParser
 from .networkSecParser import NetworkSecParser
+from collections import namedtuple
 
 
 class Analyzer():
@@ -328,9 +329,9 @@ class Analyzer():
             # le cleartext traffic sera probablement géré dans le test a cet effet donc pas besoin de le faire ici
             # on peut checker le certificate pinning et les trust anchors ici dans 2 sous-tests
             # si pas un APK ca reste comme ça
-            self.logger.info(
-                f'APK network security configuration is defined in {network_security_config_xml_file} file')
-            if self.isAPK: self.analyseNetworkSecurityConfigFile()
+            self.logger.info(f'APK network security configuration is defined '
+                             f'in {network_security_config_xml_file} file')
+            self.analyzeNSCTrustAnchors()
             return True
         self.logger.warning("networkSecurityConfig property not found")
         return False
@@ -466,8 +467,6 @@ class Analyzer():
         """
         printTestInfo("Checking if http traffic can be used")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
-        print(self.parser.usesCleartextTraffic())
-        print(network_security_config_xml_file)
 
         def allowed(condition=False):
             if condition:
@@ -613,18 +612,55 @@ class Analyzer():
             for e in res:
                 self.logger.info(f"\t{e}")
 
-    def analyseNetworkSecurityConfigFile(self):
+    def analyzeNSCTrustAnchors(self):
         """
-        Analyses network_security_config file
+        Analyzes network_security_config file
+        https://developer.android.com/training/articles/security-config?hl=en#base-config
         """
-        nsf = self.parser.getNetworkSecurityConfigFile()
+        # todo : handle <debug-overrides> if apk debuggable
+        nsf = open("test.xml", "r")
+        #nsf = self.parser.getNetworkSecurityConfigFile()
         if nsf is None:
             return
-        printSubTestInfo("Analysing Network security config file")
+        printSubTestInfo("Analysing Network security trust anchors configuration")
         nsParser = NetworkSecParser(nsf)
+        cert = namedtuple("Cert", "src overridePins")
 
+        def p(inherited_ta):
+            self.logger.info(f"Default trust-anchors are: {', '.join([e.src for e in inherited_ta])}")
+            exceptions = []
+            for e in nsParser.getDomainsWithTA(inheritedTA=inherited_ta):
+                if e.trustanchors != inherited_ta:
+                    exceptions.append((e.domain, ', '.join([c.src for c in e.trustanchors])))
+
+            if len(exceptions) > 0:
+                self.logger.info("The following exceptions are defined:")
+                for e in exceptions:
+                    self.logger.info(f"\tFor domain {e[0]}, trust anchors are: {e[1]}")
+            return len(inherited_ta)
+
+        def for23andlower(condition=False):
+            if condition:
+                print(colored("On Android 6 (API 23) and lower", attrs=["bold"]))
+            # system and user as default
+            inherited_ta = [cert("system", False), cert("user", False)]
+            return p(inherited_ta)
+
+        def for24andabove(condition=False):
+            if condition:
+                print(colored("On Android 7 (API 24) and higher", attrs=["bold"]))
+            # only system as default
+            inherited_ta = [cert("system", False)]
+            return p(inherited_ta)
+
+        baseConfig = nsParser.getBaseConfig()
+        if baseConfig is None or len(baseConfig.trustanchors) == 0:
+            return handleVersion(for23andlower, for24andabove, 24, self.args.min_sdk_version, self.args.max_sdk_version)
+        else:
+            return p(baseConfig.trustanchors)
 
     def analyzeNSCClearTextTraffic(self, nsParser=None):
+        # todo : handle <debug-overrides> if apk debuggable
         # for unit tests allow to give a custom parser
         if nsParser == None:
             nsf = self.parser.getNetworkSecurityConfigFile()
@@ -668,8 +704,8 @@ class Analyzer():
         self.analyzeRequiredPerms()
         self.analyzeCustomPerms()
         self.analyzeBackupFeatures()
-        self.getNetworkConfigFile()
         self.isDebuggable()
+        self.getNetworkConfigFile()
         self.isCleartextTrafficAllowed()
         self.getExportedComponents()
         self.analyzeIntentFilters()

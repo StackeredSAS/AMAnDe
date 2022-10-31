@@ -37,10 +37,9 @@ unzip -l test.apk
 ## todo
 - tests avec outils tiers si préinstallés
   - surcouche apksigner ?
-  - faire une fonction séparée ?s
+  - faire une fonction séparée ?
 - Analyser les infos du network sec conf (FPI):
   - pinning
-  - trust anchors
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
 - fullBackupOnly (ABE)
 - revoir toutes les fonctions avec intervalles de version (ABE)

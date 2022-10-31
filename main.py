@@ -28,7 +28,3 @@ if __name__ == "__main__":
         parser = Parser(args.path)
     analyzer = Analyzer(parser, args)
     analyzer.runAllTests()
-
-    # showcase parser unused features
-    # print(parser.getFullBackupContentRules())
-    # print(parser.getDataExtractionRulesContent())

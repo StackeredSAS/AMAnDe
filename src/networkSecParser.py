@@ -136,3 +136,25 @@ class NetworkSecParser(Parser):
                 # use parent inherited value
                 res += self.getAllDomains(dc.domainConfigs, inheritedCT, withCT=withCT)
         return res
+
+    def getDomainsWithTA(self, dcs=None, inheritedTA=False):
+        """
+        Recursively lists all the domains with their associated trust-anchors.
+        Takes into consideration the inheriting properties of the parent.
+        """
+        if dcs is None:
+            dcs = self.parseDomainConfig()
+        domainConf = namedtuple("DomainConf", "domain, trustanchors")
+        res = []
+        for dc in dcs:
+            if len(dc.trustanchors) > 0:
+                # add all domains of this domain config with the defined TA
+                res += [domainConf(e, dc.trustanchors) for e in dc.domains]
+                # recursive call with defined TA
+                res += self.getDomainsWithTA(dc.domainConfigs, dc.trustanchors)
+            else:
+                # add all domains of this domain config with the inherited TA
+                res += [domainConf(e, inheritedTA) for e in dc.domains]
+                # recursive call with the inherited TA
+                res += self.getDomainsWithTA(dc.domainConfigs, inheritedTA)
+        return res
