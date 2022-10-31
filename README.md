@@ -48,3 +48,6 @@ unzip -l test.apk
   - isAutoBackupAllowed (a l'air ok, a refire aven handle version ?)
   - getBackupRulesFile
   - showAPKInfo
+
+- isADBBackupAllowed
+- isAutoBackupAllowed

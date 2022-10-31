@@ -195,6 +195,7 @@ class Analyzer():
         Checks if ADB backups are allowed (taking into account 
         Android versions and their corresponding default values).
         https://developer.android.com/guide/topics/manifest/application-element#allowbackup
+        https://developer.android.com/about/versions/12/behavior-changes-12#adb-backup-restrictions
         :return: True if ADB backup is allowed, False otherwise.
         """
         printSubTestInfo("Checking for ADB backup functionality")
@@ -212,6 +213,7 @@ class Analyzer():
         Checks if Auto Backup are allowed (taking into account 
         Android versions and their corresponding default values).
         https://developer.android.com/guide/topics/data/autobackup
+        https://stackoverflow.com/questions/57357731/why-androidfullbackuponly-default-value-is-false
         :return: True if Auto Backup is allowed, False otherwise.
         """
         printSubTestInfo("Checking for auto-backup functionality")
