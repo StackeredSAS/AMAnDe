@@ -433,5 +433,32 @@ class TestAnalyzer(unittest.TestCase):
                              f"{min_sdk_version=} and {max_sdk_version=} and {trustanchors=} should produce {expected} but produced {res}")
 
 
+    def test_analyzeNSCPinning(self):
+        # the tuple elements represents :
+        # domainConf, expectedResult
+        domainConf = namedtuple("DomainConf", "domain pinset overridePins")
+        # just test different cases but only to assert there is no crash
+        # there is nothing else to test really
+        testCases = [
+            ([domainConf("a", "2012-01-01", [])], None),
+            ([domainConf("a", "2100-01-01", [])], None),
+            ([domainConf("a", "2012-01-01", ["ss"])], None),
+            ([domainConf("a", "2100-01-01", ["sss"])], None),
+            ([domainConf("a", "2012-01-01", ["ss", "sdsqd"])], None),
+            ([domainConf("a", "2100-01-01", ["sss", "qsdfqq"])], None),
+        ]
+
+        def d(inheritedTA=False):
+            return parsed
+
+        self.parser.getPinningInfo = d
+        self.parser.getBaseConfig = lambda: None
+        for testCase in testCases:
+            parsed = testCase[0]
+            expected = testCase[1]
+            res = self.analyzer.analyzeNSCPinning(self.parser)
+            self.assertEqual(expected, res, f"{parsed=} should produce {expected} but produced {res}")
+
+
 if __name__ == '__main__':
     unittest.main(buffer=True)
