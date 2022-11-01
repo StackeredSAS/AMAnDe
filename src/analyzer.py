@@ -16,7 +16,7 @@ from .networkSecParser import NetworkSecParser
 from collections import namedtuple
 
 
-class Analyzer():
+class Analyzer:
 
     def __init__(self, parser, args):
         self.parser = parser
@@ -63,8 +63,10 @@ class Analyzer():
         printTestInfo("APK information")
         info = self.parser.getApkInfo()
         self.logger.info(f'Package name: {info.package}')
-        if info.versionCode is not None: self.logger.info(f'Version code: {info.versionCode}')
-        if info.versionName is not None: self.logger.info(f'Version name: {info.versionName}')
+        if info.versionCode is not None:
+            self.logger.info(f'Version code: {info.versionCode}')
+        if info.versionName is not None:
+            self.logger.info(f'Version name: {info.versionName}')
 
         versions = self.parser.getSdkVersion()
         uses_sdk_min_sdk_version = versions[0]
@@ -111,17 +113,19 @@ class Analyzer():
         exported_services_number = self.parser.exportedComponentStats("service")
         self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
 
-        for l in self.parser.usesLibrary():
+        for lib in self.parser.usesLibrary():
             self.logger.info(
-                f'Shared library "{l.name}" can be used by the application (mandatory for runtime : {l.required})')
+                f'Shared library "{lib.name}" can be used by the application (mandatory for runtime : {lib.required})')
 
         for nl in self.parser.usesNativeLibrary():
             self.logger.info(
-                f'Vendor provided shared native library "{nl.name}" can be used by the application (mandatory for runtime : {nl.required})')
+                f'Vendor provided shared native library "{nl.name}" can be used by the application (mandatory for '
+                f'runtime : {nl.required})')
 
         for f in self.parser.usesFeatures():
             self.logger.info(
-                f'Hardware or software feature "{f.name}" can be used by the application (mandatory for runtime : {f.required})')
+                f'Hardware or software feature "{f.name}" can be used by the application '
+                f'(mandatory for runtime : {f.required})')
 
         # for now do it here
         # if we want to add post treatment we will move those kinds of checks into a new file
@@ -182,14 +186,16 @@ class Analyzer():
             elif self.logger.level <= logging.INFO:
                 table.append([name, protectionLevel])
 
-        if len(table) > 0: print(tabulate(table, header, tablefmt="fancy_grid"))
+        if len(table) > 0:
+            print(tabulate(table, header, tablefmt="fancy_grid"))
         if dangerous_protection_level > 0:
             if dangerous_protection_level == 1:
                 msg = "permission"
             else:
                 msg = "permissions"
             self.logger.critical(
-                f'APK declared {dangerous_protection_level} custom {msg} with a protectionLevel <= dangerous. Check it out!')
+                f'APK declared {dangerous_protection_level} custom {msg} with a protectionLevel <= dangerous. Check '
+                f'it out!')
 
     def isADBBackupAllowed(self):
         """
@@ -224,32 +230,54 @@ class Analyzer():
 
     def isAutoBackupAllowed(self):
         """
-        Checks if Auto Backup are allowed (taking into account 
-        Android versions and their corresponding default values).
+        Checks if Auto Backup are allowed (taking into account Android versions and their corresponding default
+        values).
         https://developer.android.com/guide/topics/data/autobackup
         https://stackoverflow.com/questions/57357731/why-androidfullbackuponly-default-value-is-false
+        https://developer.android.com/guide/topics/data/autobackup#ImplementingBackupAgent
+        android:fullBackupOnly property default value is false. That means Android system do Auto-backup if no
+        BackupAgentHelper is defined, and Key-value backup when a BackupAgentHelper is defined.
         :return: True if Auto Backup is allowed, False otherwise.
         """
-        printSubTestInfo("Checking for auto-backup functionality")
+        printSubTestInfo("Checking for Auto-Backup functionality")
         backup_attr = self.parser.allowBackup()
-        MaxAPILevel = self.args.max_sdk_version
-        MinAPILevel = self.args.min_sdk_version
+        fullBackupOnly = self.parser.fullBackupOnly()
+        agent = self.parser.backupAgent()
+
+        def encrypted(condition=False):
+            if condition:
+                print(colored("On Android 9 (API 28) and higher", attrs=["bold"]))
+            self.logger.info(colored("E2E encrypted with user's password", "green"))
+            return True
+
+        def unencrypted(condition=False):
+            if condition:
+                print(colored("On Android 8.1 (API 27) and lower", attrs=["bold"]))
+            self.logger.warning("E2E encryption not available")
+            return False
+
+        def used(condition=False):
+            if condition:
+                print(colored("On Android 6 (API 23) and higher", attrs=["bold"]))
+            self.logger.warning("Google drive Auto-Backup functionality is activated")
+            printSubTestInfo("Checking Auto-Backup E2E encryption")
+            return True, handleVersion(unencrypted, encrypted, 28, self.args.min_sdk_version, self.args.max_sdk_version)
+
+        def notUsed(condition=False):
+            if condition:
+                print(colored("On Android 5 (API 22) and lower", attrs=["bold"]))
+            self.logger.info("APK cannot be backed up with Auto-Backup")
+            return False
 
         # android:allowBackup default value is true for any android version but auto backup
         # is only available for API >= 23
-        if (backup_attr or backup_attr is None) and MaxAPILevel >= 23:
-            msg = "Google drive Auto backup functionality is activated "
-            # Android 9 => API level >= 28
-            if MinAPILevel >= 28:
-                msg += colored("(E2E encrypted)", "green")
-            elif MaxAPILevel < 28:
-                msg += colored("(E2E encryption not available)", "red")
-            else:
-                msg += colored("(E2E encryption is only available from Android 9 (API level 28))", "yellow")
-            self.logger.info(msg)
-            return True
-        self.logger.info("APK cannot be backed up with Auto Backup")
-        return False
+        # Taking into account fullBackupOnly property
+        # fullBackupOnly = true -> auto backup all the time even if backupAgent is not None (if versions allow it)
+        # fullBackupOnly = false -> auto backup only if BackupAgent is None
+
+        if backup_attr and (fullBackupOnly or agent is None):
+            return handleVersion(notUsed, used, 23, self.args.min_sdk_version, self.args.max_sdk_version)
+        return notUsed()
 
     def isBackupAgentImplemented(self):
         """
@@ -291,7 +319,8 @@ class Analyzer():
         if self.args.min_sdk_version <= 30:
             if fullBackupContent_xml_file_rules is not None:
                 self.logger.info(
-                    f'For Android versions <= 11 (API 30), custom rules has been defined to control what gets backed up in {fullBackupContent_xml_file_rules} file')
+                    f'For Android versions <= 11 (API 30), custom rules has been defined to control what gets backed '
+                    f'up in {fullBackupContent_xml_file_rules} file')
                 res |= 1
                 rules = self.parser.getFullBackupContentRules() or []
                 headers = ["type", "domain", "path", "requireFlags"]
@@ -300,19 +329,23 @@ class Analyzer():
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
             else:
                 self.logger.warning(f'Minimal supported SDK version ({self.args.min_sdk_version})'
-                                    f' allows Android versions <= 11 (API 30) and no exclusion custom rules file has been specified in the fullBackupContent attribute.')
+                                    f' allows Android versions <= 11 (API 30) and no exclusion custom rules file has '
+                                    f'been specified in the fullBackupContent attribute.')
         if self.args.max_sdk_version >= 31:
             if dataExtractionRules_xml_rules_files is not None:
                 self.logger.info(
-                    f'For Android versions >= 12 (API 31), custom rules has been defined to control what gets backed up in {dataExtractionRules_xml_rules_files} file')
+                    f'For Android versions >= 12 (API 31), custom rules has been defined to control what gets backed '
+                    f'up in {dataExtractionRules_xml_rules_files} file')
                 res |= 2
-                cloudBackupRules, disableIfNoEncryptionCapabilities, deviceTransferRules = self.parser.getDataExtractionRulesContent()
+                cloudBackupRules, disableIfNoEncryptionCapabilities, deviceTransferRules = \
+                    self.parser.getDataExtractionRulesContent()
                 headers = ["type", "domain", "path", "requireFlags"]
                 # show cloudBackupRules
                 table = [[e.type, e.domain, e.path, e.requireFlags] for e in cloudBackupRules]
                 if len(table) > 0:
                     if disableIfNoEncryptionCapabilities:
-                        self.logger.info("Cloud backup are performed only if they can be encrypted, such as when the user has a lock screen.")
+                        self.logger.info("Cloud backup are performed only if they can be encrypted, such as when the "
+                                         "user has a lock screen.")
                     else:
                         self.logger.warning("Cloud backup are performed even if they cannot be encrypted.")
                     self.logger.info("Cloud backup rules have been defined :")
@@ -324,7 +357,8 @@ class Analyzer():
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
             else:
                 self.logger.warning(f'Maximal supported SDK version ({self.args.max_sdk_version})'
-                                    f' allows Android versions >= 12 (API 31) and no exclusion custom rules file has been specified in the dataExtractionRules attribute.')
+                                    f' allows Android versions >= 12 (API 31) and no exclusion custom rules file has '
+                                    f'been specified in the dataExtractionRules attribute.')
         return res
 
     def getNetworkConfigFile(self):
@@ -333,8 +367,8 @@ class Analyzer():
             Checks the presence of network_security_config_file attribute
 
         With an APK as input file:
-            Does the above and if applicable, summarizes network_security_config file content in a table (taking into account Android
-            versions and their corresponding default values and configurations)
+            Does the above and if applicable, summarizes network_security_config file content in a table
+            (taking into account Android versions and their corresponding default values and configurations)
         """
         printTestInfo("Checking the existence of network_security_config XML file")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
@@ -381,8 +415,8 @@ class Analyzer():
         Analyzes exported components permissions
          - If the exported component does not specify any permission, highlight it with self.logger.warning
            to indicate deeper checks are required.
-         - Do not add deeplinks or applinks, as they cannot have specific permissions (by default they are used to call our app when
-           a specific URI is handled by another app)
+         - Do not add deeplinks or applinks, as they cannot have specific permissions (by default they are used
+           to call our app when a specific URI is handled by another app)
         """
         printTestInfo("Analyzing permissions set on exported components")
         headers = ["Name", "Type", "Permission", "readPermission", "writePermission"]
@@ -424,9 +458,9 @@ class Analyzer():
         # There might not be any exported components -> no permission to analyze
         if len(table) > 0:
             # no write permissions
-            nowp = all([e[-1] == None for e in table])
+            nowp = all([e[-1] is None for e in table])
             # no read permissions
-            norp = all([e[-2] == None for e in table])
+            norp = all([e[-2] is None for e in table])
             # remove empty columns
             # start with the inner most column otherwise the index changes
             if norp:
@@ -452,8 +486,10 @@ class Analyzer():
         printTestInfo("Analyzing unexported providers")
         res = self.parser.getUnexportedProviders()
         msg = ""
-        if len(res) == 1: msg = "provider"
-        if len(res) > 1: msg = "providers"
+        if len(res) == 1:
+            msg = "provider"
+        if len(res) > 1:
+            msg = "providers"
         if len(res) > 0:
             self.logger.warning(
                 f'Found {len(res)} unexported {msg} with grantUriPermissions set to True. Please make deeper checks!')
@@ -472,8 +508,8 @@ class Analyzer():
         This flag is ignored on Android 7.0 (API level 24) and above if an Android Network Security Config is present.
 
         With an APK as input file:
-            Does the above and if applicable, summarizes network_security_config file content in a table (taking into account Android
-            versions and there corresponding default values and configurations)
+            Does the above and if applicable, summarizes network_security_config file content in a table
+            (taking into account Android versions and there corresponding default values and configurations)
             
         """
         printTestInfo("Checking if http traffic can be used")
@@ -528,8 +564,7 @@ class Analyzer():
         table = []
         for e, tag in self.parser.getIntentFilterExportedComponents():
             for intent_data in self.parser.getIntentFilters(e):
-                row = []
-                row.append(f'{e.split(".")[-1]}\n({tag})')
+                row = [f'{e.split(".")[-1]}\n({tag})']
                 # split mime types over two lines if too big
                 mt = intent_data[-1]
                 if len(mt) > 40:
@@ -617,7 +652,8 @@ class Analyzer():
         Checks if Firebase is used and returns the associated URL
         """
         # the rest of the code will do nothing if not an APK
-        if self.isAPK: printTestInfo("Looking for Firebase URL")
+        if self.isAPK:
+            printTestInfo("Looking for Firebase URL")
         res = self.parser.searchInStrings("https://.*firebaseio.com")
         if len(res) > 0:
             for e in res:
@@ -630,7 +666,7 @@ class Analyzer():
         """
         # todo : handle <debug-overrides> if apk debuggable
         # for unit tests allow to give a custom parser
-        if nsParser == None:
+        if nsParser is None:
             nsf = self.parser.getNetworkSecurityConfigFile()
             if nsf is None:
                 return
@@ -673,7 +709,7 @@ class Analyzer():
 
     def analyzeNSCClearTextTraffic(self, nsParser=None):
         # for unit tests allow to give a custom parser
-        if nsParser == None:
+        if nsParser is None:
             nsf = self.parser.getNetworkSecurityConfigFile()
             if nsf is None:
                 return
@@ -712,7 +748,7 @@ class Analyzer():
     def analyzeNSCPinning(self, nsParser=None):
         # todo : handle <debug-overrides> if apk debuggable
         # for unit tests allow to give a custom parser
-        if nsParser == None:
+        if nsParser is None:
             nsf = self.parser.getNetworkSecurityConfigFile()
             if nsf is None:
                 return
@@ -723,8 +759,8 @@ class Analyzer():
         baseConfig = nsParser.getBaseConfig()
         inherited_TA = None
         if baseConfig is not None and len(baseConfig.trustanchors) > 0:
-           inherited_TA = baseConfig.trustanchors
-        # If baseconfig is not defined, we don't care because by default there is no overridePins
+            inherited_TA = baseConfig.trustanchors
+        # If baseConfig is not defined, we don't care because by default there is no overridePins
         # in the trust anchors, but if it is defined, the user might have added some
         for e in nsParser.getPinningInfo(inheritedTA=inherited_TA):
             msg = f"Pinning is configured for domain {e.domain}"

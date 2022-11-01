@@ -2,3 +2,4 @@ tabulate
 termcolor
 argparse
 pyaxmlparser
+requests
