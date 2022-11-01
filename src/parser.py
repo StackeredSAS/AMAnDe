@@ -424,5 +424,3 @@ class Parser:
         if fullBackupOnly is None:
             fullBackupOnly = False
         return fullBackupOnly
-
-
