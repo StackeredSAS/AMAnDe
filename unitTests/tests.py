@@ -220,7 +220,8 @@ class TestAnalyzer(unittest.TestCase):
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.isAutoBackupAllowed()
             self.assertEqual(expected, res,
-                             f"{allowBackup=} and {fullBackupOnly=} and {backupAgent=} and {min_sdk_version=} and {max_sdk_version=} should produce {expected} but produced {res}")
+                             f"{allowBackup=} and {fullBackupOnly=} and {backupAgent=} and {min_sdk_version=} "
+                             f"and {max_sdk_version=} should produce {expected} but produced {res}")
 
     def test_showApkInfo(self):
         # the tuple elements represents :
