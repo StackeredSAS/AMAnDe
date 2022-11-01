@@ -10,6 +10,7 @@ from io import StringIO
 from .utils import unformatFilename, str2Bool
 from collections import namedtuple
 
+
 class APKParser(Parser):
 
     def __init__(self, path):
@@ -66,7 +67,7 @@ class APKParser(Parser):
             return
         bad_xml = AXMLPrinter(self.apk.open(path, "r").read()).get_xml().decode()
         # find all @XXXXXXXX resource IDs
-        rsc_ids = set(re.findall(r"(@[0-9A-F]{8})", bad_xml))
+        rsc_ids = set(re.findall(r"(@[\dA-F]{8})", bad_xml))
         for rid in rsc_ids:
             # replace the IDs with the correct resource name
             bad_xml = bad_xml.replace(rid, self._getResource(rid))
@@ -176,7 +177,8 @@ class APKParser(Parser):
         https://developer.android.com/guide/topics/data/autobackup#xml-syntax-android-12
         """
         # disableIfNoEncryptionCapabilities is only for <cloud-Backup>
-        ExtractionRules = namedtuple("ExtractionRules", "cloudBackupRules disableIfNoEncryptionCapabilities deviceTransferRules")
+        ExtractionRules = namedtuple("ExtractionRules", "cloudBackupRules disableIfNoEncryptionCapabilities "
+                                                        "deviceTransferRules")
         filename = self.dataExtractionRules()
         if filename is not None:
             path = self._realPathFromTypeAndName("xml", unformatFilename(filename).split(".")[0])
@@ -210,7 +212,7 @@ class APKParser(Parser):
         if self.rsc:
             # I don't know how to handle the case when there are multiple package names yet
             package_name = self.rsc.get_packages_names()[0]
-            # get_resolved_strings does not recompute all the strings every time so it's fine
+            # get_resolved_strings does not recompute all the strings every time, so it's fine
             for s in self.rsc.get_resolved_strings()[package_name]["DEFAULT"].values():
                 if re.search(pattern, s, re.IGNORECASE):
                     res.append(s)
