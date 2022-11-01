@@ -207,6 +207,7 @@ class TestAnalyzer(unittest.TestCase):
             (None, False)
         ]
         self.analyzer.analyzeNSCTrustAnchors = lambda: None
+        self.analyzer.analyzeNSCPinning = lambda: None
         for testCase in testCases:
             networkSecurityConfig = testCase[0]
             expected = testCase[1]
