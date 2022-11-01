@@ -6,10 +6,12 @@ from collections import namedtuple
 import logging
 logging.disable(logging.CRITICAL)
 
+
 class FakeParser(APKParser):
     # a fake parser class that allows init with no args
     def __init__(self):
         pass
+
 
 class TestAnalyzer(unittest.TestCase):
     # We do not test the parser it is assumed the parsing is done correctly.
@@ -72,7 +74,8 @@ class TestAnalyzer(unittest.TestCase):
             self.parser.allowBackup = lambda: allowBackup
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.isAutoBackupAllowed()
-            self.assertEqual(res, expected, f"{allowBackup=} and {max_sdk_version=} should produce {expected} but produced {res}")
+            self.assertEqual(expected, res, f"{allowBackup=} and {max_sdk_version=} should produce {expected} "
+                                            f"but produced {res}")
     
     def test_showApkInfo(self):
         # the tuple elements represents :
@@ -114,15 +117,16 @@ class TestAnalyzer(unittest.TestCase):
             self.args.min_sdk_version = min_sdk_version
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.showApkInfo()
-            self.assertEqual(res, expected, f"{getSdkVersion=} and {min_sdk_version=} and {max_sdk_version=} should produce {expected} but produced {res}")
-    
+            self.assertEqual(expected, res, f"{getSdkVersion=} and {min_sdk_version=} and {max_sdk_version=} should "
+                                            f"produce {expected} but produced {res}")
 
     def test_analyzeExportedComponent(self):
         # the tuple elements represents :
         # getExportedComponentPermission[0] (name), getExportedComponentPermission[1] (type),
         # getExportedComponentPermission[2] (permission), getExportedComponentPermission[3] (readPermission),
         # getExportedComponentPermission[4] (writePermission) getExportedComponentPermission[5] (grantUriPermissions)
-        ExportedComponents = namedtuple("ExportedComponents", "componentName componentType permission readPermission writePermission grantUriPermissions")
+        ExportedComponents = namedtuple("ExportedComponents", "componentName componentType permission readPermission "
+                                                              "writePermission grantUriPermissions")
 
         testCases = [
             ([ExportedComponents("deadbeef", "activity", "deadbeef_perm", None, None, None)], 2),
@@ -141,9 +145,11 @@ class TestAnalyzer(unittest.TestCase):
         for testCase in testCases:
             getExportedComponentPermission = testCase[0]
             expected = testCase[1]
-            self.parser.getExportedComponentPermission = lambda t: [e for e in getExportedComponentPermission if e.componentType == t]
+            self.parser.getExportedComponentPermission = lambda t: [e for e in getExportedComponentPermission
+                                                                    if e.componentType == t]
             res = self.analyzer.analyzeExportedComponent()
-            self.assertEqual(res, expected, f"{getExportedComponentPermission=} should produce {expected} but produced {res}")
+            self.assertEqual(expected, res, f"{getExportedComponentPermission=} should produce {expected} "
+                                            f"but produced {res}")
 
     def test_isBackupAgentImplemented(self):
         # the tuple elements represents :
@@ -159,7 +165,7 @@ class TestAnalyzer(unittest.TestCase):
             expected = testCase[1]
             self.parser.backupAgent = lambda: backupAgent
             res = self.analyzer.isBackupAgentImplemented()
-            self.assertEqual(res, expected, f"{backupAgent=} should produce {expected} but produced {res}")
+            self.assertEqual(expected, res, f"{backupAgent=} should produce {expected} but produced {res}")
 
     def test_getBackupRulesFile(self):
         # the tuple elements represents :
@@ -181,7 +187,8 @@ class TestAnalyzer(unittest.TestCase):
         ]
 
         Rule = namedtuple("Rule", "type domain path requireFlags")
-        ExtractionRules = namedtuple("ExtractionRules", "cloudBackupRules disableIfNoEncryptionCapabilities deviceTransferRules")
+        ExtractionRules = namedtuple("ExtractionRules", "cloudBackupRules disableIfNoEncryptionCapabilities "
+                                                        "deviceTransferRules")
         r = Rule("a", "b", "c", "d")
         self.parser.getFullBackupContentRules = lambda: [r]
         self.parser.getDataExtractionRulesContent = lambda: ExtractionRules([r], True, [r])
@@ -193,11 +200,12 @@ class TestAnalyzer(unittest.TestCase):
             max_sdk_version = testCase[3]
             expected = testCase[4]
             self.parser.fullBackupContent = lambda: fullBackupContent
-            self.parser.dataExtractionRules = lambda : dataExtractionRules
+            self.parser.dataExtractionRules = lambda: dataExtractionRules
             self.args.min_sdk_version = min_sdk_version
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.getBackupRulesFile()
-            self.assertEqual(res, expected, f"{fullBackupContent=} and {dataExtractionRules=} and {min_sdk_version} and {max_sdk_version} should produce {expected} but produced {res}")
+            self.assertEqual(expected, res, f"{fullBackupContent=} and {dataExtractionRules=} and {min_sdk_version} "
+                                            f"and {max_sdk_version} should produce {expected} but produced {res}")
 
     def test_getNetworkConfigFile(self):
         # the tuple elements represents :
@@ -213,7 +221,7 @@ class TestAnalyzer(unittest.TestCase):
             expected = testCase[1]
             self.parser.networkSecurityConfig = lambda: networkSecurityConfig
             res = self.analyzer.getNetworkConfigFile()
-            self.assertEqual(res, expected, f"{networkSecurityConfig=} should produce {expected} but produced {res}")
+            self.assertEqual(expected, res, f"{networkSecurityConfig=} should produce {expected} but produced {res}")
 
     def test_isDebuggable(self):
         # the tuple elements represents :
@@ -221,7 +229,7 @@ class TestAnalyzer(unittest.TestCase):
         testCases = [
             (True, True),
             (False, False),
-            (None,False)
+            (None, False)
         ]
         self.parser.hasFile = lambda x: True
         for testCase in testCases:
@@ -229,8 +237,7 @@ class TestAnalyzer(unittest.TestCase):
             expected = testCase[1]
             self.parser.debuggable = lambda: debuggable
             res = self.analyzer.isDebuggable()
-            self.assertEqual(res, expected, f"{debuggable=} should produce {expected} but produced {res}")
-
+            self.assertEqual(expected, res, f"{debuggable=} should produce {expected} but produced {res}")
 
     def test_isCleartextTrafficAllowed(self):
         # the tuple elements represents :
@@ -303,7 +310,8 @@ class TestAnalyzer(unittest.TestCase):
             self.args.min_sdk_version = min_sdk_version
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.isCleartextTrafficAllowed()
-            self.assertEqual(expected, res, f"{usesCleartextTraffic=} and {min_sdk_version=} and {max_sdk_version=} and {networkSecurityConfig=} should produce {expected} but produced {res}")
+            self.assertEqual(expected, res, f"{usesCleartextTraffic=} and {min_sdk_version=} and {max_sdk_version=} and"
+                                            f" {networkSecurityConfig=} should produce {expected} but produced {res}")
 
     def test_isDeepLinkUsed(self):
         # the tuple elements represents :
@@ -311,7 +319,7 @@ class TestAnalyzer(unittest.TestCase):
         UniversalLink = namedtuple("UniversalLink", "name tag autoVerify uris hosts")
 
         testCases = [
-            ([UniversalLink("","","",["host"],["host"])], True),
+            ([UniversalLink("", "", "", ["host"], ["host"])], True),
             ([], False),
         ]
 
@@ -320,7 +328,7 @@ class TestAnalyzer(unittest.TestCase):
             expected = testCase[1]
             self.parser.getUniversalLinks = lambda: getUniversalLinks
             res = self.analyzer.isDeepLinkUsed()
-            self.assertEqual(res, expected, f"{getUniversalLinks=} should produce {expected} but produced {res}")
+            self.assertEqual(expected, res, f"{getUniversalLinks=} should produce {expected} but produced {res}")
 
     def test_isAppLinkUsed(self):
         # the tuple elements represents :
@@ -328,7 +336,7 @@ class TestAnalyzer(unittest.TestCase):
         UniversalLink = namedtuple("UniversalLink", "name tag autoVerify uris hosts")
 
         testCases = [
-            ([UniversalLink("","","",["host"],["host"])], 0),
+            ([UniversalLink("", "", "", ["host"], ["host"])], 0),
             ([], 0),
             ([UniversalLink("", "", True, ["host"], ["host"])], 1),
             ([
@@ -354,7 +362,7 @@ class TestAnalyzer(unittest.TestCase):
             expected = testCase[1]
             self.parser.getUniversalLinks = lambda: getUniversalLinks
             res = self.analyzer.isAppLinkUsed()
-            self.assertEqual(res, expected,f"{getUniversalLinks=} should produce {expected} but produced {res}")
+            self.assertEqual(expected, res, f"{getUniversalLinks=} should produce {expected} but produced {res}")
 
 
     def test_analyzeNSCClearTextTraffic(self):
@@ -379,8 +387,10 @@ class TestAnalyzer(unittest.TestCase):
         ]
 
         config = namedtuple("BConfig", "cleartextTrafficPermitted trustanchors")
+
         def d(dcs=None, inheritedCT=False, withCT=True):
             return ["a", "b"]
+
         self.parser.getAllDomains = d
         for testCase in testCases:
             min_sdk_version = testCase[0]
@@ -391,9 +401,9 @@ class TestAnalyzer(unittest.TestCase):
             self.args.min_sdk_version = min_sdk_version
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.analyzeNSCClearTextTraffic(self.parser)
-            self.assertEqual(expected, res,
-                             f"{min_sdk_version=} and {max_sdk_version=} and {cleartextTrafficPermitted=} should produce {expected} but produced {res}")
-
+            self.assertEqual(expected, res, f"{min_sdk_version=} and {max_sdk_version=} and "
+                                            f"{cleartextTrafficPermitted=} should produce {expected} "
+                                            f"but produced {res}")
 
     def test_analyzeNSCTrustAnchors(self):
         # the tuple elements represents :
@@ -416,9 +426,11 @@ class TestAnalyzer(unittest.TestCase):
         ]
 
         config = namedtuple("BConfig", "cleartextTrafficPermitted trustanchors")
+
         def d(dcs=None, inheritedTA=False):
             domainConf = namedtuple("DomainConf", "domain, trustanchors")
             return [domainConf("aa", [])]
+
         self.parser.getDomainsWithTA = d
         for testCase in testCases:
             min_sdk_version = testCase[0]
@@ -429,9 +441,8 @@ class TestAnalyzer(unittest.TestCase):
             self.args.min_sdk_version = min_sdk_version
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.analyzeNSCTrustAnchors(self.parser)
-            self.assertEqual(expected, res,
-                             f"{min_sdk_version=} and {max_sdk_version=} and {trustanchors=} should produce {expected} but produced {res}")
-
+            self.assertEqual(expected, res, f"{min_sdk_version=} and {max_sdk_version=} and {trustanchors=} "
+                                            f"should produce {expected} but produced {res}")
 
     def test_analyzeNSCPinning(self):
         # the tuple elements represents :
