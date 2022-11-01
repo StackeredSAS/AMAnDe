@@ -364,7 +364,6 @@ class TestAnalyzer(unittest.TestCase):
             res = self.analyzer.isAppLinkUsed()
             self.assertEqual(expected, res, f"{getUniversalLinks=} should produce {expected} but produced {res}")
 
-
     def test_analyzeNSCClearTextTraffic(self):
         # the tuple elements represents :
         # min_sdk_version, ma_sdk_version, BConfig.cleartextTrafficPermitted, expectedResult
