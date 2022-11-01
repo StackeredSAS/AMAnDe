@@ -675,7 +675,6 @@ class Analyzer():
             return p(baseConfig.trustanchors)
 
     def analyzeNSCClearTextTraffic(self, nsParser=None):
-        # todo : handle <debug-overrides> if apk debuggable
         # for unit tests allow to give a custom parser
         if nsParser == None:
             nsf = self.parser.getNetworkSecurityConfigFile()
