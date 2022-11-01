@@ -39,8 +39,8 @@ unzip -l test.apk
   - surcouche apksigner ?
   - faire une fonction séparée ?
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
-- fullBackupOnly (ABE)
+
 - revoir toutes les fonctions avec intervalles de version (ABE)
-  - isAutoBackupAllowed (a l'air ok, a refaire aven handle version ?)
   - getBackupRulesFile
-- isAutoBackupAllowed (ABE)
+- Fix adbBackup by adding check on debuggable flag
+
