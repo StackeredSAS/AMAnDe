@@ -339,13 +339,10 @@ class Analyzer():
         printTestInfo("Checking the existence of network_security_config XML file")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
         if network_security_config_xml_file is not None:
-            # TODO : dans le cas d'un APK rajouter des sous tests
-            # le cleartext traffic sera probablement géré dans le test a cet effet donc pas besoin de le faire ici
-            # on peut checker le certificate pinning et les trust anchors ici dans 2 sous-tests
-            # si pas un APK ca reste comme ça
             self.logger.info(f'APK network security configuration is defined '
                              f'in {network_security_config_xml_file} file')
             self.analyzeNSCTrustAnchors()
+            self.analyzeNSCPinning()
             return True
         self.logger.warning("networkSecurityConfig property not found")
         return False
@@ -675,7 +672,6 @@ class Analyzer():
             return p(baseConfig.trustanchors)
 
     def analyzeNSCClearTextTraffic(self, nsParser=None):
-        # todo : handle <debug-overrides> if apk debuggable
         # for unit tests allow to give a custom parser
         if nsParser == None:
             nsf = self.parser.getNetworkSecurityConfigFile()
@@ -712,6 +708,41 @@ class Analyzer():
         if baseConfig.cleartextTrafficPermitted:
             return ctallowed()
         return ctNotAllowed()
+
+    def analyzeNSCPinning(self, nsParser=None):
+        # todo : handle <debug-overrides> if apk debuggable
+        # for unit tests allow to give a custom parser
+        if nsParser == None:
+            nsf = self.parser.getNetworkSecurityConfigFile()
+            if nsf is None:
+                return
+            printSubTestInfo("Analysing Network security certificate pinning configuration")
+            nsParser = NetworkSecParser(nsf)
+
+        from datetime import datetime
+        baseConfig = nsParser.getBaseConfig()
+        inherited_TA = None
+        if baseConfig is not None and len(baseConfig.trustanchors) > 0:
+           inherited_TA = baseConfig.trustanchors
+        # If baseconfig is not defined, we don't care because by default there is no overridePins
+        # in the trust anchors, but if it is defined, the user might have added some
+        for e in nsParser.getPinningInfo(inheritedTA=inherited_TA):
+            msg = f"Pinning is configured for domain {e.domain}"
+            # color the expiration date if lower than today
+            exp = f" (expires {e.pinset})"
+            color = "green"
+            if datetime.strptime(e.pinset, "%Y-%m-%d") < datetime.today():
+                color = "red"
+            msg += colored(exp, color)
+
+            # add warning if pinning can be bypassed
+            if len(e.overridePins) > 0:
+                msg2 = " but can be bypassed by certificates signed by one of the CAs from this source"
+                if len(e.overridePins) > 1:
+                    msg2 += "s"
+                msg2 += f": {', '.join(e.overridePins)}"
+                msg += colored(msg2, "yellow")
+            self.logger.info(msg)
 
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
