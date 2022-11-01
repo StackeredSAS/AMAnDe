@@ -137,14 +137,14 @@ class NetworkSecParser(Parser):
                 res += self.getAllDomains(dc.domainConfigs, inheritedCT, withCT=withCT)
         return res
 
-    def getDomainsWithTA(self, dcs=None, inheritedTA=False):
+    def getDomainsWithTA(self, dcs=None, inheritedTA=None):
         """
         Recursively lists all the domains with their associated trust-anchors.
         Takes into consideration the inheriting properties of the parent.
         """
         if dcs is None:
             dcs = self.parseDomainConfig()
-        domainConf = namedtuple("DomainConf", "domain, trustanchors")
+        domainConf = namedtuple("DomainConf", "domain trustanchors")
         res = []
         for dc in dcs:
             if len(dc.trustanchors) > 0:
@@ -157,4 +157,41 @@ class NetworkSecParser(Parser):
                 res += [domainConf(e, inheritedTA) for e in dc.domains]
                 # recursive call with the inherited TA
                 res += self.getDomainsWithTA(dc.domainConfigs, inheritedTA)
+        return res
+
+    def getDomainsWithPS(self, dcs=None, inheritedPS=None):
+        """
+        Recursively lists all the domains with their associated pin-set.
+        Takes into consideration the inheriting properties of the parent.
+        """
+        if dcs is None:
+            dcs = self.parseDomainConfig()
+        domainConf = namedtuple("DomainConf", "domain pinset")
+        res = []
+        for dc in dcs:
+            if dc.pinset is not None:
+                # add all domains of this domain config with the defined PS
+                res += [domainConf(e, dc.pinset) for e in dc.domains]
+                # recursive call with defined PS
+                res += self.getDomainsWithPS(dc.domainConfigs, dc.pinset)
+            else:
+                # add all domains of this domain config with the inherited PS
+                res += [domainConf(e, inheritedPS) for e in dc.domains]
+                # recursive call with the inherited PS
+                res += self.getDomainsWithPS(dc.domainConfigs, inheritedPS)
+        return res
+
+    def getPinningInfo(self, inheritedTA=None):
+        """
+        Lists all the domains with pinning configured and the certificates allowed to bypass this pinning.
+        """
+        domain_with_pinning = [e for e in self.getDomainsWithPS() if e.pinset is not None]
+        ta_for_domains = {e.domain: e.trustanchors for e in self.getDomainsWithTA(inheritedTA=inheritedTA)}
+        domainConf = namedtuple("DomainConf", "domain pinset overridePins")
+        res = []
+        for d in domain_with_pinning:
+            # get all the Cert.src with overridePins to True
+            overridePins = [c.src for c in ta_for_domains[d.domain] if c.overridePins]
+            res.append(domainConf(d.domain, d.pinset, overridePins))
+
         return res
