@@ -208,6 +208,7 @@ class Analyzer:
         """
         printSubTestInfo("Checking for ADB backup functionality")
         backup_attr = self.parser.allowBackup()
+        debuggable = self.parser.debuggable()
 
         def allowed(condition=False):
             if condition:
@@ -223,8 +224,10 @@ class Analyzer:
             return False
 
         # android:allowBackup default value is true for any android version
-        if backup_attr or backup_attr is None:
+        if (backup_attr or backup_attr is None) and not debuggable:
             return handleVersion(allowed, notAllowed, 31, self.args.min_sdk_version, self.args.max_sdk_version)
+        if (backup_attr or backup_attr is None) and debuggable:
+            return allowed()
         self.logger.info("APK cannot be backed up with adb")
         return False
 

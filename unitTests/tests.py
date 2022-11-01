@@ -24,28 +24,59 @@ class TestAnalyzer(unittest.TestCase):
 
     def test_isADBBackupAllowed(self):
         # the tuple elements represents :
-        # allowBackup, min_sdk_version, max_sdk_version, expectedResult
+        # allowBackup, debuggable, min_sdk_version, max_sdk_version, expectedResult
         testCases = [
-            (True, 20, 25, True),
-            (True, 20, 30, True),
-            (True, 30, 31, (True, False)),
-            (True, 31, 32, False),
-            (False, 20, 25, False),
-            (False, 20, 30, False),
-            (False, 30, 31, False),
-            (False, 31, 32, False),
-            (None, 20, 25, True),
-            (None, 20, 30, True),
-            (None, 30, 31, (True, False)),
-            (None, 31, 32, False),
+            (True, True, 20, 25, True),
+            (True, False, 20, 25, True),
+            (True, True, 20, 30, True),
+            (True, False, 20, 30, True),
+            (True, False, 30, 31, (True, False)),
+            (True, True, 30, 31, True),
+            (True, True, 31, 32, True),
+            (True, False, 31, 32, False),
+
+            (True, None, 20, 25, True),
+            (True, None, 20, 30, True),
+            (True, None, 30, 31, (True, False)),
+            (True, None, 31, 32, False),
+
+            (False, True, 20, 25, False),
+            (False, False, 20, 25, False),
+            (False, True, 20, 30, False),
+            (False, False, 20, 30, False),
+            (False, True, 30, 31, False),
+            (False, False, 30, 31, False),
+            (False, True, 31, 32, False),
+            (False, False, 31, 32, False),
+
+            (False, None, 20, 25, False),
+            (False, None, 20, 30, False),
+            (False, None, 30, 31, False),
+            (False, None, 31, 32, False),
+
+            (None, True, 20, 25, True),
+            (None, False, 20, 25, True),
+            (None, True, 20, 30, True),
+            (None, False, 20, 30, True),
+            (None, True, 30, 31, True),
+            (None, False, 30, 31, (True, False)),
+            (None, True, 31, 32, True),
+            (None, False, 31, 32, False),
+
+            (None, None, 20, 25, True),
+            (None, None, 20, 30, True),
+            (None, None, 30, 31, (True, False)),
+            (None, None, 31, 32, False),
         ]
 
         for testCase in testCases:
             allowBackup = testCase[0]
-            min_sdk_version = testCase[1]
-            max_sdk_version = testCase[2]
-            expected = testCase[3]
+            debuggable = testCase[1]
+            min_sdk_version = testCase[2]
+            max_sdk_version = testCase[3]
+            expected = testCase[4]
             self.parser.allowBackup = lambda: allowBackup
+            self.parser.debuggable = lambda: debuggable
             self.args.min_sdk_version = min_sdk_version
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.isADBBackupAllowed()
