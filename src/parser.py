@@ -106,6 +106,7 @@ class Parser:
         https://developer.android.com/guide/topics/manifest/application-element#allowbackup
         """
         allowBackup = str2Bool(self._getattr(self.root.find("application"), "android:allowBackup"))
+        # Default value is True
         if allowBackup is None:
             allowBackup = True
         return allowBackup
@@ -122,7 +123,11 @@ class Parser:
         Indicates if the application is debuggable.
         https://developer.android.com/guide/topics/manifest/application-element#debug
         """
-        return str2Bool(self._getattr(self.root.find("application"), "android:debuggable"))
+        debuggable = str2Bool(self._getattr(self.root.find("application"), "android:debuggable"))
+        # Default value is False
+        if debuggable is None:
+            debuggable = False
+        return debuggable
 
     def usesCleartextTraffic(self):
         """
@@ -406,6 +411,7 @@ class Parser:
 
     def fullBackupOnly(self):
         fullBackupOnly = str2Bool(self._getattr(self.root.find("application"), "android:fullBackupOnly"))
+        # Default value is False
         if fullBackupOnly is None:
             fullBackupOnly = False
         return fullBackupOnly
