@@ -241,13 +241,13 @@ class Analyzer():
         def encrypted(condition=False):
             if condition:
                 print(colored("On Android 9 (API 28) and higher", attrs=["bold"]))
-                self.logger.info(colored("E2E encrypted with user's password", "green"))
+            self.logger.info(colored("E2E encrypted with user's password", "green"))
             return True
 
         def unencrypted(condition=False):
             if condition:
                 print(colored("On Android 8.1 (API 27) and lower", attrs=["bold"]))
-                self.logger.warning("E2E encryption not available")
+            self.logger.warning("E2E encryption not available")
             return False
 
         def used(condition=False):
@@ -258,6 +258,7 @@ class Analyzer():
             isEncrypted = handleVersion(unencrypted, encrypted, 28, self.args.min_sdk_version,
                                         self.args.max_sdk_version)
             if not isEncrypted:
+                # PK on se sert pas du message affiché dans unencrypted() directement ?
                 self.logger.info("Not available! E2E encryption is activated from Android 9 or higher")
             return True, isEncrypted
 
@@ -269,16 +270,18 @@ class Analyzer():
 
         # android:allowBackup default value is true for any android version but auto backup
         # is only available for API >= 23
+        if backup_attr is None:
+            backup_attr = True
+        # android:fullBackupOnly property default value is false.
+        if fullBackupOnly is None:
+            fullBackupOnly = False
         # Taking into account fullBackupOnly property
         # fullBackupOnly = true -> auto backup all the time even if backupAgent is not None (if versions allow it)
-        # fullBackupOnly = false -> auto backup only is BackupAgent is None
+        # fullBackupOnly = false -> auto backup only if BackupAgent is None
 
-        if (backup_attr or backup_attr is None) and (not fullBackupOnly or fullBackupOnly is None) and agent is None:
+        if backup_attr and (fullBackupOnly or agent is None):
             return handleVersion(notUsed, used, 23, self.args.min_sdk_version, self.args.max_sdk_version)
-        if (backup_attr or backup_attr is None) and fullBackupOnly:
-            return handleVersion(notUsed, used, 23, self.args.min_sdk_version, self.args.max_sdk_version)
-        self.logger.info("APK cannot be backed up with Auto Backup")
-        return False
+        return notUsed()
 
     def isBackupAgentImplemented(self):
         """
