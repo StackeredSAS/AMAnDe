@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 from collections import namedtuple
 from .utils import str2Bool
 
+
 class NetworkSecParser(Parser):
 
     def __init__(self, path):
@@ -13,11 +14,6 @@ class NetworkSecParser(Parser):
         path.seek(0)
         self.tree = ET.parse(path)
         self.root = self.tree.getroot()
-
-    def printXML(self):
-        # todo : remove this function when done implementing the analyzer
-        self.path.seek(0)
-        print(self.path.read())
 
     def parseCertificate(self, elm, default=False):
         """
@@ -112,7 +108,6 @@ class NetworkSecParser(Parser):
             dcs = self.parseDomainConfig(e)
             res.append(config(cleartextTrafficPermitted, domains, trustanchors, pinset, dcs))
         return res
-
 
     def getAllDomains(self, dcs=None, inheritedCT=False, withCT=True):
         """
