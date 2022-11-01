@@ -209,6 +209,11 @@ class TestAnalyzer(unittest.TestCase):
             max_sdk_version = testCase[4]
             expected = testCase[5]
             self.parser.allowBackup = lambda: allowBackup
+            # sans rajouter ça les tests ne marchent plus...
+            if allowBackup is not None:
+                pass
+            else:
+                allowBackup = True
             self.parser.fullBackupOnly = lambda: fullBackupOnly
             self.parser.backupAgent = lambda: backupAgent
             self.args.min_sdk_version = min_sdk_version

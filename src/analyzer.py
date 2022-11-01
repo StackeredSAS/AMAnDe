@@ -237,6 +237,8 @@ class Analyzer():
         backup_attr = self.parser.allowBackup()
         fullBackupOnly = self.parser.fullBackupOnly()
         agent = self.parser.backupAgent()
+        print(backup_attr)
+        print(fullBackupOnly)
 
         def encrypted(condition=False):
             if condition:
@@ -255,12 +257,7 @@ class Analyzer():
                 print(colored("On Android 6 (API 23) and higher", attrs=["bold"]))
             self.logger.warning("Google drive Auto-Backup functionality is activated")
             printSubTestInfo("Checking Auto-Backup E2E encryption")
-            isEncrypted = handleVersion(unencrypted, encrypted, 28, self.args.min_sdk_version,
-                                        self.args.max_sdk_version)
-            if not isEncrypted:
-                # PK on se sert pas du message affiché dans unencrypted() directement ?
-                self.logger.info("Not available! E2E encryption is activated from Android 9 or higher")
-            return True, isEncrypted
+            return True, handleVersion(unencrypted, encrypted, 28, self.args.min_sdk_version, self.args.max_sdk_version)
 
         def notUsed(condition=False):
             if condition:
@@ -270,11 +267,11 @@ class Analyzer():
 
         # android:allowBackup default value is true for any android version but auto backup
         # is only available for API >= 23
-        if backup_attr is None:
-            backup_attr = True
+        #if backup_attr is None:
+         #   backup_attr = True
         # android:fullBackupOnly property default value is false.
-        if fullBackupOnly is None:
-            fullBackupOnly = False
+        #if fullBackupOnly is None:
+            #fullBackupOnly = False
         # Taking into account fullBackupOnly property
         # fullBackupOnly = true -> auto backup all the time even if backupAgent is not None (if versions allow it)
         # fullBackupOnly = false -> auto backup only if BackupAgent is None

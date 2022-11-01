@@ -120,7 +120,10 @@ class Parser:
         Indicates if the application is allowing backups.
         https://developer.android.com/guide/topics/manifest/application-element#allowbackup
         """
-        return str2Bool(self._getattr(self.root.find("application"), "android:allowBackup"))
+        allowBackup = str2Bool(self._getattr(self.root.find("application"), "android:allowBackup"))
+        if allowBackup is None:
+            allowBackup = True
+        return allowBackup
 
     def backupAgent(self):
         """
@@ -417,6 +420,9 @@ class Parser:
         return None
 
     def fullBackupOnly(self):
-        return str2Bool(self._getattr(self.root.find("application"), "android:fullBackupOnly"))
+        fullBackupOnly = str2Bool(self._getattr(self.root.find("application"), "android:fullBackupOnly"))
+        if fullBackupOnly is None:
+            fullBackupOnly = False
+        return fullBackupOnly
 
 
