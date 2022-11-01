@@ -626,18 +626,19 @@ class Analyzer():
             for e in res:
                 self.logger.info(f"\t{e}")
 
-    def analyzeNSCTrustAnchors(self):
+    def analyzeNSCTrustAnchors(self, nsParser=None):
         """
         Analyzes network_security_config file
         https://developer.android.com/training/articles/security-config?hl=en#base-config
         """
         # todo : handle <debug-overrides> if apk debuggable
-        nsf = open("test.xml", "r")
-        #nsf = self.parser.getNetworkSecurityConfigFile()
-        if nsf is None:
-            return
-        printSubTestInfo("Analysing Network security trust anchors configuration")
-        nsParser = NetworkSecParser(nsf)
+        # for unit tests allow to give a custom parser
+        if nsParser == None:
+            nsf = self.parser.getNetworkSecurityConfigFile()
+            if nsf is None:
+                return
+            printSubTestInfo("Analysing Network security trust anchors configuration")
+            nsParser = NetworkSecParser(nsf)
         cert = namedtuple("Cert", "src overridePins")
 
         def p(inherited_ta):

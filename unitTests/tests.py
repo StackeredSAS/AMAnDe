@@ -206,7 +206,7 @@ class TestAnalyzer(unittest.TestCase):
             ("network_security_config", True),
             (None, False)
         ]
-
+        self.analyzer.analyzeNSCTrustAnchors = lambda: None
         for testCase in testCases:
             networkSecurityConfig = testCase[0]
             expected = testCase[1]
@@ -392,6 +392,44 @@ class TestAnalyzer(unittest.TestCase):
             res = self.analyzer.analyzeNSCClearTextTraffic(self.parser)
             self.assertEqual(expected, res,
                              f"{min_sdk_version=} and {max_sdk_version=} and {cleartextTrafficPermitted=} should produce {expected} but produced {res}")
+
+
+    def test_analyzeNSCTrustAnchors(self):
+        # the tuple elements represents :
+        # min_sdk_version, max_sdk_version, BConfig.trustanchors, expectedResult
+        cert = namedtuple("Cert", "src overridePins")
+        c = cert("a", False)
+        testCases = [
+            (13, 23, [], 2),
+            (13, 20, [], 2),
+            (13, 23, [c, c, c], 3),
+            (13, 20, [c, c, c, c, c, c], 6),
+            (24, 25, [], 1),
+            (24, 30, [], 1),
+            (28, 39, [c, c, c], 3),
+            (28, 30, [c, c, c, c, c, c], 6),
+            (23, 24, [], (2, 1)),
+            (23, 24, [], (2, 1)),
+            (23, 24, [c, c, c], 3),
+            (23, 24, [c, c, c, c, c, c], 6),
+        ]
+
+        config = namedtuple("BConfig", "cleartextTrafficPermitted trustanchors")
+        def d(dcs=None, inheritedTA=False):
+            domainConf = namedtuple("DomainConf", "domain, trustanchors")
+            return [domainConf("aa", [])]
+        self.parser.getDomainsWithTA = d
+        for testCase in testCases:
+            min_sdk_version = testCase[0]
+            max_sdk_version = testCase[1]
+            trustanchors = testCase[2]
+            expected = testCase[3]
+            self.parser.getBaseConfig = lambda: config(True, trustanchors)
+            self.args.min_sdk_version = min_sdk_version
+            self.args.max_sdk_version = max_sdk_version
+            res = self.analyzer.analyzeNSCTrustAnchors(self.parser)
+            self.assertEqual(expected, res,
+                             f"{min_sdk_version=} and {max_sdk_version=} and {trustanchors=} should produce {expected} but produced {res}")
 
 
 if __name__ == '__main__':
