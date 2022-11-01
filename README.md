@@ -45,5 +45,4 @@ unzip -l test.apk
 - revoir toutes les fonctions avec intervalles de version (ABE)
   - isAutoBackupAllowed (a l'air ok, a refaire aven handle version ?)
   - getBackupRulesFile
-- isADBBackupAllowed (ABE) -> DONE
 - isAutoBackupAllowed (ABE)
