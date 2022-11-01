@@ -77,6 +77,8 @@ class TestAnalyzer(unittest.TestCase):
             expected = testCase[4]
             self.parser.allowBackup = lambda: allowBackup
             self.parser.debuggable = lambda: debuggable
+            if allowBackup is None:
+                allowBackup = True
             self.args.min_sdk_version = min_sdk_version
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.isADBBackupAllowed()
@@ -240,7 +242,6 @@ class TestAnalyzer(unittest.TestCase):
             max_sdk_version = testCase[4]
             expected = testCase[5]
             self.parser.allowBackup = lambda: allowBackup
-            # sans rajouter ça les tests ne marchent plus...
             if allowBackup is None:
                 allowBackup = True
             self.parser.fullBackupOnly = lambda: fullBackupOnly
