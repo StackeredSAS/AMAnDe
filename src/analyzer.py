@@ -243,8 +243,6 @@ class Analyzer:
         backup_attr = self.parser.allowBackup()
         fullBackupOnly = self.parser.fullBackupOnly()
         agent = self.parser.backupAgent()
-        print(backup_attr)
-        print(fullBackupOnly)
 
         def encrypted(condition=False):
             if condition:
@@ -273,11 +271,6 @@ class Analyzer:
 
         # android:allowBackup default value is true for any android version but auto backup
         # is only available for API >= 23
-        # if backup_attr is None:
-            # backup_attr = True
-        # android:fullBackupOnly property default value is false.
-        # if fullBackupOnly is None:
-            # fullBackupOnly = False
         # Taking into account fullBackupOnly property
         # fullBackupOnly = true -> auto backup all the time even if backupAgent is not None (if versions allow it)
         # fullBackupOnly = false -> auto backup only if BackupAgent is None

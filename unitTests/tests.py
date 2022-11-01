@@ -210,9 +210,7 @@ class TestAnalyzer(unittest.TestCase):
             expected = testCase[5]
             self.parser.allowBackup = lambda: allowBackup
             # sans rajouter ça les tests ne marchent plus...
-            if allowBackup is not None:
-                pass
-            else:
+            if allowBackup is None:
                 allowBackup = True
             self.parser.fullBackupOnly = lambda: fullBackupOnly
             self.parser.backupAgent = lambda: backupAgent
