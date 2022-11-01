@@ -224,30 +224,59 @@ class Analyzer():
 
     def isAutoBackupAllowed(self):
         """
-        Checks if Auto Backup are allowed (taking into account 
-        Android versions and their corresponding default values).
+        Checks if Auto Backup are allowed (taking into account Android versions and their corresponding default
+        values).
         https://developer.android.com/guide/topics/data/autobackup
         https://stackoverflow.com/questions/57357731/why-androidfullbackuponly-default-value-is-false
+        https://developer.android.com/guide/topics/data/autobackup#ImplementingBackupAgent
+        android:fullBackupOnly property default value is false. That means Android system do Auto-backup if no
+        BackupAgentHelper is defined, and Key-value backup when a BackupAgentHelper is defined.
         :return: True if Auto Backup is allowed, False otherwise.
         """
-        printSubTestInfo("Checking for auto-backup functionality")
+        printSubTestInfo("Checking for Auto-Backup functionality")
         backup_attr = self.parser.allowBackup()
-        MaxAPILevel = self.args.max_sdk_version
-        MinAPILevel = self.args.min_sdk_version
+        fullBackupOnly = self.parser.fullBackupOnly()
+        agent = self.parser.backupAgent()
+
+        def encrypted(condition=False):
+            if condition:
+                print(colored("On Android 9 (API 28) and higher", attrs=["bold"]))
+                self.logger.info(colored("E2E encrypted with user's password", "green"))
+            return True
+
+        def unencrypted(condition=False):
+            if condition:
+                print(colored("On Android 8.1 (API 27) and lower", attrs=["bold"]))
+                self.logger.warning("E2E encryption not available")
+            return False
+
+        def used(condition=False):
+            if condition:
+                print(colored("On Android 6 (API 23) and higher", attrs=["bold"]))
+            self.logger.warning("Google drive Auto-Backup functionality is activated")
+            printSubTestInfo("Checking Auto-Backup E2E encryption")
+            isEncrypted = handleVersion(unencrypted, encrypted, 28, self.args.min_sdk_version,
+                                        self.args.max_sdk_version)
+            if not isEncrypted:
+                self.logger.info("Not available! E2E encryption is activated from Android 9 or higher")
+            return True, isEncrypted
+
+        def notUsed(condition=False):
+            if condition:
+                print(colored("On Android 5 (API 22) and lower", attrs=["bold"]))
+            self.logger.info("APK cannot be backed up with Auto-Backup")
+            return False
 
         # android:allowBackup default value is true for any android version but auto backup
         # is only available for API >= 23
-        if (backup_attr or backup_attr is None) and MaxAPILevel >= 23:
-            msg = "Google drive Auto backup functionality is activated "
-            # Android 9 => API level >= 28
-            if MinAPILevel >= 28:
-                msg += colored("(E2E encrypted)", "green")
-            elif MaxAPILevel < 28:
-                msg += colored("(E2E encryption not available)", "red")
-            else:
-                msg += colored("(E2E encryption is only available from Android 9 (API level 28))", "yellow")
-            self.logger.info(msg)
-            return True
+        # Taking into account fullBackupOnly property
+        # fullBackupOnly = true -> auto backup all the time even if backupAgent is not None (if versions allow it)
+        # fullBackupOnly = false -> auto backup only is BackupAgent is None
+
+        if (backup_attr or backup_attr is None) and (not fullBackupOnly or fullBackupOnly is None) and agent is None:
+            return handleVersion(notUsed, used, 23, self.args.min_sdk_version, self.args.max_sdk_version)
+        if (backup_attr or backup_attr is None) and fullBackupOnly:
+            return handleVersion(notUsed, used, 23, self.args.min_sdk_version, self.args.max_sdk_version)
         self.logger.info("APK cannot be backed up with Auto Backup")
         return False
 

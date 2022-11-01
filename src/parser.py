@@ -415,3 +415,8 @@ class Parser:
     def getNetworkSecurityConfigFile(self):
         # will be overridden in the APKParser class
         return None
+
+    def fullBackupOnly(self):
+        return str2Bool(self._getattr(self.root.find("application"), "android:fullBackupOnly"))
+
+

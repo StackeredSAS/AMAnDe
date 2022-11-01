@@ -54,29 +54,169 @@ class TestAnalyzer(unittest.TestCase):
 
     def test_isAutoBackupAllowed(self):
         # the tuple elements represents :
-        # allowBackup, max_sdk_version, expectedResult
+        # allowBackup, fullBackupOnly, backupAgent, min_sdk_version, max_sdk_version, expectedResult
         testCases = [
-            (True, 12, False),
-            (True, 25, True),
-            (True, 23, True),
-            (None, 23, True),
-            (None, 25, True),
-            (None, 13, False),
-            (False, 13, False),
-            (False, 23, False),
-            (False, 26, False),
+            # CASE 1 : No Auto-Backup because < 23
+            (True, True, None, 12, 20, False),
+            (True, False, None, 12, 20, False),
+            (True, None, None, 12, 20, False),
+            (True, True, "test", 12, 20, False),
+            (True, False, "test", 12, 20, False),
+            (True, None, "test", 12, 20, False),
+
+            (False, True, None, 12, 20, False),
+            (False, False, None, 12, 20, False),
+            (False, None, None, 12, 20, False),
+            (False, True, "test", 12, 20, False),
+            (False, False, "test", 12, 20, False),
+            (False, None, "test", 12, 20, False),
+
+            (None, True, None, 12, 20, False),
+            (None, False, None, 12, 20, False),
+            (None, None, None, 12, 20, False),
+            (None, True, "test", 12, 20, False),
+            (None, False, "test", 12, 20, False),
+            (None, None, "test", 12, 20, False),
+
+            # CASE 2 : SAME as case 1 but maybe with an ambiguous trigger
+            (True, True, None, 12, 22, False),
+            (True, False, None, 12, 22, False),
+            (True, None, None, 12, 22, False),
+            (True, True, "test", 12, 22, False),
+            (True, False, "test", 12, 22, False),
+            (True, None, "test", 12, 22, False),
+
+            (False, True, None, 12, 22, False),
+            (False, False, None, 12, 22, False),
+            (False, None, None, 12, 22, False),
+            (False, True, "test", 12, 22, False),
+            (False, False, "test", 12, 22, False),
+            (False, None, "test", 12, 22, False),
+
+            (None, True, None, 12, 22, False),
+            (None, False, None, 12, 22, False),
+            (None, None, None, 12, 22, False),
+            (None, True, "test", 12, 22, False),
+            (None, False, "test", 12, 22, False),
+            (None, None, "test", 12, 22, False),
+
+            # CASE 3 : With an ambiguous trigger
+            (True, True, None, 12, 23, (False, (True, False))),
+            (True, False, None, 12, 23, (False, (True, False))),
+            (True, None, None, 12, 23, (False, (True, False))),
+            (True, True, "test", 12, 23, (False, (True, False))),
+            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
+            (True, False, "test", 12, 23, False),
+            (True, None, "test", 12, 23, False),
+
+            (False, True, None, 12, 23, False),
+            (False, False, None, 12, 23, False),
+            (False, None, None, 12, 23, False),
+            (False, True, "test", 12, 23, False),
+            (False, False, "test", 12, 23, False),
+            (False, None, "test", 12, 23, False),
+
+            (None, True, None, 12, 23, (False, (True, False))),
+            (None, False, None, 12, 23, (False, (True, False))),
+            (None, None, None, 12, 23, (False, (True, False))),
+            (None, True, "test", 12, 23, (False, (True, False))),
+            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
+            (None, False, "test", 12, 23, False),
+            (None, None, "test", 12, 23, False),
+
+            # CASE 4 : With an ambiguous trigger, before encryption can be available and without version that do not
+            # support Auto-Backup
+            (True, True, None, 23, 26, (True, False)),
+            (True, False, None, 23, 26, (True, False)),
+            (True, None, None, 23, 26, (True, False)),
+            (True, True, "test", 23, 26, (True, False)),
+            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
+            (True, False, "test", 23, 26, False),
+            (True, None, "test", 23, 26, False),
+
+            (False, True, None, 23, 26, False),
+            (False, False, None, 23, 26, False),
+            (False, None, None, 23, 26, False),
+            (False, True, "test", 23, 26, False),
+            (False, False, "test", 23, 26, False),
+            (False, None, "test", 23, 26, False),
+
+            (None, True, None, 23, 26, (True, False)),
+            (None, False, None, 23, 26, (True, False)),
+            (None, None, None, 23, 26, (True, False)),
+            (None, True, "test", 23, 26, (True, False)),
+            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
+            (None, False, "test", 23, 26, False),
+            (None, None, "test", 23, 26, False),
+
+            # CASE 5 : With version that do not support encryption and without version that do not
+            # support Auto-Backup and with an ambiguous trigger
+            (True, True, None, 25, 28, (True, (False, True))),
+            (True, False, None, 23, 28, (True, (False, True))),
+            (True, None, None, 23, 28, (True, (False, True))),
+            (True, True, "test", 23, 28, (True, (False, True))),
+            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
+            (True, False, "test", 23, 28, False),
+            (True, None, "test", 23, 28, False),
+
+            (False, True, None, 23, 28, False),
+            (False, False, None, 23, 28, False),
+            (False, None, None, 23, 28, False),
+            (False, True, "test", 23, 28, False),
+            (False, False, "test", 23, 28, False),
+            (False, None, "test", 23, 28, False),
+
+            (None, True, None, 25, 28, (True, (False, True))),
+            (None, False, None, 23, 28, (True, (False, True))),
+            (None, None, None, 23, 28, (True, (False, True))),
+            (None, True, "test", 23, 28, (True, (False, True))),
+            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
+            (None, False, "test", 23, 28, False),
+            (None, None, "test", 23, 28, False),
+
+            # CASE 6 : With version that do not support encryption and without version that do not
+            # support Auto-Backup and with an ambiguous trigger
+            (True, True, None, 28, 30, (True, True)),
+            (True, False, None, 28, 30, (True, True)),
+            (True, None, None, 28, 30, (True, True)),
+            (True, True, "test", 28, 30, (True, True)),
+            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
+            (True, False, "test", 28, 30, False),
+            (True, None, "test", 28, 30, False),
+
+            (False, True, None, 28, 30, False),
+            (False, False, None, 28, 30, False),
+            (False, None, None, 28, 30, False),
+            (False, True, "test", 28, 30, False),
+            (False, False, "test", 28, 30, False),
+            (False, None, "test", 28, 30, False),
+
+            (None, True, None, 28, 30, (True, True)),
+            (None, False, None, 28, 30, (True, True)),
+            (None, None, None, 28, 30, (True, True)),
+            (None, True, "test", 28, 30, (True, True)),
+            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
+            (None, False, "test", 28, 30, False),
+            (None, None, "test", 28, 30, False),
+
         ]
-        self.args.min_sdk_version = 8
+
         for testCase in testCases:
             allowBackup = testCase[0]
-            max_sdk_version = testCase[1]
-            expected = testCase[2]
+            fullBackupOnly = testCase[1]
+            backupAgent = testCase[2]
+            min_sdk_version = testCase[3]
+            max_sdk_version = testCase[4]
+            expected = testCase[5]
             self.parser.allowBackup = lambda: allowBackup
+            self.parser.fullBackupOnly = lambda: fullBackupOnly
+            self.parser.backupAgent = lambda: backupAgent
+            self.args.min_sdk_version = min_sdk_version
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.isAutoBackupAllowed()
-            self.assertEqual(expected, res, f"{allowBackup=} and {max_sdk_version=} should produce {expected} "
-                                            f"but produced {res}")
-    
+            self.assertEqual(expected, res,
+                             f"{allowBackup=} and {fullBackupOnly=} and {backupAgent=} and {min_sdk_version=} and {max_sdk_version=} should produce {expected} but produced {res}")
+
     def test_showApkInfo(self):
         # the tuple elements represents :
         # getSdkVersion[0] (uses_sdk_min_sdk_version), getSdkVersion[1](uses_sdk_max_sdk_version),
