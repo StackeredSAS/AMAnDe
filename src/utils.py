@@ -74,6 +74,21 @@ def checkDigitalAssetLinks(host):
         return False
 
 
+def formatResource(path, name):
+    """
+    Formats a file name by adding an underline.
+    If the resource is a string object, because we can't resolve the real value we format it like :
+    strings.xml(value_name)
+    This means the string can be found in the strings.xml file under the key "value_name".
+    """
+    filename = path
+    res = colored(f"{filename}", attrs=["underline"])
+    if name:
+        # we have a string resource
+        res = f"{res}({name})"
+    return res
+
+
 def unformatFilename(name):
     """
     Because Parser._getResValue formats filenames in a specific way
