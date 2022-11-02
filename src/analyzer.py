@@ -5,15 +5,14 @@ from .utils import (
     printTestInfo,
     printSubTestInfo,
     checkDigitalAssetLinks,
-    runProc,
     handleVersion
 )
-from .config import EXTERNAL_BINARIES
 import logging
 from .constants import dangerous_perms
 from .apkParser import APKParser
 from .networkSecParser import NetworkSecParser
 from collections import namedtuple
+from .external import runAPKSigner
 
 
 class Analyzer:
@@ -127,16 +126,9 @@ class Analyzer:
                 f'Hardware or software feature "{f.name}" can be used by the application '
                 f'(mandatory for runtime : {f.required})')
 
-        # for now do it here
-        # if we want to add post treatment we will move those kinds of checks into a new file
         if self.isAPK:
-            cmd = EXTERNAL_BINARIES["apksigner"] + ["verify", "--print-certs", "--verbose", "--min-sdk-version",
-                                                    str(self.args.min_sdk_version), self.args.path]
-            cmdres = runProc(cmd)
-            if cmdres:
-                printSubTestInfo("Output of apksigner")
-                self.logger.info(colored(f"executed command : {' '.join(cmd)}", "yellow"))
-                self.logger.info(cmdres.decode())
+            # if we have an APK and APKSigner is installed
+            runAPKSigner(self.logger, self.args.min_sdk_version, self.args.path)
 
         return res
 
