@@ -42,5 +42,4 @@ unzip -l test.apk
 
 - revoir toutes les fonctions avec intervalles de version (ABE)
   - getBackupRulesFile
-- Fix adbBackup by adding check on debuggable flag
 
