@@ -37,5 +37,14 @@ unzip -l test.apk
 ## todo
 - tests avec outils tiers si préinstallés
   - surcouche apksigner ?
-  - faire une fonction séparée ?
+  - Trouver d'autres outils utiles (ABE)
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
+- sortir le logger de l'analyser (FPI)
+- faire un vrai readme
+- Donner quelques manifest d'example plus propres
+- A faire à la toute fin:
+  - revoir les documentations manquantes
+  - revoir le PEP8
+  - revoir les fautes d'orthographe
+  - tenter d'installer l'outil sur un docker ubuntu clean pour valider la procédure d'install
+  - passer le répo en public ou en faire un nouveau (si on veut pas l'historique des commits)
