@@ -318,8 +318,10 @@ class Analyzer:
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
         dataExtractionRules_xml_rules_files = self.parser.dataExtractionRules()
 
-        res = 0
-        if self.args.min_sdk_version <= 30:
+        def fbc(condition=False):
+            res = 0
+            if condition:
+                print(colored("On Android 11 (API 30) and lower", attrs=["bold"]))
             if fullBackupContent_xml_file_rules is not None:
                 self.logger.info(
                     f'For Android versions <= 11 (API 30), custom rules has been defined to control what gets backed '
@@ -332,16 +334,23 @@ class Analyzer:
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
             else:
                 self.logger.warning(f'Minimal supported SDK version ({self.args.min_sdk_version})'
-                                    f' allows Android versions <= 11 (API 30) and no exclusion custom rules file has '
-                                    f'been specified in the fullBackupContent attribute.')
-        if self.args.max_sdk_version >= 31:
+                                    f' allows Android versions <= 11 (API 30) and no exclusion custom rules file '
+                                    f'has been specified in the fullBackupContent attribute.')
+            return res
+
+        def der(condition=False):
+            res = 0
+            if condition:
+                print(colored("On Android 12 (API 31) and higher", attrs=["bold"]))
             if dataExtractionRules_xml_rules_files is not None:
                 self.logger.info(
                     f'For Android versions >= 12 (API 31), custom rules has been defined to control what gets backed '
                     f'up in {dataExtractionRules_xml_rules_files} file')
                 res |= 2
+                # Add ([], None, []) to fix bug when analyzing a Manifest because there is no file to analyze and
+                # getDataExtractionRulesContent return None
                 cloudBackupRules, disableIfNoEncryptionCapabilities, deviceTransferRules = \
-                    self.parser.getDataExtractionRulesContent()
+                    self.parser.getDataExtractionRulesContent() or ([], None, [])
                 headers = ["type", "domain", "path", "requireFlags"]
                 # show cloudBackupRules
                 table = [[e.type, e.domain, e.path, e.requireFlags] for e in cloudBackupRules]
@@ -360,9 +369,11 @@ class Analyzer:
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
             else:
                 self.logger.warning(f'Maximal supported SDK version ({self.args.max_sdk_version})'
-                                    f' allows Android versions >= 12 (API 31) and no exclusion custom rules file has '
-                                    f'been specified in the dataExtractionRules attribute.')
-        return res
+                                    f' allows Android versions >= 12 (API 31) and no exclusion custom rules file '
+                                    f'has been specified in the dataExtractionRules attribute.')
+            return res
+
+        return handleVersion(fbc, der, 31, self.args.min_sdk_version, self.args.max_sdk_version)
 
     def getNetworkConfigFile(self):
         """

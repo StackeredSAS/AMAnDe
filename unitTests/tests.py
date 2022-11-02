@@ -348,17 +348,17 @@ class TestAnalyzer(unittest.TestCase):
         # fullBackupContent, dataExtractionRules, args_min_sdk, args_max_sdk, expectedResult
         testCases = [
             ("test.xml", "test.xml", 15, 30, 1),
-            ("test.xml", "test.xml", 15, 31, 3),
+            ("test.xml", "test.xml", 15, 31, (1, 2)),
             ("test.xml", "test.xml", 31, 32, 2),
-            ("test.xml", "test.xml", 30, 31, 3),
+            ("test.xml", "test.xml", 30, 31, (1, 2)),
             (None, "test.xml", 15, 30, 0),
             (None, "test.xml", 31, 32, 2),
-            (None, "test.xml", 17, 31, 2),
+            (None, "test.xml", 17, 31, (0, 2)),
             ("test.xml", None, 15, 30, 1),
             ("test.xml", None, 31, 32, 0),
-            ("test.xml", None, 17, 31, 1),
+            ("test.xml", None, 17, 31, (1, 0)),
             (None, None, 15, 30, 0),
-            (None, None, 15, 31, 0),
+            (None, None, 15, 31, (0, 0)),
             (None, None, 31, 32, 0),
         ]
 
