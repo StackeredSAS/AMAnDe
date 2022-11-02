@@ -39,7 +39,3 @@ unzip -l test.apk
   - surcouche apksigner ?
   - faire une fonction séparée ?
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
-
-- revoir toutes les fonctions avec intervalles de version (ABE)
-  - getBackupRulesFile
-

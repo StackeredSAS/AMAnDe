@@ -673,14 +673,13 @@ class Analyzer:
         Analyzes network_security_config file
         https://developer.android.com/training/articles/security-config?hl=en#base-config
         """
-        # todo : handle <debug-overrides> if apk debuggable
         # for unit tests allow to give a custom parser
         if nsParser is None:
             nsf = self.parser.getNetworkSecurityConfigFile()
             if nsf is None:
                 return
             printSubTestInfo("Analysing Network security trust anchors configuration")
-            nsParser = NetworkSecParser(nsf)
+            nsParser = NetworkSecParser(nsf, self.parser.debuggable())
         cert = namedtuple("Cert", "src overridePins")
 
         def p(inherited_ta):
@@ -755,14 +754,13 @@ class Analyzer:
         return ctNotAllowed()
 
     def analyzeNSCPinning(self, nsParser=None):
-        # todo : handle <debug-overrides> if apk debuggable
         # for unit tests allow to give a custom parser
         if nsParser is None:
             nsf = self.parser.getNetworkSecurityConfigFile()
             if nsf is None:
                 return
             printSubTestInfo("Analysing Network security certificate pinning configuration")
-            nsParser = NetworkSecParser(nsf)
+            nsParser = NetworkSecParser(nsf, self.parser.debuggable())
 
         from datetime import datetime
         baseConfig = nsParser.getBaseConfig()

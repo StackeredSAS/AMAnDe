@@ -6,7 +6,7 @@ from .utils import str2Bool
 
 class NetworkSecParser(Parser):
 
-    def __init__(self, path):
+    def __init__(self, path, debuggable=False):
         # here we have a clean manifest in a virtual file
         self.path = path
         self.namespaces = dict([node for _, node in ET.iterparse(path, events=['start-ns'])])
@@ -14,6 +14,7 @@ class NetworkSecParser(Parser):
         path.seek(0)
         self.tree = ET.parse(path)
         self.root = self.tree.getroot()
+        self.isDebuggable = debuggable
 
     def parseCertificate(self, elm, default=False):
         """
@@ -62,6 +63,7 @@ class NetworkSecParser(Parser):
         bc = self.root.find("debug-overrides")
         if bc is not None:
             return self.parseTrustAnchors(bc, True)
+        return []
 
     def parsePinSet(self, elm):
         """
@@ -103,6 +105,8 @@ class NetworkSecParser(Parser):
             cleartextTrafficPermitted = str2Bool(self._getattr(e, "cleartextTrafficPermitted"))
             domains = self.parseDomains(e)
             trustanchors = self.parseTrustAnchors(e)
+            if self.isDebuggable:
+                trustanchors += self.getDebugOverrides()
             pinset = self.parsePinSet(e)
             # recursive call to handle nested <domain-config> elements
             dcs = self.parseDomainConfig(e)
