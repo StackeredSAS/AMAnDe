@@ -318,51 +318,57 @@ class Analyzer:
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
         dataExtractionRules_xml_rules_files = self.parser.dataExtractionRules()
 
-        res = 0
-        if self.args.min_sdk_version <= 30:
+        def fbc(condition=False):
+            if condition:
+                print(colored("On Android 11 (API 30) and lower", attrs=["bold"]))
             if fullBackupContent_xml_file_rules is not None:
                 self.logger.info(
                     f'For Android versions <= 11 (API 30), custom rules has been defined to control what gets backed '
                     f'up in {fullBackupContent_xml_file_rules} file')
-                res |= 1
-                rules = self.parser.getFullBackupContentRules() or []
+                rules = self.parser.getFullBackupContentRules()
                 headers = ["type", "domain", "path", "requireFlags"]
                 table = [[e.type, e.domain, e.path, e.requireFlags] for e in rules]
                 if len(table) > 0:
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
-            else:
-                self.logger.warning(f'Minimal supported SDK version ({self.args.min_sdk_version})'
-                                    f' allows Android versions <= 11 (API 30) and no exclusion custom rules file has '
-                                    f'been specified in the fullBackupContent attribute.')
-        if self.args.max_sdk_version >= 31:
+                return 1
+            self.logger.warning(f'Minimal supported SDK version ({self.args.min_sdk_version})'
+                                    f' allows Android versions <= 11 (API 30) and no exclusion custom rules file '
+                                    f'has been specified in the fullBackupContent attribute.')
+            return 0
+
+        def der(condition=False):
+            if condition:
+                print(colored("On Android 12 (API 31) and higher", attrs=["bold"]))
             if dataExtractionRules_xml_rules_files is not None:
                 self.logger.info(
                     f'For Android versions >= 12 (API 31), custom rules has been defined to control what gets backed '
                     f'up in {dataExtractionRules_xml_rules_files} file')
-                res |= 2
-                cloudBackupRules, disableIfNoEncryptionCapabilities, deviceTransferRules = \
-                    self.parser.getDataExtractionRulesContent()
-                headers = ["type", "domain", "path", "requireFlags"]
-                # show cloudBackupRules
-                table = [[e.type, e.domain, e.path, e.requireFlags] for e in cloudBackupRules]
-                if len(table) > 0:
-                    if disableIfNoEncryptionCapabilities:
-                        self.logger.info("Cloud backup are performed only if they can be encrypted, such as when the "
-                                         "user has a lock screen.")
-                    else:
-                        self.logger.warning("Cloud backup are performed even if they cannot be encrypted.")
-                    self.logger.info("Cloud backup rules have been defined :")
-                    self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
-                # show device transfer rules
-                table = [[e.type, e.domain, e.path, e.requireFlags] for e in deviceTransferRules]
-                if len(table) > 0:
-                    self.logger.info("Cloud backup rules have been defined :")
-                    self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
-            else:
-                self.logger.warning(f'Maximal supported SDK version ({self.args.max_sdk_version})'
-                                    f' allows Android versions >= 12 (API 31) and no exclusion custom rules file has '
-                                    f'been specified in the dataExtractionRules attribute.')
-        return res
+                dataExtractionRuleContent = self.parser.getDataExtractionRulesContent()
+                if dataExtractionRuleContent is not None:
+                    cloudBackupRules, disableIfNoEncryptionCapabilities, deviceTransferRules = dataExtractionRuleContent
+                    headers = ["type", "domain", "path", "requireFlags"]
+                    # show cloudBackupRules
+                    table = [[e.type, e.domain, e.path, e.requireFlags] for e in cloudBackupRules]
+                    if len(table) > 0:
+                        if disableIfNoEncryptionCapabilities:
+                            self.logger.info("Cloud backup are performed only if they can be encrypted, such as when "
+                                             "the user has a lock screen.")
+                        else:
+                            self.logger.warning("Cloud backup are performed even if they cannot be encrypted.")
+                        self.logger.info("Cloud backup rules have been defined :")
+                        self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
+                    # show device transfer rules
+                    table = [[e.type, e.domain, e.path, e.requireFlags] for e in deviceTransferRules]
+                    if len(table) > 0:
+                        self.logger.info("Cloud backup rules have been defined :")
+                        self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
+                return 2
+            self.logger.warning(f'Maximal supported SDK version ({self.args.max_sdk_version})'
+                                    f' allows Android versions >= 12 (API 31) and no exclusion custom rules file '
+                                    f'has been specified in the dataExtractionRules attribute.')
+            return 0
+
+        return handleVersion(fbc, der, 31, self.args.min_sdk_version, self.args.max_sdk_version)
 
     def getNetworkConfigFile(self):
         """

@@ -406,7 +406,7 @@ class Parser:
 
     def getFullBackupContentRules(self):
         # will be overridden in the APKParser class
-        return None
+        return []
 
     def getDataExtractionRulesContent(self):
         # will be overridden in the APKParser class
