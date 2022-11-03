@@ -5,8 +5,10 @@ from .utils import (
 )
 from termcolor import colored
 
+
 def runAPKSigner(logger, min_sdk, path):
-    cmd = EXTERNAL_BINARIES["apksigner"] + ["verify", "--print-certs", "--verbose", "--min-sdk-version", min_sdk, path]
+    cmd = EXTERNAL_BINARIES["apksigner"] + ["verify", "--print-certs", "--verbose", "--min-sdk-version",
+                                            str(min_sdk), path]
     cmdres = runProc(cmd)
     if cmdres:
         printSubTestInfo("Output of apksigner")

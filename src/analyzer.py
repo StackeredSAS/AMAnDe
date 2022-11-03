@@ -324,8 +324,8 @@ class Analyzer:
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
                 return 1
             self.logger.warning(f'Minimal supported SDK version ({self.args.min_sdk_version})'
-                                    f' allows Android versions <= 11 (API 30) and no exclusion custom rules file '
-                                    f'has been specified in the fullBackupContent attribute.')
+                                f' allows Android versions <= 11 (API 30) and no exclusion custom rules file '
+                                f'has been specified in the fullBackupContent attribute.')
             return 0
 
         def der(condition=False):
@@ -356,8 +356,8 @@ class Analyzer:
                         self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
                 return 2
             self.logger.warning(f'Maximal supported SDK version ({self.args.max_sdk_version})'
-                                    f' allows Android versions >= 12 (API 31) and no exclusion custom rules file '
-                                    f'has been specified in the dataExtractionRules attribute.')
+                                f' allows Android versions >= 12 (API 31) and no exclusion custom rules file '
+                                f'has been specified in the dataExtractionRules attribute.')
             return 0
 
         return handleVersion(fbc, der, 31, self.args.min_sdk_version, self.args.max_sdk_version)
