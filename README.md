@@ -39,7 +39,6 @@ unzip -l test.apk
   - surcouche apksigner ?
   - Trouver d'autres outils utiles (ABE)
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
-- sortir le logger de l'analyser (FPI)
 - faire un vrai readme
 - Donner quelques manifest d'example plus propres
 - A faire à la toute fin:
@@ -48,5 +47,4 @@ unzip -l test.apk
   - revoir les fautes d'orthographe
   - tenter d'installer l'outil sur un docker ubuntu clean pour valider la procédure d'install
   - passer le répo en public ou en faire un nouveau (si on veut pas l'historique des commits)
-- Virer les cas None des tests pour lesquels on a modifié le parser pour renvoyer la bonne valeur par défaut (fullbackonly, allowbackup et debuggable)
 - Ce serait intéressant de pouvoir vérifier si les WARNING META INF sont présent dans la sortie d'apksigner et le cas échéant de les enlever et de rajouter un message d'info ou d'erreur (si juste le schéma V1 est utilisé) 

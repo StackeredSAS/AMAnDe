@@ -19,7 +19,6 @@ class TestAnalyzer(unittest.TestCase):
     parser = FakeParser()
     # fake args
     args = namedtuple("a", "log_level max_sdk_version min_sdk_version")
-    args.log_level = 0
     analyzer = Analyzer(parser, args)
 
     def test_isADBBackupAllowed(self):
@@ -53,20 +52,6 @@ class TestAnalyzer(unittest.TestCase):
             (False, None, 20, 30, False),
             (False, None, 30, 31, False),
             (False, None, 31, 32, False),
-
-            (None, True, 20, 25, True),
-            (None, False, 20, 25, True),
-            (None, True, 20, 30, True),
-            (None, False, 20, 30, True),
-            (None, True, 30, 31, True),
-            (None, False, 30, 31, (True, False)),
-            (None, True, 31, 32, True),
-            (None, False, 31, 32, False),
-
-            (None, None, 20, 25, True),
-            (None, None, 20, 30, True),
-            (None, None, 30, 31, (True, False)),
-            (None, None, 31, 32, False),
         ]
 
         for testCase in testCases:
@@ -77,8 +62,6 @@ class TestAnalyzer(unittest.TestCase):
             expected = testCase[4]
             self.parser.allowBackup = lambda: allowBackup
             self.parser.debuggable = lambda: debuggable
-            if allowBackup is None:
-                allowBackup = True
             self.args.min_sdk_version = min_sdk_version
             self.args.max_sdk_version = max_sdk_version
             res = self.analyzer.isADBBackupAllowed()
@@ -104,13 +87,6 @@ class TestAnalyzer(unittest.TestCase):
             (False, False, "test", 12, 20, False),
             (False, None, "test", 12, 20, False),
 
-            (None, True, None, 12, 20, False),
-            (None, False, None, 12, 20, False),
-            (None, None, None, 12, 20, False),
-            (None, True, "test", 12, 20, False),
-            (None, False, "test", 12, 20, False),
-            (None, None, "test", 12, 20, False),
-
             # CASE 2 : SAME as case 1 but maybe with an ambiguous trigger
             (True, True, None, 12, 22, False),
             (True, False, None, 12, 22, False),
@@ -125,13 +101,6 @@ class TestAnalyzer(unittest.TestCase):
             (False, True, "test", 12, 22, False),
             (False, False, "test", 12, 22, False),
             (False, None, "test", 12, 22, False),
-
-            (None, True, None, 12, 22, False),
-            (None, False, None, 12, 22, False),
-            (None, None, None, 12, 22, False),
-            (None, True, "test", 12, 22, False),
-            (None, False, "test", 12, 22, False),
-            (None, None, "test", 12, 22, False),
 
             # CASE 3 : With an ambiguous trigger
             (True, True, None, 12, 23, (False, (True, False))),
@@ -148,14 +117,6 @@ class TestAnalyzer(unittest.TestCase):
             (False, True, "test", 12, 23, False),
             (False, False, "test", 12, 23, False),
             (False, None, "test", 12, 23, False),
-
-            (None, True, None, 12, 23, (False, (True, False))),
-            (None, False, None, 12, 23, (False, (True, False))),
-            (None, None, None, 12, 23, (False, (True, False))),
-            (None, True, "test", 12, 23, (False, (True, False))),
-            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
-            (None, False, "test", 12, 23, False),
-            (None, None, "test", 12, 23, False),
 
             # CASE 4 : With an ambiguous trigger, before encryption can be available and without version that do not
             # support Auto-Backup
@@ -174,14 +135,6 @@ class TestAnalyzer(unittest.TestCase):
             (False, False, "test", 23, 26, False),
             (False, None, "test", 23, 26, False),
 
-            (None, True, None, 23, 26, (True, False)),
-            (None, False, None, 23, 26, (True, False)),
-            (None, None, None, 23, 26, (True, False)),
-            (None, True, "test", 23, 26, (True, False)),
-            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
-            (None, False, "test", 23, 26, False),
-            (None, None, "test", 23, 26, False),
-
             # CASE 5 : With version that do not support encryption and without version that do not
             # support Auto-Backup and with an ambiguous trigger
             (True, True, None, 25, 28, (True, (False, True))),
@@ -198,14 +151,6 @@ class TestAnalyzer(unittest.TestCase):
             (False, True, "test", 23, 28, False),
             (False, False, "test", 23, 28, False),
             (False, None, "test", 23, 28, False),
-
-            (None, True, None, 25, 28, (True, (False, True))),
-            (None, False, None, 23, 28, (True, (False, True))),
-            (None, None, None, 23, 28, (True, (False, True))),
-            (None, True, "test", 23, 28, (True, (False, True))),
-            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
-            (None, False, "test", 23, 28, False),
-            (None, None, "test", 23, 28, False),
 
             # CASE 6 : With version that do not support encryption and without version that do not
             # support Auto-Backup and with an ambiguous trigger
@@ -224,14 +169,6 @@ class TestAnalyzer(unittest.TestCase):
             (False, False, "test", 28, 30, False),
             (False, None, "test", 28, 30, False),
 
-            (None, True, None, 28, 30, (True, True)),
-            (None, False, None, 28, 30, (True, True)),
-            (None, None, None, 28, 30, (True, True)),
-            (None, True, "test", 28, 30, (True, True)),
-            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
-            (None, False, "test", 28, 30, False),
-            (None, None, "test", 28, 30, False),
-
         ]
 
         for testCase in testCases:
@@ -242,8 +179,6 @@ class TestAnalyzer(unittest.TestCase):
             max_sdk_version = testCase[4]
             expected = testCase[5]
             self.parser.allowBackup = lambda: allowBackup
-            if allowBackup is None:
-                allowBackup = True
             self.parser.fullBackupOnly = lambda: fullBackupOnly
             self.parser.backupAgent = lambda: backupAgent
             self.args.min_sdk_version = min_sdk_version
