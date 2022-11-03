@@ -19,7 +19,6 @@ class TestAnalyzer(unittest.TestCase):
     parser = FakeParser()
     # fake args
     args = namedtuple("a", "log_level max_sdk_version min_sdk_version")
-    args.log_level = 0
     analyzer = Analyzer(parser, args)
 
     def test_isADBBackupAllowed(self):

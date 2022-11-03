@@ -39,7 +39,6 @@ unzip -l test.apk
   - surcouche apksigner ?
   - Trouver d'autres outils utiles (ABE)
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
-- sortir le logger de l'analyser (FPI)
 - faire un vrai readme
 - Donner quelques manifest d'example plus propres
 - A faire à la toute fin:

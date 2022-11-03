@@ -1,7 +1,6 @@
 from termcolor import colored
 from tabulate import tabulate
 from .utils import (
-    CustomFormatter,
     printTestInfo,
     printSubTestInfo,
     checkDigitalAssetLinks,
@@ -21,27 +20,7 @@ class Analyzer:
         self.parser = parser
         self.args = args
         self.isAPK = type(self.parser) is APKParser
-        self.logger = logging.getLogger(__name__)
-        self.setLogLevel(args.log_level)
-
-        # Create stdout handler for logging to the console (logs all five levels)
-        stdout_handler = logging.StreamHandler()
-        stdout_handler.setFormatter(CustomFormatter())
-        # Add handlers to the logger
-        self.logger.addHandler(stdout_handler)
-
-    def setLogLevel(self, level):
-        """
-        Associates log levels to their corresponding logger levels
-        """
-        if level == 0:
-            self.logger.setLevel(logging.INFO)
-        elif level == 1:
-            self.logger.setLevel(logging.WARNING)
-        elif level == 2:
-            self.logger.setLevel(logging.ERROR)
-        else:
-            raise NotImplementedError("Unknown logging level")
+        self.logger = logging.getLogger("MainLogger")
 
     def showApkInfo(self):
         """
@@ -450,11 +429,11 @@ class Analyzer:
                         if self.logger.level <= logging.WARNING:
                             table.append([cName, cType, p, rp, wp])
                             count += 1
-                            res += 1
+                        res += 1
                     else:
                         if self.logger.level == logging.INFO:
                             table.append([n, t, p, rp, wp])
-                            res += 2
+                        res += 2
 
         # There might not be any exported components -> no permission to analyze
         if len(table) > 0:

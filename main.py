@@ -5,6 +5,8 @@ from src.apkParser import APKParser
 from src.analyzer import Analyzer
 from src.constants import ANDROID_MAX_SDK
 import logging
+from src.utils import CustomFormatter
+
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(description='Utility to analyse Android Manifest files.')
@@ -26,6 +28,19 @@ if __name__ == "__main__":
     # silence https://github.com/appknox/pyaxmlparser/blob/d111a4fc6330a0c293ffc2f114af360eb78ad2ef/pyaxmlparser
     # /arscparser.py#L150
     logging.getLogger("pyaxmlparser.arscparser").setLevel(logging.CRITICAL)
+
+    logger = logging.getLogger("MainLogger")
+    logger.setLevel(logging.INFO)
+    if args.log_level == 1:
+        logger.setLevel(logging.WARNING)
+    elif args.log_level == 2:
+        logger.setLevel(logging.ERROR)
+
+    # Create stdout handler for logging to the console
+    stdout_handler = logging.StreamHandler()
+    stdout_handler.setFormatter(CustomFormatter())
+    # Add handlers to the logger
+    logger.addHandler(stdout_handler)
 
     # try as APK
     parser = APKParser(args.path)
