@@ -36,7 +36,6 @@ unzip -l test.apk
 
 ## todo
 - tests avec outils tiers si préinstallés
-  - surcouche apksigner ?
   - Trouver d'autres outils utiles (ABE)
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
 - faire un vrai readme
@@ -47,4 +46,3 @@ unzip -l test.apk
   - revoir les fautes d'orthographe
   - tenter d'installer l'outil sur un docker ubuntu clean pour valider la procédure d'install
   - passer le répo en public ou en faire un nouveau (si on veut pas l'historique des commits)
-- Ce serait intéressant de pouvoir vérifier si les WARNING META INF sont présent dans la sortie d'apksigner et le cas échéant de les enlever et de rajouter un message d'info ou d'erreur (si juste le schéma V1 est utilisé) 
