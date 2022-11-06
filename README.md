@@ -1,37 +1,69 @@
-# ManifestAnalyzer
-Parsing and analyzing AndroidManifest.xml
+# XXX
+XXX is a new tool to analyze the following Android XML files taking into account Android versions and there corresponding default values and configurations :
+- AndroidManifest
+- fullBackupContent
+- dataExtractionRules
+- network_security_config
+
+If you want all those files to be parsed, you must submit an APK file. Otherwise, give the script a simple Manifest file
+but the results will not be as relevant. 
+
+Checks and information provided when an APK file is given are the following :
+- APK generic information including
+  - package name
+  - version code and name if specified in the Manifest
+  - min and max Android SDK version
+  - Number of components (activities, services, providers, receivers) including those exported
+  - Shared libraries required
+  - Vendor provided share native library required
+  - Hardware or software features required
+  - output of apksigner (if installed) to check the signature
+- Analyze required permissions
+  - builtins
+    - Searching dangerous one
+  - customs
+    - Analyzing declaration and protectionLevel specified by the developer
+- Analyzing backup functionality
+  - ADB
+  - Auto-Backup
+  - Kotlin or Java agent
+  - fullBackupContent file content analysis (if exists)
+  - dataExtractionRules file content analysis (if exists)
+- Compilation mode
+- network_security_config.xml analysis if file exists
+  - trust anchors configuration
+  - certificate pinning
+- clear text traffic property
+- Listing exported components
+- Summarizing information about all exported components which specified Intent Filters (all available uris, data, category etc.)
+  - Deeplink (uris for all activities)
+  - Applink (uris, check if Digital Asset Link JSON file are publicly available)
+- Analyzing permissions set on exported components
+- Listing un-exported providers which specify grantUriPermissions set to True
+- Looking for Firebase URL
+
+
+Checks and information provided when only a Manifest file is given are the following :
+- Same as above without fullBackupContent, dataExtractionRules and network_security_config content files analysis
 
 
 ## Installation
-
-```
+```bash
 python3 -m pip install -r requirements.txt
-python3 -m unittest -b unitTests/tests.py
-python3 -m cProfile -s 'cumulative' main.py -max 23 -min 18 examples/AndroidManifest.xml
-```
-
-## Compiling example APK without Android Studio
-```
-aapt2 compile --dir <path_to_res_directory> -o <name_of_output_zip>
-aapt2 link <name_of_output_zip> -o <name_of_output_apk> -I <path_to_android.jar or apk> --manifest <path_to_the_Manifest> -v
-```
-
-example (requires apktool) : 
-
-```
-git clone https://github.com/codepath/intro_android_demo.git
-aapt2 compile --dir intro_android_demo/app/src/main/res/ -o resources.zip
-aapt2 link resources.zip -o test.apk --manifest intro_android_demo/app/src/main/AndroidManifest.xml -I /Users/florianpicca/Library/apktool/framework/1.apk -v
-unzip -l test.apk
 ```
 
 ## Usage
+Using the script requires to specify the following mandatory options :
+- the version range (min/max Android SDK versions) in which the application is intended to work (this information can be found in the build.gradle or by asking the developer)
+- the path to the AndroidManifest.xml or APK file
 
-```
+XXX is developed with its own logger which can take value 0,1 and 2 to respectively display INFO, WARNING or CRITICAL information.
+
+```bash
 ./main.py -h
 ./main.py -max 23 -min 18 examples/AndroidManifest.xml
 ./main.py -max 23 -min 18 examples/AndroidManifest.xml -v 1
-./main.py -max 23 -min 18 examples/example.apk
+./main.py -max 23 -min 18 examples/example.apk -v 2
 ```
 
 ## todo
