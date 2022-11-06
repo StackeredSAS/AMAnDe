@@ -108,7 +108,7 @@ def runProc(*args, **kwargs):
     :rtype: bytes
 
     **Examples** ::
-
+    TODO : Review this doc
         >>> runProc(["pwd"])
         b'/tmp/test\\n'
         >>> runProc(["echo", "hello"])
@@ -117,16 +117,18 @@ def runProc(*args, **kwargs):
     import subprocess
     p = None
     output = None
+    output_stderr = None
     try:
         p = subprocess.Popen(stdout=subprocess.PIPE, *args, **kwargs)
         p.wait()
         output = p.stdout.read()
+        output = p.stderr.read()
         p.stdout.close()
     finally:
         if p is not None and p.poll() is None:
             p.terminate()  # send sigterm, or ...
             p.kill()  # send sigkill
-        return output
+        return output, output_stderr
 
 
 def handleVersion(lower_func, higher_func, trigger, min_sdk, max_sdk):
