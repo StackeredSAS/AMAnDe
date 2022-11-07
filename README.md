@@ -1,50 +1,15 @@
 # XXX
-XXX is a new tool to analyze the following Android XML files taking into account Android versions and there corresponding default values and configurations :
-- AndroidManifest
+## What's XXX
+A new tool whose objective is to extract and gather information from an Android Manifest.
+When we deal with huge Manifest, it is often a hard time to get all relevant datas (like deeplink uris, exported provider etc.)
+With XXX all of these are recovered and ready to be deeply analyzed.
+
+XXX can also directly take an APK file as input. In this case, the following files (if exist) will also be analyzed :
 - fullBackupContent
 - dataExtractionRules
 - network_security_config
 
-If you want all those files to be parsed, you must submit an APK file. Otherwise, give the script a simple Manifest file
-but the results will not be as relevant. 
-
-Checks and information provided when an APK file is given are the following :
-- APK generic information including
-  - package name
-  - version code and name if specified in the Manifest
-  - min and max Android SDK version
-  - Number of components (activities, services, providers, receivers) including those exported
-  - Shared libraries required
-  - Vendor provided share native library required
-  - Hardware or software features required
-  - output of apksigner (if installed) to check the signature
-- Analyze required permissions
-  - builtins
-    - Searching dangerous one
-  - customs
-    - Analyzing declaration and protectionLevel specified by the developer
-- Analyzing backup functionality
-  - ADB
-  - Auto-Backup
-  - Kotlin or Java agent
-  - fullBackupContent file content analysis (if exists)
-  - dataExtractionRules file content analysis (if exists)
-- Compilation mode
-- network_security_config.xml analysis if file exists
-  - trust anchors configuration
-  - certificate pinning
-- clear text traffic property
-- Listing exported components
-- Summarizing information about all exported components which specified Intent Filters (all available uris, data, category etc.)
-  - Deeplink (uris for all activities)
-  - Applink (uris, check if Digital Asset Link JSON file are publicly available)
-- Analyzing permissions set on exported components
-- Listing un-exported providers which specify grantUriPermissions set to True
-- Looking for Firebase URL
-
-
-Checks and information provided when only a Manifest file is given are the following :
-- Same as above without fullBackupContent, dataExtractionRules and network_security_config content files analysis
+All results take into account Android versions and there corresponding default values and configurations. 
 
 
 ## Installation
@@ -65,6 +30,61 @@ XXX is developed with its own logger which can take value 0,1 and 2 to respectiv
 ./main.py -max 23 -min 18 examples/AndroidManifest.xml -v 1
 ./main.py -max 23 -min 18 examples/example.apk -v 2
 ```
+If you want all XML files (backup rules and network_security_config) to be parsed, please submit an APK file. Otherwise, give the script a simple Manifest file
+but the results will not be as relevant. 
+
+## Checks
+### Basic information
+- package name
+- version code and name if specified in the Manifest
+- min and max Android SDK version
+- Number of components (activities, services, providers, receivers) including those exported
+- Shared libraries required
+- Vendor provided share native library required
+- Hardware or software features required
+- Compilation mode
+- clear text traffic property
+
+With an APK:
+- Does all the above
+- output of apksigner (if installed) to check the signature
+
+### Permissions
+- builtins
+  - Searching dangerous ones (i.e. READ_CONTACTS etc.)
+- customs
+  - Analyzing declaration and protectionLevel specified by the developer
+
+### Backup functionality
+- ADB
+- Auto-Backup
+- Kotlin or Java backupAgent
+
+With an APK:
+- fullBackupContent file content analysis (if exists)
+- dataExtractionRules file content analysis (if exists)
+
+### Network Security Config
+With an APK and if the file exists:
+- trust anchors configuration
+- certificate pinning
+
+### Components
+- Listing exported components
+- Summarizing information about all exported components which specified Intent Filters (uris, data, category etc.)
+  - Deeplink (uris)
+  - Applink (uris and check if Digital Asset Link JSON file are publicly available)
+- Analyzing permissions set on exported components
+- Listing un-exported providers which specify grantUriPermissions set to True
+
+### Firebase
+- Looking for Firebase URL
+
+
+## Contributing
+We encourage any contribution aiming at improve this tool. If you want to contribute
+please check our guidelines (TODO lien vers CONTRIBUTING.md)
+
 
 ## todo
 - tests avec outils tiers si préinstallés
