@@ -90,7 +90,7 @@ please check our guidelines (TODO lien vers CONTRIBUTING.md)
 - tests avec outils tiers si préinstallés
   - Trouver d'autres outils utiles (ABE)
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
-- faire un vrai readme
+- faire un vrai readme -> en cours
 - Donner quelques manifest d'example plus propres
 - A faire à la toute fin:
   - revoir les documentations manquantes

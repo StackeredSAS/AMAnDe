@@ -643,6 +643,7 @@ class Analyzer:
         """
         Analyzes network_security_config file
         https://developer.android.com/training/articles/security-config?hl=en#base-config
+        TODO FPI
         """
         # for unit tests allow to give a custom parser
         if nsParser is None:
@@ -687,6 +688,9 @@ class Analyzer:
             return p(baseConfig.trustanchors)
 
     def analyzeNSCClearTextTraffic(self, nsParser=None):
+        """
+        TODO FPI
+        """
         # for unit tests allow to give a custom parser
         if nsParser is None:
             nsf = self.parser.getNetworkSecurityConfigFile()
@@ -725,6 +729,9 @@ class Analyzer:
         return ctNotAllowed()
 
     def analyzeNSCPinning(self, nsParser=None):
+        """
+        TODO FPI
+        """
         # for unit tests allow to give a custom parser
         if nsParser is None:
             nsf = self.parser.getNetworkSecurityConfigFile()

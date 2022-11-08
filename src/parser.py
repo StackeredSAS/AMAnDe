@@ -410,6 +410,10 @@ class Parser:
         return None
 
     def fullBackupOnly(self):
+        """
+        Checks whether to use Auto Backup on devices where it is available
+        https://developer.android.com/guide/topics/manifest/application-element#fullBackupOnly
+        """
         fullBackupOnly = str2Bool(self._getattr(self.root.find("application"), "android:fullBackupOnly"))
         # Default value is False
         if fullBackupOnly is None:

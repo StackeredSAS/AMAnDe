@@ -49,4 +49,3 @@ def runAPKSigner(logger, min_sdk, path):
         if signature_versions[0] and not any(signature_versions[1:]):
             logger.critical("Your APK is only signed with scheme v1. Unauthorized modification to META-INF jar "
                             "entry will not be detected")
-
