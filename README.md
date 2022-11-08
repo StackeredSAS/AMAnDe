@@ -98,3 +98,13 @@ please check our guidelines (TODO lien vers CONTRIBUTING.md)
   - revoir les fautes d'orthographe
   - tenter d'installer l'outil sur un docker ubuntu clean pour valider la procédure d'install
   - passer le répo en public ou en faire un nouveau (si on veut pas l'historique des commits)
+
+```bash
+adb shell 'bu backup -apk -all -nosystem' > backup.ab
+```
+
+Android backup extractor :
+```bash
+java -jar abe.jar unpack backup.ab backup.tar
+tar -xf backup.tar
+```
