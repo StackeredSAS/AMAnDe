@@ -93,7 +93,6 @@ please check our guidelines in [CONTRIBUTING](CONTRIBUTING.md).
 - faire un vrai readme -> en cours
 - Donner quelques manifest d'example plus propres
 - A faire à la toute fin:
-  - revoir les documentations manquantes
   - revoir le PEP8
   - revoir les fautes d'orthographe
   - tenter d'installer l'outil sur un docker ubuntu clean pour valider la procédure d'install
