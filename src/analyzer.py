@@ -641,9 +641,10 @@ class Analyzer:
 
     def analyzeNSCTrustAnchors(self, nsParser=None):
         """
-        Analyzes network_security_config file
+        Displays the trust anchors configured in the network_security_config file.
+        The results are grouped by domain for better readability.
+        The default trust anchors change after API level 23.
         https://developer.android.com/training/articles/security-config?hl=en#base-config
-        TODO FPI
         """
         # for unit tests allow to give a custom parser
         if nsParser is None:
@@ -654,7 +655,7 @@ class Analyzer:
             nsParser = NetworkSecParser(nsf, self.parser.debuggable())
         cert = namedtuple("Cert", "src overridePins")
 
-        def p(inherited_ta):
+        def show_config(inherited_ta):
             self.logger.info(f"Default trust-anchors are: {', '.join([e.src for e in inherited_ta])}")
             exceptions = []
             for e in nsParser.getDomainsWithTA(inheritedTA=inherited_ta):
@@ -672,24 +673,27 @@ class Analyzer:
                 print(colored("On Android 6 (API 23) and lower", attrs=["bold"]))
             # system and user as default
             inherited_ta = [cert("system", False), cert("user", False)]
-            return p(inherited_ta)
+            return show_config(inherited_ta)
 
         def for24andabove(condition=False):
             if condition:
                 print(colored("On Android 7 (API 24) and higher", attrs=["bold"]))
             # only system as default
             inherited_ta = [cert("system", False)]
-            return p(inherited_ta)
+            return show_config(inherited_ta)
 
         baseConfig = nsParser.getBaseConfig()
         if baseConfig is None or len(baseConfig.trustanchors) == 0:
             return handleVersion(for23andlower, for24andabove, 24, self.args.min_sdk_version, self.args.max_sdk_version)
         else:
-            return p(baseConfig.trustanchors)
+            return show_config(baseConfig.trustanchors)
 
     def analyzeNSCClearTextTraffic(self, nsParser=None):
         """
-        TODO FPI
+        Displays the clear text traffic configuration of the network_security_config file.
+        The results are grouped by domain for better readability.
+        The default value changes after API level 27.
+        https://developer.android.com/training/articles/security-config?hl=en#base-config
         """
         # for unit tests allow to give a custom parser
         if nsParser is None:
@@ -730,7 +734,11 @@ class Analyzer:
 
     def analyzeNSCPinning(self, nsParser=None):
         """
-        TODO FPI
+        Displays the certificate pinning configuration of the network_security_config file.
+        The results are grouped by domain for better readability.
+        The expiration dates of the certificate are verified.
+        Handles the case when the app is debuggable.
+        https://developer.android.com/training/articles/security-config?hl=en#debug-overrides
         """
         # for unit tests allow to give a custom parser
         if nsParser is None:
