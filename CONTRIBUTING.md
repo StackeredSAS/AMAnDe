@@ -1,4 +1,4 @@
-# How to contribute to XXX
+# How to contribute to AMAnDe
 
 ## Did you find a bug?
 If you do not want to/can't solve the bug, please open an issue after checking there isn't a similar one already opened.
@@ -12,12 +12,13 @@ If the change is really relevant and helps to improve the readability/intelligib
 Otherwise, minor changes such as title colors/bold etc. will not be accepted.
 
 ## Do you intend to add a new feature or change an existing one?
-Please open a pull request with a precise description. Do not forget adding any relevant link (documentation etc.)
+Please open a pull request with a precise description. Do not forget to add any relevant link (documentation etc.)
 
 
-Be careful, any modification must be validated via unit tests or meet the unit tests already developed.
-Do not forget to add unit tests to your pull request
+Be careful, any modification must be validated via new unit tests or meet the unit tests already implemented.
+Do not forget to add unit tests to your pull request when implementing a new feature.
 
+Here is how you can launch the existing unit tests and do some profiling :
 ```bash
 python3 -m unittest -b unitTests/tests.py
 python3 -m cProfile -s 'cumulative' main.py -max 23 -min 18 examples/AndroidManifest.xml
