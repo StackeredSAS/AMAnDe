@@ -84,7 +84,7 @@ class Parser:
         """
         UsesFeature = namedtuple("UsesFeature", "name required")
         res = []
-        for e in self.root.findall("application/uses-feature"):
+        for e in self.root.findall("uses-feature"):
             name = self._getattr(e, "android:name")
             required = str2Bool(self._getattr(e, "android:required"))
             # Default is true for android:required property
