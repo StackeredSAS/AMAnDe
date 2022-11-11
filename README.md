@@ -3,7 +3,7 @@
 AMAnDe stands for Android Manifest ANomaly Detector.
 It's a new tool whose objective is to extract and gather information from an Android Manifest.
 When we deal with huge Manifests, it is often difficult to get all relevant datas (like deeplink URIs, exported provider, etc.)
-With AMAnDe all of those are informations are deeply analyzed presented to you in a simple manner.
+With AMAnDe all of this information are deeply analyzed and presented to you in a simple manner.
 
 AMAnDe can also directly take an APK file as input. In this case, the following files (if exist) will also be analyzed :
 - fullBackupContent
