@@ -1,5 +1,8 @@
-<!-- This file is part of open source Signal Android application. It has been retrieved from https://github.com/signalapp/Signal-Android/blob/main/app/src/main/AndroidManifest.xml--> 
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+This file is part of open source Signal Android application.
+It has been retrieved from https://github.com/signalapp/Signal-Android/blob/main/app/src/main/AndroidManifest.xml
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools"
           package="org.thoughtcrime.securesms">
