@@ -4,6 +4,7 @@ from .utils import (
     printSubTestInfo
 )
 from termcolor import colored
+import re
 
 
 def runAPKSigner(logger, min_sdk, path):
@@ -14,8 +15,10 @@ def runAPKSigner(logger, min_sdk, path):
     """
     cmd = EXTERNAL_BINARIES["apksigner"] + ["verify", "--print-certs", "--verbose", "--min-sdk-version",
                                             str(min_sdk), path]
-    cmdres = runProc(cmd)
-    if cmdres:
+    cmdres, err = runProc(cmd)
+    pattern_1 = ".*Unauthorized.*not be detected.*$"
+
+    if cmdres is not None:
         printSubTestInfo("Output of apksigner")
         logger.info(colored(f"executed command : {' '.join(cmd)}", "yellow"))
 

@@ -104,42 +104,53 @@ def runProc(*args, **kwargs):
     :param args: The arguments to launch the subprocess.
     :type args: list[str]
 
-    :return: The STDOUT output of the subprocess launched or None if the program does not exist.
-    :rtype: bytes
+    :return: The STDOUT and STDERR output of the subprocess launched or None if the program does not exist.
+    :rtype: (bytes, bytes)
 
-    **Examples** ::
-
-        >>> runProc(["pwd"])
-        b'/tmp/test\\n'
-        >>> runProc(["echo", "hello"])
-        b'hello\\n'
     """
     import subprocess
     p = None
     output = None
+    output_stderr = None
     try:
         p = subprocess.Popen(stdout=subprocess.PIPE, *args, **kwargs)
         p.wait()
         output = p.stdout.read()
+        output = p.stderr.read()
         p.stdout.close()
     finally:
         if p is not None and p.poll() is None:
             p.terminate()  # send sigterm, or ...
             p.kill()  # send sigkill
-        return output
+        return output, output_stderr
 
 
 def handleVersion(lower_func, higher_func, trigger, min_sdk, max_sdk):
     """
+    A convenient function to handle the case when a feature might exist only in a specific SDK version range,
+    but the app can be installed on devices supporting a wider range of versions.
+
+    Example:
+        feature A is activated for SDK >= 20.
+        lower_func is a function handling SDK < 20
+        higher_func is a function handling SDK >= 20
+
+        App supports only SDK versions < 20:
+            feature A is activated, lower_func is called
+        App supports only SDK versions >= 20:
+            feature A is deactivated, higher_func is called
+        App supports SDK versions in the range [17, 23]:
+            feature A is activated for versions in [17, 19], lower_func is called
+            feature A is deactivated for versions in [20, 23], higher_func is also called
 
     :param lower_func: Function taking a single boolean argument indicating if we need to print the condition.
-    :param higher_func:
-    :param trigger:
-    :param min_sdk:
-    :param max_sdk:
-    :return:
+    :param higher_func: Function taking a single boolean argument indicating if we need to print the condition.
+    :param trigger: The SDK version indicating to switch to higher_func.
+                    If the target version is equal to the trigger, the higher_func will be executed.
+    :param min_sdk: The minimal SDK version supported by the app.
+    :param max_sdk: The minimal SDK version supported by the app.
+    :return: the return values of lower_func or higher_func, or both.
     """
-
     if max_sdk < trigger:
         return lower_func()
     elif min_sdk >= trigger:
