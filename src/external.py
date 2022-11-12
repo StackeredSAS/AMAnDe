@@ -8,6 +8,11 @@ import re
 
 
 def runAPKSigner(logger, min_sdk, path):
+    """
+    Executes APKSigner if available.
+    The output is interpreted and colored.
+    Warnings are removed for readability.
+    """
     cmd = EXTERNAL_BINARIES["apksigner"] + ["verify", "--print-certs", "--verbose", "--min-sdk-version",
                                             str(min_sdk), path]
     cmdres, err = runProc(cmd)
@@ -44,7 +49,7 @@ def runAPKSigner(logger, min_sdk, path):
                 line = line.replace("true", colored("true", "green"))
                 line = line.replace("false", colored("false", "red"))
 
-            print(line)
+            logger.info(line)
 
         if signature_versions[0] and not any(signature_versions[1:]):
             logger.critical("Your APK is only signed with scheme v1. Unauthorized modification to META-INF jar "
