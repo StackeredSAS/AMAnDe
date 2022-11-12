@@ -3,7 +3,7 @@
 AMAnDe stands for Android Manifest ANomaly Detector.
 It's a new tool whose objective is to extract and gather information from an Android Manifest.
 When we deal with huge Manifests, it is often difficult to get all relevant datas (like deeplink URIs, exported provider, etc.)
-With AMAnDe all of this information are deeply analyzed and presented to you in a simple manner.
+With AMAnDe all of this information is deeply analyzed and presented to you in a simple manner.
 
 AMAnDe can also directly take an APK file as input. In this case, the following files (if exist) will also be analyzed :
 - fullBackupContent
@@ -27,9 +27,9 @@ AMAnDe is developed with its own logger which can take value 0,1 and 2 to respec
 
 ```bash
 ./main.py -h
-./main.py -max 23 -min 18 examples/AndroidManifest.xml
-./main.py -max 23 -min 18 examples/AndroidManifest.xml -v 1
-./main.py -max 23 -min 18 examples/example.apk -v 2
+./main.py -min 10 -max 33 examples/AmazeFileManager_AndroidManifest.xml
+./main.py -min 10 -max 33 examples/AmazeFileManager_AndroidManifest.xml -v 2
+./main.py -min 10 -max 33 examples/examples/Signal_AndroidManifest.xml -v 1
 ```
 If you want interesting XML files (backup rules and network_security_config) to be parsed, please submit an APK file. Otherwise, give the script a simple Manifest file
 but the results will not be as relevant. 
@@ -94,7 +94,6 @@ please check our guidelines in [CONTRIBUTING](CONTRIBUTING.md).
 - A faire à la toute fin:
   - revoir le PEP8
   - revoir les fautes d'orthographe
-  - tenter d'installer l'outil sur un docker ubuntu clean pour valider la procédure d'install
   - passer le répo en public ou en faire un nouveau (si on veut pas l'historique des commits)
 
 ```bash
