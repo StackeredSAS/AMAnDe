@@ -90,7 +90,6 @@ please check our guidelines in [CONTRIBUTING](CONTRIBUTING.md).
 
 ## todo
 - support de ADB pour completer certains tests (ex: backups) et faire du dynamique
-- Supprimer le fichier AndroidManifest.xml ??
 - A faire à la toute fin:
   - revoir le PEP8
   - revoir les fautes d'orthographe
