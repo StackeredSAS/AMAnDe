@@ -11,7 +11,7 @@ from .constants import dangerous_perms
 from .apkParser import APKParser
 from .networkSecParser import NetworkSecParser
 from collections import namedtuple
-from .external import runAPKSigner
+from .external import runAPKSigner, performBackup
 
 
 class Analyzer:
@@ -21,6 +21,7 @@ class Analyzer:
         self.args = args
         self.isAPK = type(self.parser) is APKParser
         self.logger = logging.getLogger("MainLogger")
+        self.packageName = None
 
     def showApkInfo(self):
         """
@@ -107,7 +108,7 @@ class Analyzer:
 
         if self.isAPK:
             # if we have an APK and APKSigner is installed
-            runAPKSigner(self.logger, self.args.min_sdk_version, self.args.path)
+            runAPKSigner(self.args.min_sdk_version, self.args.path)
 
         return res
 
@@ -185,6 +186,8 @@ class Analyzer:
             if condition:
                 print(colored("On Android 11 (API 30) and lower", attrs=["bold"]))
             self.logger.warning("ADB backup can be performed to export sandbox data")
+            if self.packageName is not None:
+                performBackup(self.packageName)
             return True
 
         def notAllowed(condition=False):

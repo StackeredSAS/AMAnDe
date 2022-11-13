@@ -1,13 +1,16 @@
-from .config import EXTERNAL_BINARIES
+from .config import EXTERNAL_BINARIES, ADB_BACKUP_PATH
 from .utils import (
     runProc,
     printSubTestInfo
 )
 from termcolor import colored
 import re
+import logging
+
+logger = logging.getLogger("MainLogger")
 
 
-def runAPKSigner(logger, min_sdk, path):
+def runAPKSigner(min_sdk, path):
     """
     Executes APKSigner if available.
     The output is interpreted and colored.
@@ -54,3 +57,54 @@ def runAPKSigner(logger, min_sdk, path):
         if signature_versions[0] and not any(signature_versions[1:]):
             logger.critical("Your APK is only signed with scheme v1. Unauthorized modification to META-INF jar "
                             "entry will not be detected")
+
+
+def downloadAPK(name, new_path):
+    """
+    Downloads the APK associated to the package name using ADB.
+    The resulting APK is always named base.apk.
+    """
+    cmd = EXTERNAL_BINARIES["adb"] + ["shell", "pm", "path", name]
+    cmdres, err = runProc(cmd)
+    if cmdres is None or cmdres == b'':
+        logger.error(err.decode().strip())
+        return
+    logger.info(colored(f"executed command : {' '.join(cmd)}", "yellow"))
+    path = cmdres.strip().split(b':')[1].decode()
+
+    cmd = EXTERNAL_BINARIES["adb"] + ["pull", path, new_path]
+    logger.info(f"Downloading APK {name} into {new_path}...")
+    logger.info(colored(f"executing command : {' '.join(cmd)}", "yellow"))
+    cmdres, err = runProc(cmd)
+    if cmdres is None or cmdres == b'':
+        logger.error(err.decode().strip())
+        return
+    return new_path + f"/base.apk"
+
+
+def performBackup(name):
+    """
+    Performs an ADB backup and converts the resulting file to a TAR archive.
+    The default backup file location can be changed in config.py.
+    """
+    # first open the app
+    cmd = EXTERNAL_BINARIES["adb"] + ["shell", "monkey", "-p", name, "1"]
+    logger.info(colored(f"executing command : {' '.join(cmd)}", "yellow"))
+    cmdres, err = runProc(cmd)
+    if cmdres is None or cmdres == b'':
+        logger.error(err.decode().strip())
+        return
+    # now backup
+    cmd = EXTERNAL_BINARIES["adb"] + ["shell", "bu", "backup", name]
+    logger.info(f"Backing APK {name}. Waiting for user validation...")
+    logger.info(colored(f"executing command : {' '.join(cmd)}", "yellow"))
+    cmdres, err = runProc(cmd)
+    if cmdres is None or cmdres == b'':
+        logger.error(err.decode().strip())
+        return
+    # convert .ab to .tar
+    header = b'\x1f\x8b\x08\x00\x00\x00\x00\x00'
+    cmdres = header + cmdres[24:]
+    with open(ADB_BACKUP_PATH, "wb") as f:
+        f.write(cmdres)
+    logger.info(f"Backup written to {ADB_BACKUP_PATH}")

@@ -13,6 +13,8 @@ class CustomFormatter(logging.Formatter):
             record.msg = colored('[-] %s' % record.msg, "yellow")
         elif record.levelno == logging.CRITICAL:
             record.msg = colored('[!] %s' % record.msg, "red")
+        elif record.levelno == logging.ERROR:
+            record.msg = colored('[X] %s' % record.msg, "red")
         else:
             print("[!] Logging level not recognized")
 
@@ -70,7 +72,7 @@ def checkDigitalAssetLinks(host):
     try:
         if requests.get(f'https://{host}/.well-known/assetlinks.json').status_code == 200:
             return True
-    except Exception:
+    except requests.exceptions.ConnectionError:
         return False
 
 
@@ -113,10 +115,10 @@ def runProc(*args, **kwargs):
     output = None
     output_stderr = None
     try:
-        p = subprocess.Popen(stdout=subprocess.PIPE, *args, **kwargs)
+        p = subprocess.Popen(stdout=subprocess.PIPE, stderr=subprocess.PIPE, *args, **kwargs)
         p.wait()
         output = p.stdout.read()
-        output = p.stderr.read()
+        output_stderr = p.stderr.read()
         p.stdout.close()
     finally:
         if p is not None and p.poll() is None:
