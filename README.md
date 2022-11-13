@@ -21,15 +21,17 @@ python3 -m pip install -r requirements.txt
 ## Usage
 Using the script requires to specify the following mandatory options :
 - the version range (min/max Android SDK versions) in which the application is intended to work (this information can be found in the build.gradle or by asking the developer)
-- the path to the AndroidManifest.xml or APK file
+- the path to the AndroidManifest.xml or APK file or a package name in case of ADB connection
 
 AMAnDe is developed with its own logger which can take value 0,1 and 2 to respectively display INFO, WARNING or CRITICAL information.
 
 ```bash
 ./main.py -h
-./main.py -min 10 -max 33 examples/AmazeFileManager_AndroidManifest.xml
-./main.py -min 10 -max 33 examples/AmazeFileManager_AndroidManifest.xml -v 2
-./main.py -min 10 -max 33 examples/examples/Signal_AndroidManifest.xml -v 1
+./main.py -min 10 -max 28 examples/AmazeFileManager_AndroidManifest.xml
+./main.py -min 15 -max 30 examples/AmazeFileManager_AndroidManifest.xml -v 2
+./main.py -min 28 -max 32 examples/Signal_AndroidManifest.xml -v 1
+./main.py -min 20 -max 33 --adb com.example.package
+./main.py -min 21 -max 31 example.apk
 ```
 If you want interesting XML files (backup rules and network_security_config) to be parsed, please submit an APK file. Otherwise, give the script a simple Manifest file
 but the results will not be as relevant. 
@@ -47,7 +49,7 @@ but the results will not be as relevant.
 
 With an APK:
 - All the above
-- output of apksigner (if installed) to check the signature
+- output of apksigner (if installed) to check the signature. You can change the default binary path in [config.py](src/config.py).
 
 ### Permissions
 - builtins
@@ -64,6 +66,11 @@ With an APK:
 - All the above
 - fullBackupContent file content analysis (if it exists)
 - dataExtractionRules file content analysis (if it exists)
+
+With ADB:
+- All the above
+- Automatically performs a backup and stores it in the default location.
+- You can change the default ADB path and backup location in [config.py](src/config.py).
 
 ### Network Security Config
 With an APK and if the file exists:
@@ -86,21 +93,3 @@ With an APK and if the file exists:
 ## Contributing
 We encourage any contribution aiming at improving this tool. If you want to contribute
 please check our guidelines in [CONTRIBUTING](CONTRIBUTING.md).
-
-
-## todo
-- support de ADB pour completer certains tests (ex: backups) et faire du dynamique
-- A faire à la toute fin:
-  - revoir le PEP8
-  - revoir les fautes d'orthographe
-  - passer le répo en public ou en faire un nouveau (si on veut pas l'historique des commits)
-
-```bash
-adb shell 'bu backup -apk -all -nosystem' > backup.ab
-```
-
-Android backup extractor :
-```bash
-java -jar abe.jar unpack backup.ab backup.tar
-tar -xf backup.tar
-```

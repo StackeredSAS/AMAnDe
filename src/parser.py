@@ -161,7 +161,7 @@ class Parser:
         BLOG ARTICLE : https://medium.com/androiddevelopers/lets-be-explicit-about-our-intent-filters-c5dbe2dbdce0
         An important change is coming to Android 12 that improves both app and platform security. This change affects
         all apps that target Android 12. Activities, services, and broadcast receivers with declared intent-filters now
-        must explicitly declare whether they should be exported or not. Prior to Android 12, components (activites,
+        must explicitly declare whether they should be exported or not. Prior to Android 12, components (activities,
         services, and broadcast receivers only) with an intent-filter declared were automatically exported
         """
         # check if there is android:exported property set to True (no matter intent filter)
