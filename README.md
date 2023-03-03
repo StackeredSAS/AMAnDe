@@ -27,11 +27,11 @@ AMAnDe is developed with its own logger which can take value 0,1 and 2 to respec
 
 ```bash
 ./main.py -h
-./main.py -min 10 -target 20 -max 28 examples/AmazeFileManager_AndroidManifest.xml
+./main.py -min 10 -max 28 examples/AmazeFileManager_AndroidManifest.xml
 ./main.py -min 15 -target 20 -max 30 examples/AmazeFileManager_AndroidManifest.xml -v 2
 ./main.py -min 28 -target 30 -max 32 examples/Signal_AndroidManifest.xml -v 1
-./main.py -min 20 -target 23 -max 33 --adb com.example.package
-./main.py -min 21 -target 23 -max 31 example.apk
+./main.py -min 20 -max 33 --adb com.example.package
+./main.py -min 21 -max 31 example.apk
 ```
 If you want interesting XML files (backup rules and network_security_config) to be parsed, please submit an APK file. Otherwise, give the script a simple Manifest file
 but the results will not be as relevant. 
