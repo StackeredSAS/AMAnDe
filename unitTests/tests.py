@@ -190,26 +190,31 @@ class TestAnalyzer(unittest.TestCase):
 
     def test_showApkInfo(self):
         # the tuple elements represents :
-        # getSdkVersion[0] (uses_sdk_min_sdk_version), getSdkVersion[1](uses_sdk_max_sdk_version),
-        # args_min_sdk_version, args_max_sdk_version, expectedResult
+        # getSdkVersion (uses_sdk_min_sdk_version, uses_sdk_target_sdk_version, uses_sdk_max_sdk_version),
+        # args_min_sdk_version, args_target_sdk_version, args_max_sdk_version, expectedResult
         testCases = [
-            ((15, 30), 15, 30, 0),
-            ((15, 30), 20, 30, 1),
-            ((15, 30), 20, 30, 1),
-            ((15, 30), 20, 31, 3),
-            ((15, 30), 15, 31, 2),
-            ((15, 30), 1, 30, 1),
-            ((15, 30), 1, 31, 3),
-            ((15, 30), 15, 0, 2),
-            ((15, 30), 16, 0, 3),
-            ((15, 30), 1, 0, 3),
-            ((0, 0), 15, 30, 0),
-            ((1, 0), 15, 30, 1),
-            ((0, 4), 15, 30, 2),
-            ((13, 4), 15, 30, 3),
-            ((15, 0), 15, 30, 0),
-            ((0, 30), 15, 30, 0),
-            ((1, 30), 15, 30, 1),
+            ((15, 20, 30), 15, 20, 30, 0),
+            ((15, 20, 30), 20, 20, 30, 1),
+            ((15, 20, 30), 20, 20, 31, 3),
+            ((15, 20, 30), 15, 20, 31, 2),
+            ((15, 20, 30), 1, 20, 30, 1),
+            ((15, 20, 30), 1, 20, 31, 3),
+            ((15, 20, 30), 15, 20, 0, 2),
+            ((15, 20, 30), 16, 20, 0, 3),
+            ((15, 20, 30), 1, 20, 0, 3),
+            ((0, 0, 0), 15, 8, 30, 0),
+            ((1, 0, 0), 15, 0, 30, 1),
+            ((0, 0, 4), 15, 0, 30, 2),
+            ((13, 0, 4), 15, 0, 30, 3),
+            ((15, 0, 0), 15, 0, 30, 0),
+            ((0, 0, 30), 15, 0, 30, 0),
+            ((1, 0, 30), 15, 0, 30, 1),
+            ((15, 20, 30), 15, 16, 30, 4),
+            ((15, 20, 30), 11, 16, 30, 5),
+            ((15, 20, 30), 11, 16, 31, 7),
+            ((15, 20, 30), 11, 16, 31, 7),
+            ((1, 1, 30), 15, 3, 30, 5),
+            ((0, 1, 0), 15, 16, 30, 4),
         ]
         Info = namedtuple("Info", "package versionCode versionName")
         self.parser.getApkInfo = lambda: Info("pack", "12", "1.2")
@@ -222,14 +227,16 @@ class TestAnalyzer(unittest.TestCase):
         for testCase in testCases:
             getSdkVersion = testCase[0]
             min_sdk_version = testCase[1]
-            max_sdk_version = testCase[2]
-            expected = testCase[3]
+            target_sdk_version = testCase[2]
+            max_sdk_version = testCase[3]
+            expected = testCase[4]
             self.parser.getSdkVersion = lambda: getSdkVersion
             self.args.min_sdk_version = min_sdk_version
             self.args.max_sdk_version = max_sdk_version
+            self.args.target_sdk_version = target_sdk_version
             res = self.analyzer.showApkInfo()
-            self.assertEqual(expected, res, f"{getSdkVersion=} and {min_sdk_version=} and {max_sdk_version=} should "
-                                            f"produce {expected} but produced {res}")
+            self.assertEqual(expected, res, f"{getSdkVersion=} and {min_sdk_version=} and {target_sdk_version=} "
+                                            f"and {max_sdk_version=} should produce {expected} but produced {res}")
 
     def test_analyzeExportedComponent(self):
         # the tuple elements represents :

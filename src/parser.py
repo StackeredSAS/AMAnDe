@@ -220,13 +220,16 @@ class Parser:
         usesSdk = self.root.find("uses-sdk")
         # if not defined return 0
         min_level = 0
+        target_level = 0
         max_level = 0
         if usesSdk is not None:
             # if uses-sdk exists but the minSdkVersion is not set, the default value is 1
             min_level = int(self._getattr(usesSdk, "android:minSdkVersion") or 1)
+            # if uses-sdk exists but the targetSdkVersion is not set, the default value is the same as minSdkVersion
+            target_level = int(self._getattr(usesSdk, "android:targetSdkVersion") or min_level)
             # if max_level does not exist return 0
             max_level = int(self._getattr(usesSdk, "android:maxSdkVersion") or 0)
-        return min_level, max_level
+        return min_level, target_level, max_level
 
     def getExportedComponentPermission(self, componentType):
         """
