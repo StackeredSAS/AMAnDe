@@ -22,6 +22,7 @@ class TestAnalyzer(unittest.TestCase):
     analyzer = Analyzer(parser, args)
 
     def test_isADBBackupAllowed(self):
+        # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
         # allowBackup, debuggable, min_sdk_version, max_sdk_version, expectedResult
         testCases = [
@@ -69,6 +70,7 @@ class TestAnalyzer(unittest.TestCase):
                                             f"produce {expected} but produced {res}")
 
     def test_isAutoBackupAllowed(self):
+        # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
         # allowBackup, fullBackupOnly, backupAgent, min_sdk_version, max_sdk_version, expectedResult
         testCases = [
@@ -286,6 +288,7 @@ class TestAnalyzer(unittest.TestCase):
             self.assertEqual(expected, res, f"{backupAgent=} should produce {expected} but produced {res}")
 
     def test_getBackupRulesFile(self):
+        # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
         # fullBackupContent, dataExtractionRules, args_min_sdk, args_max_sdk, expectedResult
         testCases = [
@@ -358,6 +361,7 @@ class TestAnalyzer(unittest.TestCase):
             self.assertEqual(expected, res, f"{debuggable=} should produce {expected} but produced {res}")
 
     def test_isCleartextTrafficAllowed(self):
+        # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
         # usesCleartextTraffic, min_sdk_version, max_sdk_version, networkSecurityConfig, expectedResult
         testCases = [
@@ -483,6 +487,7 @@ class TestAnalyzer(unittest.TestCase):
             self.assertEqual(expected, res, f"{getUniversalLinks=} should produce {expected} but produced {res}")
 
     def test_analyzeNSCClearTextTraffic(self):
+        # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
         # min_sdk_version, ma_sdk_version, BConfig.cleartextTrafficPermitted, expectedResult
         testCases = [
@@ -523,6 +528,7 @@ class TestAnalyzer(unittest.TestCase):
                                             f"but produced {res}")
 
     def test_analyzeNSCTrustAnchors(self):
+        # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
         # min_sdk_version, max_sdk_version, BConfig.trustanchors, expectedResult
         cert = namedtuple("Cert", "src overridePins")
