@@ -506,16 +506,16 @@ class Analyzer:
         printTestInfo("Checking if http traffic can be used")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
 
-        def allowed(condition=False):
-            if condition:
-                print(colored("On Android 8.1 (API 27) and lower", attrs=["bold"]))
+        def allowed():
+            #if condition:
+            #    print(colored("On Android 8.1 (API 27) and lower", attrs=["bold"]))
             self.logger.warning("This app may intend to use cleartext network traffic "
                                 "such as HTTP to communicate with remote hosts")
             return True
 
-        def forbidden(condition=False):
-            if condition:
-                print(colored("On Android 9 (API 28) and higher", attrs=["bold"]))
+        def forbidden():
+            #if condition:
+            #    print(colored("On Android 9 (API 28) and higher", attrs=["bold"]))
             self.logger.info("Usage of cleartext traffic is not allowed "
                              "(this flag is honored as a best effort, please refer to the documentation)")
             return False
@@ -527,10 +527,7 @@ class Analyzer:
             if cleartextTraffic:
                 return allowed()
             if cleartextTraffic is None:
-                if condition:
-                    # was already in the case <= 23
-                    return allowed()
-                return handleVersion(allowed, forbidden, 28, self.args.min_sdk_version, self.args.max_sdk_version)
+                return handleVersion(allowed, forbidden, 28, self.args.min_sdk_version, self.args.target_sdk_version, True)
             return forbidden()
 
         def ignored(condition=False):
@@ -542,7 +539,7 @@ class Analyzer:
                 self.logger.info("APK network security configuration is defined. Please refer to this test instead.")
 
         if network_security_config_xml_file is not None:
-            return handleVersion(notIgnored, ignored, 24, self.args.min_sdk_version, self.args.max_sdk_version)
+            return handleVersion(notIgnored, ignored, 24, self.args.min_sdk_version, self.args.target_sdk_version, False)
 
         return notIgnored()
 

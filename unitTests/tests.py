@@ -321,7 +321,7 @@ class TestAnalyzer(unittest.TestCase):
     def test_getBackupRulesFile(self):
         # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
-        # fullBackupContent, dataExtractionRules, args_min_sdk, args_max_sdk, expectedResult
+        # fullBackupContent, dataExtractionRules, args_min_sdk, args_target_sdk, expectedResult
         testCases = [
             ("test.xml", "test.xml", 15, 30, 1),
             ("test.xml", "test.xml", 15, 31, 2),
@@ -358,6 +358,164 @@ class TestAnalyzer(unittest.TestCase):
             res = self.analyzer.getBackupRulesFile()
             self.assertEqual(expected, res, f"{fullBackupContent=} and {dataExtractionRules=} and {min_sdk_version=} "
                                             f"and {target_sdk_version=} should produce {expected} but produced {res}")
+
+    def test_getNetworkConfigFile(self):
+        # the tuple elements represents :
+        # networkSecurityConfig, expectedResult
+        testCases = [
+            ("network_security_config", True),
+            (None, False)
+        ]
+        self.analyzer.analyzeNSCTrustAnchors = lambda: None
+        self.analyzer.analyzeNSCPinning = lambda: None
+        for testCase in testCases:
+            networkSecurityConfig = testCase[0]
+            expected = testCase[1]
+            self.parser.networkSecurityConfig = lambda: networkSecurityConfig
+            res = self.analyzer.getNetworkConfigFile()
+            self.assertEqual(expected, res, f"{networkSecurityConfig=} should produce {expected} but produced {res}")
+
+    def test_isDebuggable(self):
+        # the tuple elements represents :
+        # debuggable, expectedResult
+        testCases = [
+            (True, True),
+            (False, False),
+            (None, False)
+        ]
+        self.parser.hasFile = lambda x: True
+        for testCase in testCases:
+            debuggable = testCase[0]
+            expected = testCase[1]
+            self.parser.debuggable = lambda: debuggable
+            res = self.analyzer.isDebuggable()
+            self.assertEqual(expected, res, f"{debuggable=} should produce {expected} but produced {res}")
+
+    def test_isCleartextTrafficAllowed(self):
+        # todo: incorrect comprehension of the documentation
+        # the tuple elements represents :
+        # usesCleartextTraffic, min_sdk_version, target_sdk_version, networkSecurityConfig, expectedResult
+        testCases = [
+            (True, 20, 21, None, True),
+            (True, 20, 21, "sd", True),
+            (False, 20, 21, None, False),
+            (False, 20, 21, "sd", False),
+            (None, 20, 21, None, True),
+            (None, 20, 21, "sd", True),
+
+            (True, 20, 24, None, True),
+            (True, 20, 24, "sd", (True, None)),
+            (False, 20, 24, None, False),
+            (False, 20, 24, "sd", (False, None)),
+            (None, 20, 24, None, True),
+            (None, 20, 24, "sd", (True, None)),
+
+            (True, 23, 25, None, True),
+            (True, 23, 25, "sd", (True, None)),
+            (False, 23, 25, None, False),
+            (False, 23, 25, "sd", (False, None)),
+            (None, 23, 25, None, True),
+            (None, 23, 25, "sd", (True, None)),
+
+            (True, 24, 25, None, True),
+            (True, 24, 25, "sd", None),
+            (False, 24, 25, None, False),
+            (False, 24, 25, "sd", None),
+            (None, 24, 25, None, True),
+            (None, 24, 25, "sd", None),
+            (True, 26, 27, None, True),
+            (True, 26, 27, "sd", None),
+            (False, 26, 27, None, False),
+            (False, 26, 27, "sd", None),
+            (None, 26, 27, None, True),
+            (None, 26, 27, "sd", None),
+
+            (True, 27, 28, None, True),
+            (True, 27, 28, "sd", None),
+            (False, 27, 28, None, False),
+            (False, 27, 28, "sd", None),
+            (None, 27, 28, None, False),
+            (None, 27, 28, "sd", None),
+
+            (True, 28, 30, None, True),
+            (True, 28, 30, "sd", None),
+            (False, 28, 30, None, False),
+            (False, 28, 30, "sd", None),
+            (None, 28, 30, None, False),
+            (None, 28, 30, "sd", None),
+
+            (True, 10, 30, None, True),
+            (True, 10, 30, "sd", (True, None)),
+            (False, 10, 30, None, False),
+            (False, 10, 30, "sd", (False, None)),
+            (None, 10, 30, None, False),
+            (None, 10, 30, "sd", (False, None)),
+        ]
+        self.analyzer.analyzeNSCClearTextTraffic = lambda: None
+        for testCase in testCases:
+            usesCleartextTraffic = testCase[0]
+            min_sdk_version = testCase[1]
+            target_sdk_version = testCase[2]
+            networkSecurityConfig = testCase[3]
+            expected = testCase[4]
+            self.parser.networkSecurityConfig = lambda: networkSecurityConfig
+            self.parser.usesCleartextTraffic = lambda: usesCleartextTraffic
+            self.args.min_sdk_version = min_sdk_version
+            self.args.target_sdk_version = target_sdk_version
+            res = self.analyzer.isCleartextTrafficAllowed()
+            self.assertEqual(expected, res, f"{usesCleartextTraffic=} and {min_sdk_version=} and {target_sdk_version=} and"
+                                            f" {networkSecurityConfig=} should produce {expected} but produced {res}")
+
+    def test_isDeepLinkUsed(self):
+        # the tuple elements represents :
+        # getUniversalLinks, expectedResult
+        UniversalLink = namedtuple("UniversalLink", "name tag autoVerify uris hosts")
+
+        testCases = [
+            ([UniversalLink("", "", "", ["host"], ["host"])], True),
+            ([], False),
+        ]
+
+        for testCase in testCases:
+            getUniversalLinks = testCase[0]
+            expected = testCase[1]
+            self.parser.getUniversalLinks = lambda: getUniversalLinks
+            res = self.analyzer.isDeepLinkUsed()
+            self.assertEqual(expected, res, f"{getUniversalLinks=} should produce {expected} but produced {res}")
+
+    def test_isAppLinkUsed(self):
+        # the tuple elements represents :
+        # getUniversalLinks, expectedResult
+        UniversalLink = namedtuple("UniversalLink", "name tag autoVerify uris hosts")
+
+        testCases = [
+            ([UniversalLink("", "", "", ["host"], ["host"])], 0),
+            ([], 0),
+            ([UniversalLink("", "", True, ["host"], ["host"])], 1),
+            ([
+                 UniversalLink("", "", True, ["host"], ["host"]),
+                 UniversalLink("", "", None, ["host"], ["host"])
+             ], 1),
+            ([
+                 UniversalLink("", "", True, ["host"], ["host"]),
+                 UniversalLink("", "", False, ["ddzad"], ["ddzad"])
+             ], 1),
+            ([
+                 UniversalLink("", "", True, ["host"], ["host"]),
+                 UniversalLink("", "", True, ["ddzad"], ["ddzad"])
+             ], 2),
+            ([
+                 UniversalLink("", "", True, ["host"], ["host"]),
+                 UniversalLink("", "", True, ["host"], ["host"])
+             ], 1),
+        ]
+
+        for testCase in testCases:
+            getUniversalLinks = testCase[0]
+            expected = testCase[1]
+            self.parser.getUniversalLinks = lambda: getUniversalLinks
+            res = self.analyzer.isAppLinkUsed()
+            self.assertEqual(expected, res, f"{getUniversalLinks=} should produce {expected} but produced {res}")
 
 
 if __name__ == '__main__':
