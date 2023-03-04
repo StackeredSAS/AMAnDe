@@ -516,7 +516,113 @@ class TestAnalyzer(unittest.TestCase):
             self.parser.getUniversalLinks = lambda: getUniversalLinks
             res = self.analyzer.isAppLinkUsed()
             self.assertEqual(expected, res, f"{getUniversalLinks=} should produce {expected} but produced {res}")
+"""
+    def test_analyzeNSCClearTextTraffic(self):
+        # todo: incorrect comprehension of the documentation
+        # the tuple elements represents :
+        # min_sdk_version, ma_sdk_version, BConfig.cleartextTrafficPermitted, expectedResult
+        testCases = [
+            (25, 27, True, True),
+            (25, 30, True, True),
+            (29, 30, True, True),
+            (28, 29, True, True),
+            (27, 28, True, True),
+            (25, 27, False, False),
+            (25, 30, False, False),
+            (29, 30, False, False),
+            (28, 29, False, False),
+            (27, 28, False, False),
+            (25, 27, None, True),
+            (25, 30, None, (True, False)),
+            (29, 30, None, False),
+            (28, 29, None, False),
+            (27, 28, None, (True, False)),
+        ]
 
+        config = namedtuple("BConfig", "cleartextTrafficPermitted trustanchors")
 
+        def d(dcs=None, inheritedCT=False, withCT=True):
+            return ["a", "b"]
+
+        self.parser.getAllDomains = d
+        for testCase in testCases:
+            min_sdk_version = testCase[0]
+            max_sdk_version = testCase[1]
+            cleartextTrafficPermitted = testCase[2]
+            expected = testCase[3]
+            self.parser.getBaseConfig = lambda: config(cleartextTrafficPermitted, [])
+            self.args.min_sdk_version = min_sdk_version
+            self.args.max_sdk_version = max_sdk_version
+            res = self.analyzer.analyzeNSCClearTextTraffic(self.parser)
+            self.assertEqual(expected, res, f"{min_sdk_version=} and {max_sdk_version=} and "
+                                            f"{cleartextTrafficPermitted=} should produce {expected} "
+                                            f"but produced {res}")
+
+    def test_analyzeNSCTrustAnchors(self):
+        # todo: incorrect comprehension of the documentation
+        # the tuple elements represents :
+        # min_sdk_version, max_sdk_version, BConfig.trustanchors, expectedResult
+        cert = namedtuple("Cert", "src overridePins")
+        c = cert("a", False)
+        testCases = [
+            (13, 23, [], 2),
+            (13, 20, [], 2),
+            (13, 23, [c, c, c], 3),
+            (13, 20, [c, c, c, c, c, c], 6),
+            (24, 25, [], 1),
+            (24, 30, [], 1),
+            (28, 39, [c, c, c], 3),
+            (28, 30, [c, c, c, c, c, c], 6),
+            (23, 24, [], (2, 1)),
+            (23, 24, [], (2, 1)),
+            (23, 24, [c, c, c], 3),
+            (23, 24, [c, c, c, c, c, c], 6),
+        ]
+
+        config = namedtuple("BConfig", "cleartextTrafficPermitted trustanchors")
+
+        def d(dcs=None, inheritedTA=False):
+            domainConf = namedtuple("DomainConf", "domain, trustanchors")
+            return [domainConf("aa", [])]
+
+        self.parser.getDomainsWithTA = d
+        for testCase in testCases:
+            min_sdk_version = testCase[0]
+            max_sdk_version = testCase[1]
+            trustanchors = testCase[2]
+            expected = testCase[3]
+            self.parser.getBaseConfig = lambda: config(True, trustanchors)
+            self.args.min_sdk_version = min_sdk_version
+            self.args.max_sdk_version = max_sdk_version
+            res = self.analyzer.analyzeNSCTrustAnchors(self.parser)
+            self.assertEqual(expected, res, f"{min_sdk_version=} and {max_sdk_version=} and {trustanchors=} "
+                                            f"should produce {expected} but produced {res}")
+
+    def test_analyzeNSCPinning(self):
+        # the tuple elements represents :
+        # domainConf, expectedResult
+        domainConf = namedtuple("DomainConf", "domain pinset overridePins")
+        # just test different cases but only to assert there is no crash
+        # there is nothing else to test really
+        testCases = [
+            ([domainConf("a", "2012-01-01", [])], None),
+            ([domainConf("a", "2100-01-01", [])], None),
+            ([domainConf("a", "2012-01-01", ["ss"])], None),
+            ([domainConf("a", "2100-01-01", ["sss"])], None),
+            ([domainConf("a", "2012-01-01", ["ss", "sdsqd"])], None),
+            ([domainConf("a", "2100-01-01", ["sss", "qsdfqq"])], None),
+        ]
+
+        def d(inheritedTA=False):
+            return parsed
+
+        self.parser.getPinningInfo = d
+        self.parser.getBaseConfig = lambda: None
+        for testCase in testCases:
+            parsed = testCase[0]
+            expected = testCase[1]
+            res = self.analyzer.analyzeNSCPinning(self.parser)
+            self.assertEqual(expected, res, f"{parsed=} should produce {expected} but produced {res}")
+"""
 if __name__ == '__main__':
     unittest.main(buffer=True)

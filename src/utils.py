@@ -165,14 +165,13 @@ def handleVersion(lower_func, higher_func, trigger, min_sdk, target_sdk, is_targ
             return higher_func(False)
         return lower_func(False)
 
-# si la version de target SDK est censée être le trigger alors on agit comme suit : 
-# - si target sdk < trigger -> lower
-# - si target sdk > trigger -> higher
+# if targetSdk paramter acts as the trigger : 
+# - if targetSdk < trigger -> calling lower_func
+# - if targetSdk > trigger -> calling higher_func
 
-# si la version de target SDK n'est pas censée être le trigger (la valeur de retour dépend de 
-# la version installée sur le téléphone -> encrypted backup) alors on agit comme suit :
+# # if targetSdk paramter does not act as the trigger (return value depends on the version running on 
+# the device (ex. encrypted backup) :
 
-# on récupère les valeurs de retour de lower et higher
-# if target SDK est inférieur à trigger, alors on retourne toujours lower
-# sinon, on regarde si min sdk est inférieur à trigger et on retourne le tuple des 2 fonctions
-# sinon on retourne juste higher
+# if targetSdk < trigger, always return lower_func
+# elif, check if min_sdk < trigger and return (lower_func, higher_func) tuple
+# else just return higher_func
