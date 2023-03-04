@@ -190,17 +190,17 @@ class Analyzer:
         backup_attr = self.parser.allowBackup()
         debuggable = self.parser.debuggable()
 
-        def allowed(condition=False):
-            if condition:
-                print(colored("On Android 11 (API 30) and lower", attrs=["bold"]))
+        def allowed():
+            #if condition:
+            #    print(colored("On Android 11 (API 30) and lower", attrs=["bold"]))
             self.logger.warning("ADB backup can be performed to export sandbox data")
             if self.packageName is not None:
                 performBackup(self.packageName)
             return True
 
-        def notAllowed(condition=False):
-            if condition:
-                print(colored("On Android 12 (API 31) and higher", attrs=["bold"]))
+        def notAllowed():
+            #if condition:
+            #    print(colored("On Android 12 (API 31) and higher", attrs=["bold"]))
             self.logger.info("ADB backup can be performed but exported data no longer contains the target "
                              "application's sandbox ones")
             return False
@@ -241,16 +241,16 @@ class Analyzer:
             self.logger.warning("E2E encryption not available")
             return False
 
-        def used(condition=False):
-            if condition:
-                print(colored("On Android 6 (API 23) and higher", attrs=["bold"]))
+        def used():
+            #if condition:
+            #    print(colored("On Android 6 (API 23) and higher", attrs=["bold"]))
             self.logger.warning("Google drive Auto-Backup functionality is activated")
             printSubTestInfo("Checking Auto-Backup E2E encryption")
             return True, handleVersion(unencrypted, encrypted, 28, self.args.min_sdk_version, self.args.target_sdk_version, False)
 
-        def notUsed(condition=False):
-            if condition:
-                print(colored("On Android 5 (API 22) and lower", attrs=["bold"]))
+        def notUsed():
+            #if condition:
+            #    print(colored("On Android 5 (API 22) and lower", attrs=["bold"]))
             self.logger.info("APK cannot be backed up with Auto-Backup")
             return False
 
@@ -300,9 +300,9 @@ class Analyzer:
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
         dataExtractionRules_xml_rules_files = self.parser.dataExtractionRules()
 
-        def fbc(condition=False):
-            if condition:
-                print(colored("On Android 11 (API 30) and lower", attrs=["bold"]))
+        def fbc():
+            #if condition:
+            #    print(colored("On Android 11 (API 30) and lower", attrs=["bold"]))
             if fullBackupContent_xml_file_rules is not None:
                 self.logger.info(
                     f'For Android versions <= 11 (API 30), custom rules has been defined to control what gets backed '
@@ -313,14 +313,14 @@ class Analyzer:
                 if len(table) > 0:
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
                 return 1
-            self.logger.warning(f'Minimal supported SDK version ({self.args.min_sdk_version})'
-                                f' allows Android versions <= 11 (API 30) and no exclusion custom rules file '
-                                f'has been specified in the fullBackupContent attribute.')
+            self.logger.warning(f'targetSdk parameter value is {self.args.target_sdk_version}. '
+                                f'As backup is allowed, it is recommended to specify custom exclusions in '
+                                f'fullBackupContent XML file.')
             return 0
 
-        def der(condition=False):
-            if condition:
-                print(colored("On Android 12 (API 31) and higher", attrs=["bold"]))
+        def der():
+            #if condition:
+            #    print(colored("On Android 12 (API 31) and higher", attrs=["bold"]))
             if dataExtractionRules_xml_rules_files is not None:
                 self.logger.info(
                     f'For Android versions >= 12 (API 31), custom rules has been defined to control what gets backed '
@@ -345,12 +345,12 @@ class Analyzer:
                         self.logger.info("Cloud backup rules have been defined :")
                         self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
                 return 2
-            self.logger.warning(f'Maximal supported SDK version ({self.args.max_sdk_version})'
-                                f' allows Android versions >= 12 (API 31) and no exclusion custom rules file '
-                                f'has been specified in the dataExtractionRules attribute.')
+            self.logger.warning(f'targetSdk parameter value is {self.args.target_sdk_version}. '
+                                f'As backup is allowed, it is recommended to specify custom exclusions in '
+                                f'dataExtractionRules XML file.')
             return 0
 
-        return handleVersion(fbc, der, 31, self.args.min_sdk_version, self.args.max_sdk_version)
+        return handleVersion(fbc, der, 31, self.args.min_sdk_version, self.args.target_sdk_version, True)
 
     def getNetworkConfigFile(self):
         """
