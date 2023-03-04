@@ -127,7 +127,7 @@ def runProc(*args, **kwargs):
         return output, output_stderr
 
 
-def handleVersion(lower_func, higher_func, trigger, min_sdk, max_sdk, target_sdk, is_target_sdk_trigger):
+def handleVersion(lower_func, higher_func, trigger, min_sdk, target_sdk, is_target_sdk_trigger):
     """
     A convenient function to handle the case when a feature might exist only in a specific SDK version range,
     but the app can be installed on devices supporting a wider range of versions.
@@ -153,13 +153,28 @@ def handleVersion(lower_func, higher_func, trigger, min_sdk, max_sdk, target_sdk
     :param max_sdk: The minimal SDK version supported by the app.
     :return: the return values of lower_func or higher_func, or both.
     """
-    if target_sdk < trigger:
-        return lower_func()
-    elif target_sdk >= trigger:
-        return higher_func()
+    if is_target_sdk_trigger:
+        if target_sdk < trigger:
+            return lower_func()
+        elif target_sdk >= trigger:
+            return higher_func()
     else:
-        if(is_target_sdk_trigger):
-            a = lower_func(True)
-            b = higher_func(True)
-            return a, b
-        pass
+        a = lower_func(True)
+        b = higher_func(True)
+        if target_sdk >= trigger :
+            if min_sdk < trigger:
+                    return a, b
+            return b
+        return a
+
+# si la version de target SDK est censée être le trigger alors on agit comme suit : 
+# - si target sdk < trigger -> lower
+# - si target sdk > trigger -> higher
+
+# si la version de target SDK n'est pas censée être le trigger (la valeur de retour dépend de 
+# la version installée sur le téléphone -> encrypted backup) alors on agit comme suit :
+
+# on récupère les valeurs de retour de lower et higher
+# if target SDK est inférieur à trigger, alors on retourne toujours lower
+# sinon, on regarde si min sdk est inférieur à trigger et on retourne le tuple des 2 fonctions
+# sinon on retourne juste higher

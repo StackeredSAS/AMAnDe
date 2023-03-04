@@ -207,7 +207,7 @@ class Analyzer:
 
         # android:allowBackup default value is true for any android version
         if backup_attr and not debuggable:
-            return handleVersion(allowed, notAllowed, 31, self.args.min_sdk_version, self.args.max_sdk_version, self.args.target_sdk_version, True)
+            return handleVersion(allowed, notAllowed, 31, self.args.min_sdk_version, self.args.target_sdk_version, True)
         if backup_attr and debuggable:
             return allowed()
         self.logger.info("APK cannot be backed up with adb")
@@ -246,7 +246,7 @@ class Analyzer:
                 print(colored("On Android 6 (API 23) and higher", attrs=["bold"]))
             self.logger.warning("Google drive Auto-Backup functionality is activated")
             printSubTestInfo("Checking Auto-Backup E2E encryption")
-            return True, handleVersion(unencrypted, encrypted, 28, self.args.min_sdk_version, self.args.max_sdk_version)
+            return True, handleVersion(unencrypted, encrypted, 28, self.args.min_sdk_version, self.args.target_sdk_version, False)
 
         def notUsed(condition=False):
             if condition:
@@ -255,13 +255,13 @@ class Analyzer:
             return False
 
         # android:allowBackup default value is true for any android version but auto backup
-        # is only available for API >= 23
+        # is only available for apps that target API >= 23
         # Taking into account fullBackupOnly property
         # fullBackupOnly = true -> auto backup all the time even if backupAgent is not None (if versions allow it)
         # fullBackupOnly = false -> auto backup only if BackupAgent is None
 
         if backup_attr and (fullBackupOnly or agent is None):
-            return handleVersion(notUsed, used, 23, self.args.min_sdk_version, self.args.max_sdk_version)
+            return handleVersion(notUsed, used, 23, self.args.min_sdk_version, self.args.target_sdk_version, True)
         return notUsed()
 
     def isBackupAgentImplemented(self):
