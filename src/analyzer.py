@@ -49,11 +49,14 @@ class Analyzer:
 
         versions = self.parser.getSdkVersion()
         uses_sdk_min_sdk_version = versions[0]
-        uses_sdk_max_sdk_version = versions[1]
+        uses_sdk_target_sdk_version = versions[1]
+        uses_sdk_max_sdk_version = versions[2]
         min_sdk_version_args = self.args.min_sdk_version
+        target_sdk_version_args = self.args.target_sdk_version
         max_sdk_version_args = self.args.max_sdk_version
         warning_msg_1 = ""
         warning_msg_2 = ""
+        warning_msg_3 = ""
         res = 0
 
         if uses_sdk_min_sdk_version != 0 and uses_sdk_min_sdk_version != min_sdk_version_args:
@@ -64,8 +67,13 @@ class Analyzer:
             res |= 2
             warning_msg_2 += colored("(Mismatch between args "
                                      f"and uses-sdk tag : {uses_sdk_max_sdk_version})", "yellow")
+        if uses_sdk_target_sdk_version != 0 and uses_sdk_target_sdk_version != target_sdk_version_args:
+            res |= 4
+            warning_msg_3 += colored("(Mismatch between args "
+                                     f"and uses-sdk tag : {uses_sdk_target_sdk_version})", "yellow")
 
         self.logger.info(f'Minimal SDK version: {min_sdk_version_args} {warning_msg_1}')
+        self.logger.info(f'Target SDK version: {target_sdk_version_args} {warning_msg_3}')
         self.logger.info(f'Maximal SDK version: {max_sdk_version_args} {warning_msg_2}')
         if uses_sdk_max_sdk_version != 0:
             self.logger.warning("Declaring the android:maxSdkVersion attribute is not recommended. "

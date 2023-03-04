@@ -20,13 +20,20 @@ if __name__ == "__main__":
     argparser.add_argument("--min-sdk-version", '-min', type=int, choices=range(1, ANDROID_MAX_SDK+1),
                            help='Indicate the minimum version supported by your application',
                            metavar=f"[1,{ANDROID_MAX_SDK}]", required=True)
+    argparser.add_argument("--target-sdk-version", '-target', type=int, choices=range(1, ANDROID_MAX_SDK + 1),
+                           help='Indicate the version targeted by your application',
+                           metavar=f"[1,{ANDROID_MAX_SDK}]")
     argparser.add_argument("--max-sdk-version", '-max', type=int, choices=range(1, ANDROID_MAX_SDK+1),
                            help='Indicate the maximum version supported by your application',
                            metavar=f"[1,{ANDROID_MAX_SDK}]", required=True)
     argparser.add_argument('--adb', action="store_true", help='Indicates to use ADB. The path argument is treated as '
                                                               'the app\'s package name')
     args = argparser.parse_args()
+    # just follow the same rule as Android for the default value
+    args.target_sdk_version = args.target_sdk_version or args.min_sdk_version
     assert args.min_sdk_version <= args.max_sdk_version, "min SDK version cannot be higher than max SDK version"
+    assert args.target_sdk_version <= args.max_sdk_version, "target SDK version cannot be higher than max SDK version"
+    assert args.min_sdk_version <= args.target_sdk_version, "min SDK version cannot be higher than target SDK version"
 
     # silence https://github.com/appknox/pyaxmlparser/blob/d111a4fc6330a0c293ffc2f114af360eb78ad2ef/pyaxmlparser
     # /stringblock.py#L208
