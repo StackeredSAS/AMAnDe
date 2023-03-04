@@ -207,7 +207,7 @@ class Analyzer:
 
         # android:allowBackup default value is true for any android version
         if backup_attr and not debuggable:
-            return handleVersion(allowed, notAllowed, 31, self.args.min_sdk_version, self.args.max_sdk_version)
+            return handleVersion(allowed, notAllowed, 31, self.args.min_sdk_version, self.args.max_sdk_version, self.args.target_sdk_version, True)
         if backup_attr and debuggable:
             return allowed()
         self.logger.info("APK cannot be backed up with adb")

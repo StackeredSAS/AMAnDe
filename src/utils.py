@@ -127,7 +127,7 @@ def runProc(*args, **kwargs):
         return output, output_stderr
 
 
-def handleVersion(lower_func, higher_func, trigger, min_sdk, max_sdk):
+def handleVersion(lower_func, higher_func, trigger, min_sdk, max_sdk, target_sdk, is_target_sdk_trigger):
     """
     A convenient function to handle the case when a feature might exist only in a specific SDK version range,
     but the app can be installed on devices supporting a wider range of versions.
@@ -153,11 +153,13 @@ def handleVersion(lower_func, higher_func, trigger, min_sdk, max_sdk):
     :param max_sdk: The minimal SDK version supported by the app.
     :return: the return values of lower_func or higher_func, or both.
     """
-    if max_sdk < trigger:
+    if target_sdk < trigger:
         return lower_func()
-    elif min_sdk >= trigger:
+    elif target_sdk >= trigger:
         return higher_func()
     else:
-        a = lower_func(True)
-        b = higher_func(True)
-        return a, b
+        if(is_target_sdk_trigger):
+            a = lower_func(True)
+            b = higher_func(True)
+            return a, b
+        pass

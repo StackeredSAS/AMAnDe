@@ -24,49 +24,79 @@ class TestAnalyzer(unittest.TestCase):
     def test_isADBBackupAllowed(self):
         # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
-        # allowBackup, debuggable, min_sdk_version, max_sdk_version, expectedResult
+        # allowBackup, debuggable, target_sdk_version, expectedResult
         testCases = [
-            (True, True, 20, 25, True),
-            (True, False, 20, 25, True),
-            (True, True, 20, 30, True),
-            (True, False, 20, 30, True),
-            (True, False, 30, 31, (True, False)),
-            (True, True, 30, 31, True),
-            (True, True, 31, 32, True),
-            (True, False, 31, 32, False),
+            (True, True, 25, True),
+            (True, True, 30, True),
+            (True, True, 31, True),
+            (True, True, 32, True),
+            (True, False, 25, True),
+            (True, False, 30, True),
+            (True, False, 31, False),
+            (True, False, 32, False),
 
-            (True, None, 20, 25, True),
-            (True, None, 20, 30, True),
-            (True, None, 30, 31, (True, False)),
-            (True, None, 31, 32, False),
+            (False, True, 25, False),
+            (False, True, 30, False),
+            (False, True, 31, False),
+            (False, True, 32, False),
+            (False, False, 25, False),
+            (False, False, 30, False),
+            (False, False, 31, False),
+            (False, False, 32, False),
 
-            (False, True, 20, 25, False),
-            (False, False, 20, 25, False),
-            (False, True, 20, 30, False),
-            (False, False, 20, 30, False),
-            (False, True, 30, 31, False),
-            (False, False, 30, 31, False),
-            (False, True, 31, 32, False),
-            (False, False, 31, 32, False),
+            (None, True, 25, True),
+            (None, True, 30, True),
+            (None, True, 31, True),
+            (None, True, 32, True),
+            (None, False, 25, True),
+            (None, False, 30, True),
+            (None, False, 31, False),
+            (None, False, 32, False),
 
-            (False, None, 20, 25, False),
-            (False, None, 20, 30, False),
-            (False, None, 30, 31, False),
-            (False, None, 31, 32, False),
+            (None, None, 25, True),
+            (None, None, 30, True),
+            (None, None, 31, False),
+            (None, None, 32, False),
+            (None, None, 25, True),
+            (None, None, 30, True),
+            (None, None, 31, False),
+            (None, None, 32, False),
+
+            (True, None, 25, True),
+            (True, None, 30, True),
+            (True, None, 31, False),
+            (True, None, 32, False),
+            (True, None, 25, True),
+            (True, None, 30, True),
+            (True, None, 31, False),
+            (True, None, 32, False),
+
+            (False, None, 25, False),
+            (False, None, 30, False),
+            (False, None, 31, False),
+            (False, None, 32, False),
+            (False, None, 25, False),
+            (False, None, 30, False),
+            (False, None, 31, False),
+            (False, None, 32, False),
+
         ]
+
 
         for testCase in testCases:
             allowBackup = testCase[0]
             debuggable = testCase[1]
-            min_sdk_version = testCase[2]
-            max_sdk_version = testCase[3]
-            expected = testCase[4]
+            target_sdk_version = testCase[2]
+            expected = testCase[3]
             self.parser.allowBackup = lambda: allowBackup
             self.parser.debuggable = lambda: debuggable
-            self.args.min_sdk_version = min_sdk_version
-            self.args.max_sdk_version = max_sdk_version
+            self.args.target_sdk_version = target_sdk_version
+
+            if allowBackup is None:
+                allowBackup = True
+
             res = self.analyzer.isADBBackupAllowed()
-            self.assertEqual(expected, res, f"{allowBackup=} and {min_sdk_version} and {max_sdk_version } should "
+            self.assertEqual(expected, res, f"{allowBackup=} and {target_sdk_version=} and {debuggable=} should "
                                             f"produce {expected} but produced {res}")
 
     def test_isAutoBackupAllowed(self):
