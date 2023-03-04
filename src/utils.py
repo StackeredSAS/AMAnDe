@@ -159,13 +159,11 @@ def handleVersion(lower_func, higher_func, trigger, min_sdk, target_sdk, is_targ
         elif target_sdk >= trigger:
             return higher_func()
     else:
-        a = lower_func(True)
-        b = higher_func(True)
         if target_sdk >= trigger :
             if min_sdk < trigger:
-                    return a, b
-            return b
-        return a
+                    return lower_func(True), higher_func(True)
+            return higher_func(False)
+        return lower_func(False)
 
 # si la version de target SDK est censée être le trigger alors on agit comme suit : 
 # - si target sdk < trigger -> lower
