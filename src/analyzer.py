@@ -661,22 +661,22 @@ class Analyzer:
             return len(inherited_ta)
 
         def for23andlower(condition=False):
-            if condition:
-                print(colored("On Android 6 (API 23) and lower", attrs=["bold"]))
+            #if condition:
+            #    print(colored("On Android 6 (API 23) and lower", attrs=["bold"]))
             # system and user as default
             inherited_ta = [cert("system", False), cert("user", False)]
             return show_config(inherited_ta)
 
         def for24andabove(condition=False):
-            if condition:
-                print(colored("On Android 7 (API 24) and higher", attrs=["bold"]))
+            #if condition:
+            #    print(colored("On Android 7 (API 24) and higher", attrs=["bold"]))
             # only system as default
             inherited_ta = [cert("system", False)]
             return show_config(inherited_ta)
 
         baseConfig = nsParser.getBaseConfig()
         if baseConfig is None or len(baseConfig.trustanchors) == 0:
-            return handleVersion(for23andlower, for24andabove, 24, self.args.min_sdk_version, self.args.max_sdk_version)
+            return handleVersion(for23andlower, for24andabove, 24, self.args.min_sdk_version, self.args.max_sdk_version, self.args.target_sdk_version, True)
         else:
             return show_config(baseConfig.trustanchors)
 
@@ -696,8 +696,8 @@ class Analyzer:
             nsParser = NetworkSecParser(nsf)
 
         def ctallowed(condition=False):
-            if condition:
-                print(colored("On Android 8.1 (API 27) and lower", attrs=["bold"]))
+            #if condition:
+            #    print(colored("On Android 8.1 (API 27) and lower", attrs=["bold"]))
             self.logger.warning("Clear text traffic is allowed for all domains.")
             doms = nsParser.getAllDomains(inheritedCT=True, withCT=False)
             doms = [f'\t{e}' for e in doms]
@@ -707,8 +707,8 @@ class Analyzer:
             return True
 
         def ctNotAllowed(condition=False):
-            if condition:
-                print(colored("On Android 9 (API 28) and higher", attrs=["bold"]))
+            #if condition:
+            #    print(colored("On Android 9 (API 28) and higher", attrs=["bold"]))
             self.logger.info(f"Clear text traffic is not allowed for all domains.")
             doms = nsParser.getAllDomains(inheritedCT=False, withCT=True)
             doms = [f'\t{e}' for e in doms]
@@ -719,7 +719,7 @@ class Analyzer:
 
         baseConfig = nsParser.getBaseConfig()
         if baseConfig is None or baseConfig.cleartextTrafficPermitted is None:
-            return handleVersion(ctallowed, ctNotAllowed, 28, self.args.min_sdk_version, self.args.max_sdk_version)
+            return handleVersion(ctallowed, ctNotAllowed, 28, self.args.min_sdk_version, self.args.max_sdk_version, self.args.target_sdk_version, True)
         if baseConfig.cleartextTrafficPermitted:
             return ctallowed()
         return ctNotAllowed()
