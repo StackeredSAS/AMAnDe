@@ -578,7 +578,6 @@ class TestAnalyzer(unittest.TestCase):
             self.assertEqual(expected, res, f"{getUniversalLinks=} should produce {expected} but produced {res}")
 
     def test_analyzeNSCClearTextTraffic(self):
-        # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
         # target_sdk_version, BConfig.cleartextTrafficPermitted, expectedResult
         testCases = [
@@ -625,7 +624,6 @@ class TestAnalyzer(unittest.TestCase):
                                             f"but produced {res}")
 
     def test_analyzeNSCTrustAnchors(self):
-        # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
         # target_sdk_version, BConfig.trustanchors, expectedResult
         cert = namedtuple("Cert", "src overridePins")
