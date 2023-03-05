@@ -102,104 +102,155 @@ class TestAnalyzer(unittest.TestCase):
     def test_isAutoBackupAllowed(self):
         # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
-        # allowBackup, fullBackupOnly, backupAgent, min_sdk_version, target_sdk_version expectedResult
+        # allowBackup, fullBackupOnly, backupAgent, min_sdk_version, max_sdk_version, target_sdk_version expectedResult
         testCases = [
             # CASE 1 : No Auto-Backup because < 23
-            (True, True, None, 12, 20, False),
-            (True, False, None, 12, 20, False),
-            (True, None, None, 12, 20, False),
-            (True, True, "test", 12, 20, False),
-            (True, False, "test", 12, 20, False),
-            (True, None, "test", 12, 20, False),
+            (True, True, None, 12, 20, 20, False),
+            (True, False, None, 12, 20, 20, False),
+            (True, None, None, 12, 20, 20, False),
+            (True, True, "test", 12, 20, 20, False),
+            (True, False, "test", 12, 20, 20, False),
+            (True, None, "test", 12, 20, 20, False),
 
-            (False, True, None, 12, 20, False),
-            (False, False, None, 12, 20, False),
-            (False, None, None, 12, 20, False),
-            (False, True, "test", 12, 20, False),
-            (False, False, "test", 12, 20, False),
-            (False, None, "test", 12, 20, False),
+            (False, True, None, 12, 20, 20, False),
+            (False, False, None, 12, 20, 20, False),
+            (False, None, None, 12, 20, 20, False),
+            (False, True, "test", 12, 20, 20, False),
+            (False, False, "test", 12, 20, 20, False),
+            (False, None, "test", 12, 20, 20, False),
 
             # CASE 2 : SAME as case 1 but maybe with an ambiguous trigger
-            (True, True, None, 12, 22, False),
-            (True, False, None, 12, 22, False),
-            (True, None, None, 12, 22, False),
-            (True, True, "test", 12, 22, False),
-            (True, False, "test", 12, 22, False),
-            (True, None, "test", 12, 22, False),
+            (True, True, None, 12, 22, 22, False),
+            (True, False, None, 12, 22, 22, False),
+            (True, None, None, 12, 22, 22, False),
+            (True, True, "test", 12, 22, 22, False),
+            (True, False, "test", 12, 22, 22, False),
+            (True, None, "test", 12, 22, 22, False),
 
-            (False, True, None, 12, 22, False),
-            (False, False, None, 12, 22, False),
-            (False, None, None, 12, 22, False),
-            (False, True, "test", 12, 22, False),
-            (False, False, "test", 12, 22, False),
-            (False, None, "test", 12, 22, False),
+            (False, True, None, 12, 22, 22, False),
+            (False, False, None, 12, 22, 22, False),
+            (False, None, None, 12, 22, 22, False),
+            (False, True, "test", 12, 22, 22, False),
+            (False, False, "test", 12, 22, 22, False),
+            (False, None, "test", 12, 22, 22, False),
 
             # CASE 3 : With an ambiguous trigger
-            (True, True, None, 12, 23, (True, False)),
-            (True, False, None, 12, 23, (True, False)),
-            (True, None, None, 12, 23, (True, False)),
-            (True, True, "test", 12, 23, (True, False)),
+            (True, True, None, 12, 23, 23, (True, False)),
+            (True, False, None, 12, 23, 23, (True, False)),
+            (True, None, None, 12, 23, 23, (True, False)),
+            (True, True, "test", 12, 23, 23, (True, False)),
             # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
-            (True, False, "test", 12, 23, False),
-            (True, None, "test", 12, 23, False),
+            (True, False, "test", 12, 23, 23, False),
+            (True, None, "test", 12, 23, 23, False),
 
-            (False, True, None, 12, 23, False),
-            (False, False, None, 12, 23, False),
-            (False, None, None, 12, 23, False),
-            (False, True, "test", 12, 23, False),
-            (False, False, "test", 12, 23, False),
-            (False, None, "test", 12, 23, False),
+            (False, True, None, 12, 23, 23, False),
+            (False, False, None, 12, 23, 23, False),
+            (False, None, None, 12, 23, 23, False),
+            (False, True, "test", 12, 23, 23, False),
+            (False, False, "test", 12, 23, 23, False),
+            (False, None, "test", 12, 23, 23, False),
 
             # CASE 4 : With an ambiguous trigger, before encryption can be available and without version that do not
             # support Auto-Backup
-            (True, True, None, 23, 26, (True, False)),
-            (True, False, None, 23, 26, (True, False)),
-            (True, None, None, 23, 26, (True, False)),
-            (True, True, "test", 23, 26, (True, False)),
+            (True, True, None, 23, 26, 26, (True, False)),
+            (True, False, None, 23, 26, 26, (True, False)),
+            (True, None, None, 23, 26, 26, (True, False)),
+            (True, True, "test", 23, 26, 26, (True, False)),
             # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
-            (True, False, "test", 23, 26, False),
-            (True, None, "test", 23, 26, False),
+            (True, False, "test", 23, 26, 26, False),
+            (True, None, "test", 23, 26, 26, False),
 
-            (False, True, None, 23, 26, False),
-            (False, False, None, 23, 26, False),
-            (False, None, None, 23, 26, False),
-            (False, True, "test", 23, 26, False),
-            (False, False, "test", 23, 26, False),
-            (False, None, "test", 23, 26, False),
+            (False, True, None, 23, 26, 26, False),
+            (False, False, None, 23, 26, 26, False),
+            (False, None, None, 23, 26, 26, False),
+            (False, True, "test", 23, 26, 26, False),
+            (False, False, "test", 23, 26, 26, False),
+            (False, None, "test", 23, 26, 26, False),
 
-            # CASE 5 : With version that do not support encryption and without version that do not
+
+            # CASE 5 : With all
+            (True, True, None, 20, 28, 27, (True,(False,True))),
+            (True, False, None, 20, 28, 27, (True,(False,True))),
+            (True, None, None, 20, 28, 27, (True,(False,True))),
+            (True, True, "test", 20, 28, 27, (True,(False,True))),
+            (True, False, "test", 20, 28, 27, False),
+            (True, None, "test", 20, 28, 27, False),
+
+            (False, True, None, 20, 28, 27, False),
+            (False, False, None, 20, 28, 27, False),
+            (False, None, None, 20, 28, 27, False),
+            (False, True, "test", 20, 28, 27, False),
+            (False, False, "test", 20, 28, 27, False),
+            (False, None, "test", 20, 28, 27, False),
+
+
+            # CASE 6 : With max > target an ambiguous trigger
+            (True, True, None, 23, 27, 26, (True, False)),
+            (True, False, None, 23, 27, 26, (True, False)),
+            (True, None, None, 23, 27, 26, (True, False)),
+            (True, True, "test", 23, 27, 26, (True, False)),
+            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
+            (True, False, "test", 23, 27, 26, False),
+            (True, None, "test", 23, 27, 26, False),
+
+            (False, True, None, 23, 27, 26, False),
+            (False, False, None, 23, 27, 26, False),
+            (False, None, None, 23, 27, 26, False),
+            (False, True, "test", 23, 27, 26, False),
+            (False, False, "test", 23, 27, 26, False),
+            (False, None, "test", 23, 27, 26, False),
+
+
+            # CASE 7 : With max > target an ambiguous trigger which take encrypted and unencpryted
+            (True, True, None, 23, 28, 26, (True, (False, True))),
+            (True, False, None, 23, 28, 26, (True, (False, True))),
+            (True, None, None, 23, 28, 26, (True, (False, True))),
+            (True, True, "test", 23, 28, 26, (True, (False, True))),
+            # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
+            (True, False, "test", 23, 28, 26, False),
+            (True, None, "test", 23, 28, 26, False),
+
+            (False, True, None, 23, 28, 26, False),
+            (False, False, None, 23, 28, 26, False),
+            (False, None, None, 23, 28, 26, False),
+            (False, True, "test", 23, 28, 26, False),
+            (False, False, "test", 23, 28, 26, False),
+            (False, None, "test", 23, 28, 26, False),
+
+
+            # CASE 8 : With version that do not support encryption and without version that do not
             # support Auto-Backup and with an ambiguous trigger
-            (True, True, None, 25, 28, (True,(False,True))),
-            (True, False, None, 23, 28, (True, (False, True))),
-            (True, None, None, 23, 28, (True, (False, True))),
-            (True, True, "test", 23, 28, (True, (False, True))),
+            (True, True, None, 25, 28, 28, (True,(False,True))),
+            (True, False, None, 23, 28, 28, (True, (False, True))),
+            (True, None, None, 23, 28, 28, (True, (False, True))),
+            (True, True, "test", 23, 28, 28, (True, (False, True))),
             # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
-            (True, False, "test", 23, 28, False),
-            (True, None, "test", 23, 28, False),
+            (True, False, "test", 23, 28, 28, False),
+            (True, None, "test", 23, 28, 28, False),
 
-            (False, True, None, 23, 28, False),
-            (False, False, None, 23, 28, False),
-            (False, None, None, 23, 28, False),
-            (False, True, "test", 23, 28, False),
-            (False, False, "test", 23, 28, False),
-            (False, None, "test", 23, 28, False),
+            (False, True, None, 23, 28, 28, False),
+            (False, False, None, 23, 28, 28, False),
+            (False, None, None, 23, 28, 28, False),
+            (False, True, "test", 23, 28, 28, False),
+            (False, False, "test", 23, 28, 28, False),
+            (False, None, "test", 23, 28, 28, False),
 
-            # CASE 6 : With version that do not support encryption and without version that do not
+            # CASE 9 : With version that do not support encryption and without version that do not
             # support Auto-Backup and with an ambiguous trigger
-            (True, True, None, 28, 30, (True, True)),
-            (True, False, None, 28, 30, (True, True)),
-            (True, None, None, 28, 30, (True, True)),
-            (True, True, "test", 28, 30, (True, True)),
+            (True, True, None, 28, 30, 30, (True, True)),
+            (True, False, None, 28, 30, 30, (True, True)),
+            (True, None, None, 28, 30, 30, (True, True)),
+            (True, True, "test", 28, 30, 30, (True, True)),
             # Return False because if fullBackupOnly is False, Auto-Backup is performed only when backupAgent is None
-            (True, False, "test", 28, 30, False),
-            (True, None, "test", 28, 30, False),
+            (True, False, "test", 28, 30, 30, False),
+            (True, None, "test", 28, 30, 30, False),
 
-            (False, True, None, 28, 30, False),
-            (False, False, None, 28, 30, False),
-            (False, None, None, 28, 30, False),
-            (False, True, "test", 28, 30, False),
-            (False, False, "test", 28, 30, False),
-            (False, None, "test", 28, 30, False),
+            (False, True, None, 28, 30, 30, False),
+            (False, False, None, 28, 30, 30, False),
+            (False, None, None, 28, 30, 30, False),
+            (False, True, "test", 28, 30, 30, False),
+            (False, False, "test", 28, 30, 30, False),
+            (False, None, "test", 28, 30, 30, False),
 
         ]
 
@@ -208,17 +259,19 @@ class TestAnalyzer(unittest.TestCase):
             fullBackupOnly = testCase[1]
             backupAgent = testCase[2]
             min_sdk_version = testCase[3]
-            target_sdk_version = testCase[4]
-            expected = testCase[5]
+            max_sdk_version = testCase[4]
+            target_sdk_version = testCase[5]
+            expected = testCase[6]
             self.parser.allowBackup = lambda: allowBackup
             self.parser.fullBackupOnly = lambda: fullBackupOnly
             self.parser.backupAgent = lambda: backupAgent
             self.args.min_sdk_version = min_sdk_version
+            self.args.max_sdk_version = max_sdk_version
             self.args.target_sdk_version = target_sdk_version
             res = self.analyzer.isAutoBackupAllowed()
             self.assertEqual(expected, res,
                              f"{allowBackup=} and {fullBackupOnly=} and {backupAgent=} and {min_sdk_version=} "
-                             f"and {target_sdk_version=} should produce {expected} but produced {res}")
+                             f"and {max_sdk_version=} and {target_sdk_version=} should produce {expected} but produced {res}")
 
 
     def test_showApkInfo(self):
@@ -394,76 +447,87 @@ class TestAnalyzer(unittest.TestCase):
     def test_isCleartextTrafficAllowed(self):
         # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
-        # usesCleartextTraffic, min_sdk_version, target_sdk_version, networkSecurityConfig, expectedResult
+        # usesCleartextTraffic, min_sdk_version, max_sdk_version, target_sdk_version, networkSecurityConfig, expectedResult
         testCases = [
-            (True, 20, 21, None, True),
-            (True, 20, 21, "sd", True),
-            (False, 20, 21, None, False),
-            (False, 20, 21, "sd", False),
-            (None, 20, 21, None, True),
-            (None, 20, 21, "sd", True),
+            (True, 20, 21, 21, None, True),
+            (True, 20, 21, 21, "sd", True),
+            (False, 20, 21, 21, None, False),
+            (False, 20, 21, 21, "sd", False),
+            (None, 20, 21, 21, None, True),
+            (None, 20, 21, 21, "sd", True),
 
-            (True, 20, 24, None, True),
-            (True, 20, 24, "sd", (True, None)),
-            (False, 20, 24, None, False),
-            (False, 20, 24, "sd", (False, None)),
-            (None, 20, 24, None, True),
-            (None, 20, 24, "sd", (True, None)),
+            (True, 20, 24, 24, None, True),
+            (True, 20, 24, 24, "sd", (True, None)),
+            (False, 20, 24, 24, None, False),
+            (False, 20, 24, 24, "sd", (False, None)),
+            (None, 20, 24, 24, None, True),
+            (None, 20, 24, 24, "sd", (True, None)),
 
-            (True, 23, 25, None, True),
-            (True, 23, 25, "sd", (True, None)),
-            (False, 23, 25, None, False),
-            (False, 23, 25, "sd", (False, None)),
-            (None, 23, 25, None, True),
-            (None, 23, 25, "sd", (True, None)),
+            (True, 20, 28, 27, None, True),
+            (True, 20, 28, 27, "sd", (True, None)),
+            (False, 20, 28, 27, None, False),
+            (False, 20, 28, 27, "sd", (False, None)),
+            (None, 20, 28, 27, None, True),
+            (None, 20, 28, 27, "sd", (True, None)),
 
-            (True, 24, 25, None, True),
-            (True, 24, 25, "sd", None),
-            (False, 24, 25, None, False),
-            (False, 24, 25, "sd", None),
-            (None, 24, 25, None, True),
-            (None, 24, 25, "sd", None),
-            (True, 26, 27, None, True),
-            (True, 26, 27, "sd", None),
-            (False, 26, 27, None, False),
-            (False, 26, 27, "sd", None),
-            (None, 26, 27, None, True),
-            (None, 26, 27, "sd", None),
+            (True, 20, 32, 30, None, True),
+            (True, 20, 32, 30, "sd", (True, None)),
+            (False, 20, 32, 30, None, False),
+            (False, 20, 32, 30, "sd", (False, None)),
+            (None, 20, 32, 30, None, False),
+            (None, 20, 32, 30, "sd", (False, None)),
 
-            (True, 27, 28, None, True),
-            (True, 27, 28, "sd", None),
-            (False, 27, 28, None, False),
-            (False, 27, 28, "sd", None),
-            (None, 27, 28, None, False),
-            (None, 27, 28, "sd", None),
+            (True, 23, 25, 24, None, True),
+            (True, 23, 25, 24, "sd", (True, None)),
+            (False, 23, 25, 24, None, False),
+            (False, 23, 25, 24, "sd", (False, None)),
+            (None, 23, 25, 24, None, True),
+            (None, 23, 25, 24, "sd", (True, None)),
 
-            (True, 28, 30, None, True),
-            (True, 28, 30, "sd", None),
-            (False, 28, 30, None, False),
-            (False, 28, 30, "sd", None),
-            (None, 28, 30, None, False),
-            (None, 28, 30, "sd", None),
+            (True, 24, 25, 25, None, True),
+            (True, 24, 25, 25, "sd", None),
+            (False, 24, 25, 25, None, False),
+            (False, 24, 25, 25, "sd", None),
+            (None, 24, 25, 25, None, True),
+            (None, 24, 25, 25, "sd", None),
 
-            (True, 10, 30, None, True),
-            (True, 10, 30, "sd", (True, None)),
-            (False, 10, 30, None, False),
-            (False, 10, 30, "sd", (False, None)),
-            (None, 10, 30, None, False),
-            (None, 10, 30, "sd", (False, None)),
+            (True, 26, 27, 27, None, True),
+            (True, 26, 27, 27, "sd", None),
+            (False, 26, 27, 27, None, False),
+            (False, 26, 27, 27, "sd", None),
+            (None, 26, 27, 27, None, True),
+            (None, 26, 27, 27, "sd", None),
+
+            (True, 27, 28, 28, None, True),
+            (True, 27, 28, 28, "sd", None),
+            (False, 27, 28, 28, None, False),
+            (False, 27, 28, 28, "sd", None),
+            (None, 27, 28, 28, None, False),
+            (None, 27, 28, 28, "sd", None),
+
+            (True, 28, 33, 30, None, True),
+            (True, 28, 33, 30, "sd", None),
+            (False, 28, 33, 30, None, False),
+            (False, 28, 33, 30, "sd", None),
+            (None, 28, 33, 30, None, False),
+            (None, 28, 33, 30, "sd", None),
+
         ]
         self.analyzer.analyzeNSCClearTextTraffic = lambda: None
         for testCase in testCases:
             usesCleartextTraffic = testCase[0]
             min_sdk_version = testCase[1]
-            target_sdk_version = testCase[2]
-            networkSecurityConfig = testCase[3]
-            expected = testCase[4]
+            max_sdk_version = testCase[2]
+            target_sdk_version = testCase[3]
+            networkSecurityConfig = testCase[4]
+            expected = testCase[5]
             self.parser.networkSecurityConfig = lambda: networkSecurityConfig
             self.parser.usesCleartextTraffic = lambda: usesCleartextTraffic
             self.args.min_sdk_version = min_sdk_version
+            self.args.max_sdk_version = max_sdk_version
             self.args.target_sdk_version = target_sdk_version
             res = self.analyzer.isCleartextTrafficAllowed()
-            self.assertEqual(expected, res, f"{usesCleartextTraffic=} and {min_sdk_version=} and {target_sdk_version=} and"
+            self.assertEqual(expected, res, f"{usesCleartextTraffic=} and {min_sdk_version=} and {max_sdk_version=} and {target_sdk_version=} and"
                                             f" {networkSecurityConfig=} should produce {expected} but produced {res}")
 
     def test_isDeepLinkUsed(self):
