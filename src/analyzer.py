@@ -660,16 +660,12 @@ class Analyzer:
                     self.logger.info(f"\tFor domain {e[0]}, trust anchors are: {e[1]}")
             return len(inherited_ta)
 
-        def for23andlower(condition=False):
-            #if condition:
-            #    print(colored("On Android 6 (API 23) and lower", attrs=["bold"]))
+        def for23andlower():
             # system and user as default
             inherited_ta = [cert("system", False), cert("user", False)]
             return show_config(inherited_ta)
 
-        def for24andabove(condition=False):
-            #if condition:
-            #    print(colored("On Android 7 (API 24) and higher", attrs=["bold"]))
+        def for24andabove():
             # only system as default
             inherited_ta = [cert("system", False)]
             return show_config(inherited_ta)
@@ -695,9 +691,7 @@ class Analyzer:
             printSubTestInfo("Analysing Network security cleartext traffic configuration")
             nsParser = NetworkSecParser(nsf)
 
-        def ctallowed(condition=False):
-            #if condition:
-            #    print(colored("On Android 8.1 (API 27) and lower", attrs=["bold"]))
+        def ctallowed():
             self.logger.warning("Clear text traffic is allowed for all domains.")
             doms = nsParser.getAllDomains(inheritedCT=True, withCT=False)
             doms = [f'\t{e}' for e in doms]
@@ -706,9 +700,7 @@ class Analyzer:
                 self.logger.info("\n".join(doms))
             return True
 
-        def ctNotAllowed(condition=False):
-            #if condition:
-            #    print(colored("On Android 9 (API 28) and higher", attrs=["bold"]))
+        def ctNotAllowed():
             self.logger.info(f"Clear text traffic is not allowed for all domains.")
             doms = nsParser.getAllDomains(inheritedCT=False, withCT=True)
             doms = [f'\t{e}' for e in doms]
