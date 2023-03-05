@@ -156,8 +156,8 @@ def handleVersion(lower_func, higher_func, trigger, min_sdk, max_sdk, target_sdk
                     If the target version is equal to the trigger, the higher_func will be executed.
     :param min_sdk: The minimal SDK version supported by the app.
     :param max_sdk: The minimal SDK version supported by the app.
-    :param max_sdk: The target SDK version uses to compile the app.
-    :param max_sdk: Boolean indicating if targetSdk value acts as the trigger.
+    :param target_sdk: The target SDK version uses to compile the app.
+    :param is_target_sdk_trigger: Boolean indicating if targetSdk value acts as the trigger.
     :return: the return values of lower_func or higher_func, or both.
     """
     if is_target_sdk_trigger:

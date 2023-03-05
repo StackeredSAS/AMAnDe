@@ -203,7 +203,8 @@ class Analyzer:
 
         # android:allowBackup default value is true for any android version
         if backup_attr and not debuggable:
-            return handleVersion(allowed, notAllowed, 31, self.args.min_sdk_version, self.args.max_sdk_version, self.args.target_sdk_version, True)
+            return handleVersion(allowed, notAllowed, 31, self.args.min_sdk_version, self.args.max_sdk_version,
+                                 self.args.target_sdk_version, True)
         if backup_attr and debuggable:
             return allowed()
         self.logger.info("APK cannot be backed up with adb")
@@ -240,7 +241,8 @@ class Analyzer:
         def used():
             self.logger.warning("Google drive Auto-Backup functionality is activated")
             printSubTestInfo("Checking Auto-Backup E2E encryption")
-            return True, handleVersion(unencrypted, encrypted, 28, self.args.min_sdk_version, self.args.max_sdk_version, self.args.target_sdk_version, False)
+            return True, handleVersion(unencrypted, encrypted, 28, self.args.min_sdk_version, self.args.max_sdk_version,
+                                       self.args.target_sdk_version, False)
 
         def notUsed():
             self.logger.info("APK cannot be backed up with Auto-Backup")
@@ -253,7 +255,8 @@ class Analyzer:
         # fullBackupOnly = false -> auto backup only if BackupAgent is None
 
         if backup_attr and (fullBackupOnly or agent is None):
-            return handleVersion(notUsed, used, 23, self.args.min_sdk_version, self.args.max_sdk_version, self.args.target_sdk_version, True)
+            return handleVersion(notUsed, used, 23, self.args.min_sdk_version, self.args.max_sdk_version,
+                                 self.args.target_sdk_version, True)
         return notUsed()
 
     def isBackupAgentImplemented(self):
@@ -338,7 +341,8 @@ class Analyzer:
                                 f'dataExtractionRules XML file.')
             return 0
 
-        return handleVersion(fbc, der, 31, self.args.min_sdk_version, self.args.max_sdk_version, self.args.target_sdk_version, True)
+        return handleVersion(fbc, der, 31, self.args.min_sdk_version, self.args.max_sdk_version,
+                             self.args.target_sdk_version, True)
 
     def getNetworkConfigFile(self):
         """
@@ -511,7 +515,8 @@ class Analyzer:
             if cleartextTraffic:
                 return allowed()
             if cleartextTraffic is None:
-                return handleVersion(allowed, forbidden, 28, self.args.min_sdk_version, self.args.max_sdk_version, self.args.target_sdk_version, True)
+                return handleVersion(allowed, forbidden, 28, self.args.min_sdk_version, self.args.max_sdk_version,
+                                     self.args.target_sdk_version, True)
             return forbidden()
 
         def ignored(condition=False):
@@ -523,7 +528,8 @@ class Analyzer:
                 self.logger.info("APK network security configuration is defined. Please refer to this test instead.")
 
         if network_security_config_xml_file is not None:
-            return handleVersion(notIgnored, ignored, 24, self.args.min_sdk_version, self.args.max_sdk_version, self.args.target_sdk_version, False)
+            return handleVersion(notIgnored, ignored, 24, self.args.min_sdk_version, self.args.max_sdk_version,
+                                 self.args.target_sdk_version, False)
 
         return notIgnored()
 
@@ -672,7 +678,8 @@ class Analyzer:
 
         baseConfig = nsParser.getBaseConfig()
         if baseConfig is None or len(baseConfig.trustanchors) == 0:
-            return handleVersion(for23andlower, for24andabove, 24, self.args.min_sdk_version, self.args.max_sdk_version, self.args.target_sdk_version, True)
+            return handleVersion(for23andlower, for24andabove, 24, self.args.min_sdk_version, self.args.max_sdk_version,
+                                 self.args.target_sdk_version, True)
         else:
             return show_config(baseConfig.trustanchors)
 
@@ -711,7 +718,8 @@ class Analyzer:
 
         baseConfig = nsParser.getBaseConfig()
         if baseConfig is None or baseConfig.cleartextTrafficPermitted is None:
-            return handleVersion(ctallowed, ctNotAllowed, 28, self.args.min_sdk_version, self.args.max_sdk_version, self.args.target_sdk_version, True)
+            return handleVersion(ctallowed, ctNotAllowed, 28, self.args.min_sdk_version, self.args.max_sdk_version,
+                                 self.args.target_sdk_version, True)
         if baseConfig.cleartextTrafficPermitted:
             return ctallowed()
         return ctNotAllowed()

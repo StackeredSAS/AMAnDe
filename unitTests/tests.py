@@ -81,7 +81,6 @@ class TestAnalyzer(unittest.TestCase):
 
         ]
 
-
         for testCase in testCases:
             allowBackup = testCase[0]
             debuggable = testCase[1]
@@ -167,10 +166,10 @@ class TestAnalyzer(unittest.TestCase):
 
 
             # CASE 5 : With all
-            (True, True, None, 20, 28, 27, (True,(False,True))),
-            (True, False, None, 20, 28, 27, (True,(False,True))),
-            (True, None, None, 20, 28, 27, (True,(False,True))),
-            (True, True, "test", 20, 28, 27, (True,(False,True))),
+            (True, True, None, 20, 28, 27, (True, (False, True))),
+            (True, False, None, 20, 28, 27, (True, (False, True))),
+            (True, None, None, 20, 28, 27, (True, (False, True))),
+            (True, True, "test", 20, 28, 27, (True, (False, True))),
             (True, False, "test", 20, 28, 27, False),
             (True, None, "test", 20, 28, 27, False),
 
@@ -218,7 +217,7 @@ class TestAnalyzer(unittest.TestCase):
 
             # CASE 8 : With version that do not support encryption and without version that do not
             # support Auto-Backup and with an ambiguous trigger
-            (True, True, None, 25, 28, 28, (True,(False,True))),
+            (True, True, None, 25, 28, 28, (True, (False, True))),
             (True, False, None, 23, 28, 28, (True, (False, True))),
             (True, None, None, 23, 28, 28, (True, (False, True))),
             (True, True, "test", 23, 28, 28, (True, (False, True))),
@@ -269,8 +268,8 @@ class TestAnalyzer(unittest.TestCase):
             res = self.analyzer.isAutoBackupAllowed()
             self.assertEqual(expected, res,
                              f"{allowBackup=} and {fullBackupOnly=} and {backupAgent=} and {min_sdk_version=} "
-                             f"and {max_sdk_version=} and {target_sdk_version=} should produce {expected} but produced {res}")
-
+                             f"and {max_sdk_version=} and {target_sdk_version=} should produce {expected} but "
+                             f"produced {res}")
 
     def test_showApkInfo(self):
         # the tuple elements represents :
@@ -443,7 +442,8 @@ class TestAnalyzer(unittest.TestCase):
 
     def test_isCleartextTrafficAllowed(self):
         # the tuple elements represents :
-        # usesCleartextTraffic, min_sdk_version, max_sdk_version, target_sdk_version, networkSecurityConfig, expectedResult
+        # usesCleartextTraffic, min_sdk_version, max_sdk_version,
+        # target_sdk_version, networkSecurityConfig, expectedResult
         testCases = [
             (True, 20, 21, 21, None, True),
             (True, 20, 21, 21, "sd", True),
@@ -523,8 +523,9 @@ class TestAnalyzer(unittest.TestCase):
             self.args.max_sdk_version = max_sdk_version
             self.args.target_sdk_version = target_sdk_version
             res = self.analyzer.isCleartextTrafficAllowed()
-            self.assertEqual(expected, res, f"{usesCleartextTraffic=} and {min_sdk_version=} and {max_sdk_version=} and {target_sdk_version=} and"
-                                            f" {networkSecurityConfig=} should produce {expected} but produced {res}")
+            self.assertEqual(expected, res, f"{usesCleartextTraffic=} and {min_sdk_version=} and {max_sdk_version=} "
+                                            f"and {target_sdk_version=} and {networkSecurityConfig=} should "
+                                            f"produce {expected} but produced {res}")
 
     def test_isDeepLinkUsed(self):
         # the tuple elements represents :
@@ -683,6 +684,7 @@ class TestAnalyzer(unittest.TestCase):
             expected = testCase[1]
             res = self.analyzer.analyzeNSCPinning(self.parser)
             self.assertEqual(expected, res, f"{parsed=} should produce {expected} but produced {res}")
+
 
 if __name__ == '__main__':
     unittest.main(buffer=True)
