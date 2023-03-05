@@ -21,11 +21,12 @@ if __name__ == "__main__":
                            help='Indicate the minimum version supported by your application',
                            metavar=f"[1,{ANDROID_MAX_SDK}]", required=True)
     argparser.add_argument("--target-sdk-version", '-target', type=int, choices=range(1, ANDROID_MAX_SDK + 1),
-                           help='Indicate the version targeted by your application',
+                           help='Indicate the version targeted by your application '
+                                '(default : same as --min-sdk-version)',
                            metavar=f"[1,{ANDROID_MAX_SDK}]")
     argparser.add_argument("--max-sdk-version", '-max', type=int, choices=range(1, ANDROID_MAX_SDK+1),
-                           help='Indicate the maximum version supported by your application',
-                           metavar=f"[1,{ANDROID_MAX_SDK}]", required=True)
+                           help='Indicate the maximum version supported by your application (default : %(default)s)',
+                           metavar=f"[1,{ANDROID_MAX_SDK}]", default=ANDROID_MAX_SDK)
     argparser.add_argument('--adb', action="store_true", help='Indicates to use ADB. The path argument is treated as '
                                                               'the app\'s package name')
     args = argparser.parse_args()

@@ -190,24 +190,21 @@ class Analyzer:
         backup_attr = self.parser.allowBackup()
         debuggable = self.parser.debuggable()
 
-        def allowed(condition=False):
-            if condition:
-                print(colored("On Android 11 (API 30) and lower", attrs=["bold"]))
+        def allowed():
             self.logger.warning("ADB backup can be performed to export sandbox data")
             if self.packageName is not None:
                 performBackup(self.packageName)
             return True
 
-        def notAllowed(condition=False):
-            if condition:
-                print(colored("On Android 12 (API 31) and higher", attrs=["bold"]))
+        def notAllowed():
             self.logger.info("ADB backup can be performed but exported data no longer contains the target "
                              "application's sandbox ones")
             return False
 
         # android:allowBackup default value is true for any android version
         if backup_attr and not debuggable:
-            return handleVersion(allowed, notAllowed, 31, self.args.min_sdk_version, self.args.max_sdk_version)
+            return handleVersion(allowed, notAllowed, 31, self.args.min_sdk_version, self.args.max_sdk_version,
+                                 self.args.target_sdk_version, True)
         if backup_attr and debuggable:
             return allowed()
         self.logger.info("APK cannot be backed up with adb")
@@ -241,27 +238,25 @@ class Analyzer:
             self.logger.warning("E2E encryption not available")
             return False
 
-        def used(condition=False):
-            if condition:
-                print(colored("On Android 6 (API 23) and higher", attrs=["bold"]))
+        def used():
             self.logger.warning("Google drive Auto-Backup functionality is activated")
             printSubTestInfo("Checking Auto-Backup E2E encryption")
-            return True, handleVersion(unencrypted, encrypted, 28, self.args.min_sdk_version, self.args.max_sdk_version)
+            return True, handleVersion(unencrypted, encrypted, 28, self.args.min_sdk_version, self.args.max_sdk_version,
+                                       self.args.target_sdk_version, False)
 
-        def notUsed(condition=False):
-            if condition:
-                print(colored("On Android 5 (API 22) and lower", attrs=["bold"]))
+        def notUsed():
             self.logger.info("APK cannot be backed up with Auto-Backup")
             return False
 
         # android:allowBackup default value is true for any android version but auto backup
-        # is only available for API >= 23
+        # is only available for apps that target API >= 23
         # Taking into account fullBackupOnly property
         # fullBackupOnly = true -> auto backup all the time even if backupAgent is not None (if versions allow it)
         # fullBackupOnly = false -> auto backup only if BackupAgent is None
 
         if backup_attr and (fullBackupOnly or agent is None):
-            return handleVersion(notUsed, used, 23, self.args.min_sdk_version, self.args.max_sdk_version)
+            return handleVersion(notUsed, used, 23, self.args.min_sdk_version, self.args.max_sdk_version,
+                                 self.args.target_sdk_version, True)
         return notUsed()
 
     def isBackupAgentImplemented(self):
@@ -300,9 +295,7 @@ class Analyzer:
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
         dataExtractionRules_xml_rules_files = self.parser.dataExtractionRules()
 
-        def fbc(condition=False):
-            if condition:
-                print(colored("On Android 11 (API 30) and lower", attrs=["bold"]))
+        def fbc():
             if fullBackupContent_xml_file_rules is not None:
                 self.logger.info(
                     f'For Android versions <= 11 (API 30), custom rules has been defined to control what gets backed '
@@ -313,14 +306,12 @@ class Analyzer:
                 if len(table) > 0:
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
                 return 1
-            self.logger.warning(f'Minimal supported SDK version ({self.args.min_sdk_version})'
-                                f' allows Android versions <= 11 (API 30) and no exclusion custom rules file '
-                                f'has been specified in the fullBackupContent attribute.')
+            self.logger.warning(f'targetSdk parameter value is {self.args.target_sdk_version}. '
+                                f'As backup is allowed, it is recommended to specify custom exclusions in '
+                                f'fullBackupContent XML file.')
             return 0
 
-        def der(condition=False):
-            if condition:
-                print(colored("On Android 12 (API 31) and higher", attrs=["bold"]))
+        def der():
             if dataExtractionRules_xml_rules_files is not None:
                 self.logger.info(
                     f'For Android versions >= 12 (API 31), custom rules has been defined to control what gets backed '
@@ -345,12 +336,13 @@ class Analyzer:
                         self.logger.info("Cloud backup rules have been defined :")
                         self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
                 return 2
-            self.logger.warning(f'Maximal supported SDK version ({self.args.max_sdk_version})'
-                                f' allows Android versions >= 12 (API 31) and no exclusion custom rules file '
-                                f'has been specified in the dataExtractionRules attribute.')
+            self.logger.warning(f'targetSdk parameter value is {self.args.target_sdk_version}. '
+                                f'As backup is allowed, it is recommended to specify custom exclusions in '
+                                f'dataExtractionRules XML file.')
             return 0
 
-        return handleVersion(fbc, der, 31, self.args.min_sdk_version, self.args.max_sdk_version)
+        return handleVersion(fbc, der, 31, self.args.min_sdk_version, self.args.max_sdk_version,
+                             self.args.target_sdk_version, True)
 
     def getNetworkConfigFile(self):
         """
@@ -506,16 +498,12 @@ class Analyzer:
         printTestInfo("Checking if http traffic can be used")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
 
-        def allowed(condition=False):
-            if condition:
-                print(colored("On Android 8.1 (API 27) and lower", attrs=["bold"]))
+        def allowed():
             self.logger.warning("This app may intend to use cleartext network traffic "
                                 "such as HTTP to communicate with remote hosts")
             return True
 
-        def forbidden(condition=False):
-            if condition:
-                print(colored("On Android 9 (API 28) and higher", attrs=["bold"]))
+        def forbidden():
             self.logger.info("Usage of cleartext traffic is not allowed "
                              "(this flag is honored as a best effort, please refer to the documentation)")
             return False
@@ -527,10 +515,8 @@ class Analyzer:
             if cleartextTraffic:
                 return allowed()
             if cleartextTraffic is None:
-                if condition:
-                    # was already in the case <= 23
-                    return allowed()
-                return handleVersion(allowed, forbidden, 28, self.args.min_sdk_version, self.args.max_sdk_version)
+                return handleVersion(allowed, forbidden, 28, self.args.min_sdk_version, self.args.max_sdk_version,
+                                     self.args.target_sdk_version, True)
             return forbidden()
 
         def ignored(condition=False):
@@ -542,7 +528,8 @@ class Analyzer:
                 self.logger.info("APK network security configuration is defined. Please refer to this test instead.")
 
         if network_security_config_xml_file is not None:
-            return handleVersion(notIgnored, ignored, 24, self.args.min_sdk_version, self.args.max_sdk_version)
+            return handleVersion(notIgnored, ignored, 24, self.args.min_sdk_version, self.args.max_sdk_version,
+                                 self.args.target_sdk_version, False)
 
         return notIgnored()
 
@@ -679,23 +666,20 @@ class Analyzer:
                     self.logger.info(f"\tFor domain {e[0]}, trust anchors are: {e[1]}")
             return len(inherited_ta)
 
-        def for23andlower(condition=False):
-            if condition:
-                print(colored("On Android 6 (API 23) and lower", attrs=["bold"]))
+        def for23andlower():
             # system and user as default
             inherited_ta = [cert("system", False), cert("user", False)]
             return show_config(inherited_ta)
 
-        def for24andabove(condition=False):
-            if condition:
-                print(colored("On Android 7 (API 24) and higher", attrs=["bold"]))
+        def for24andabove():
             # only system as default
             inherited_ta = [cert("system", False)]
             return show_config(inherited_ta)
 
         baseConfig = nsParser.getBaseConfig()
         if baseConfig is None or len(baseConfig.trustanchors) == 0:
-            return handleVersion(for23andlower, for24andabove, 24, self.args.min_sdk_version, self.args.max_sdk_version)
+            return handleVersion(for23andlower, for24andabove, 24, self.args.min_sdk_version, self.args.max_sdk_version,
+                                 self.args.target_sdk_version, True)
         else:
             return show_config(baseConfig.trustanchors)
 
@@ -714,9 +698,7 @@ class Analyzer:
             printSubTestInfo("Analysing Network security cleartext traffic configuration")
             nsParser = NetworkSecParser(nsf)
 
-        def ctallowed(condition=False):
-            if condition:
-                print(colored("On Android 8.1 (API 27) and lower", attrs=["bold"]))
+        def ctallowed():
             self.logger.warning("Clear text traffic is allowed for all domains.")
             doms = nsParser.getAllDomains(inheritedCT=True, withCT=False)
             doms = [f'\t{e}' for e in doms]
@@ -725,9 +707,7 @@ class Analyzer:
                 self.logger.info("\n".join(doms))
             return True
 
-        def ctNotAllowed(condition=False):
-            if condition:
-                print(colored("On Android 9 (API 28) and higher", attrs=["bold"]))
+        def ctNotAllowed():
             self.logger.info(f"Clear text traffic is not allowed for all domains.")
             doms = nsParser.getAllDomains(inheritedCT=False, withCT=True)
             doms = [f'\t{e}' for e in doms]
@@ -738,7 +718,8 @@ class Analyzer:
 
         baseConfig = nsParser.getBaseConfig()
         if baseConfig is None or baseConfig.cleartextTrafficPermitted is None:
-            return handleVersion(ctallowed, ctNotAllowed, 28, self.args.min_sdk_version, self.args.max_sdk_version)
+            return handleVersion(ctallowed, ctNotAllowed, 28, self.args.min_sdk_version, self.args.max_sdk_version,
+                                 self.args.target_sdk_version, True)
         if baseConfig.cleartextTrafficPermitted:
             return ctallowed()
         return ctNotAllowed()
