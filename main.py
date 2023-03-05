@@ -21,7 +21,7 @@ if __name__ == "__main__":
                            help='Indicate the minimum version supported by your application',
                            metavar=f"[1,{ANDROID_MAX_SDK}]", required=True)
     argparser.add_argument("--target-sdk-version", '-target', type=int, choices=range(1, ANDROID_MAX_SDK + 1),
-                           help='Indicate the version targeted by your application',
+                           help='Indicate the version targeted by your application (default : min_sdk_version)',
                            metavar=f"[1,{ANDROID_MAX_SDK}]")
     argparser.add_argument("--max-sdk-version", '-max', type=int, choices=range(1, ANDROID_MAX_SDK+1),
                            help='Indicate the maximum version supported by your application (default : %(default)s)',
@@ -35,8 +35,6 @@ if __name__ == "__main__":
     assert args.target_sdk_version <= args.max_sdk_version, "target SDK version cannot be higher than max SDK version"
     assert args.min_sdk_version <= args.target_sdk_version, "min SDK version cannot be higher than target SDK version"
 
-    if not args.target_sdk_version:
-        args.target_sdk_version = args.max_sdk_version
     # silence https://github.com/appknox/pyaxmlparser/blob/d111a4fc6330a0c293ffc2f114af360eb78ad2ef/pyaxmlparser
     # /stringblock.py#L208
     logging.getLogger("pyaxmlparser.stringblock").setLevel(logging.CRITICAL)
