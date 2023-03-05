@@ -22,7 +22,6 @@ class TestAnalyzer(unittest.TestCase):
     analyzer = Analyzer(parser, args)
 
     def test_isADBBackupAllowed(self):
-        # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
         # allowBackup, debuggable, target_sdk_version, expectedResult
         testCases = [
@@ -100,7 +99,6 @@ class TestAnalyzer(unittest.TestCase):
                                             f"produce {expected} but produced {res}")
 
     def test_isAutoBackupAllowed(self):
-        # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
         # allowBackup, fullBackupOnly, backupAgent, min_sdk_version, max_sdk_version, target_sdk_version expectedResult
         testCases = [
@@ -372,7 +370,6 @@ class TestAnalyzer(unittest.TestCase):
             self.assertEqual(expected, res, f"{backupAgent=} should produce {expected} but produced {res}")
 
     def test_getBackupRulesFile(self):
-        # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
         # fullBackupContent, dataExtractionRules, args_min_sdk, args_target_sdk, expectedResult
         testCases = [
@@ -445,7 +442,6 @@ class TestAnalyzer(unittest.TestCase):
             self.assertEqual(expected, res, f"{debuggable=} should produce {expected} but produced {res}")
 
     def test_isCleartextTrafficAllowed(self):
-        # todo: incorrect comprehension of the documentation
         # the tuple elements represents :
         # usesCleartextTraffic, min_sdk_version, max_sdk_version, target_sdk_version, networkSecurityConfig, expectedResult
         testCases = [
