@@ -56,6 +56,7 @@ With an APK:
   - Searching dangerous ones (i.e. READ_CONTACTS etc.)
 - customs
   - Analyzing declaration and protectionLevel specified by the developer
+- Check typo error(s) in components custom permission implementation
 
 ### Backup functionality
 - ADB
@@ -88,6 +89,9 @@ With an APK and if the file exists:
 
 ### Firebase
 - Looking for Firebase URL
+
+### Task Hijacking
+- Check for possible task hijacking (StrandHogg) in activity launchMode
 
 
 ## Contributing
