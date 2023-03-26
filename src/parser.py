@@ -439,7 +439,6 @@ class Parser:
         """
         CustomPermsComponent = namedtuple("CustomPermsComponent", "name permission")
         res = []
-        custom_perms = self.customPermissions()
         for e in self.root.findall(f"application/{component}"):
             name = self._getattr(e, "android:name")
             permission = self._getattr(e, "android:permission")
