@@ -422,3 +422,27 @@ class Parser:
         if fullBackupOnly is None:
             fullBackupOnly = False
         return fullBackupOnly
+
+    def getSingleTaskActivities(self):
+        """
+        Returns a list of activities whose launch mode is set to singleTask.
+        """
+        single_task_activities = [self._getattr(e, "android:name").split(".")[-1] for e in
+                              self.root.findall(f'application/activity[@android:launchMode="singleTask"]',
+                                                namespaces=self.namespaces)]
+        return single_task_activities
+
+    def getComponentCustomPerms(self, component):
+        """
+        Lists all components and their associated custom permission
+        The list is returned as a namedtuple made of component's name and permission
+        """
+        CustomPermsComponent = namedtuple("CustomPermsComponent", "name permission")
+        res = []
+        custom_perms = self.customPermissions()
+        for e in self.root.findall(f"application/{component}"):
+            name = self._getattr(e, "android:name")
+            permission = self._getattr(e, "android:permission")
+            if permission is not None and not permission.startswith("android.permission"):
+                res.append(CustomPermsComponent(name, permission))
+        return res
