@@ -775,18 +775,19 @@ class Analyzer:
         vunerable_activities = self.parser.getSingleTaskActivities()
 
         if len(vunerable_activities) == 0:
-            self.logger.info("There is no singleTask activity used across this application")
+            self.logger.info("There is no singleTask activity used across this application.")
         if self.args.min_sdk_version <= 28:
             if len(vunerable_activities) == 1:
                 msg = "activity uses"
             else:
                 msg = "activities use"
 
-            self.logger.critical(f"The following {msg} singleTask launch mode. Application may be vulnerable to Task Hijacking")
+            self.logger.critical(f"The following {msg} singleTask launch mode. Application may be vulnerable to Task "
+                                 f"Hijacking.")
             for e in vunerable_activities:
                 print(colored(f"{e}", "red"))
         else:
-            self.logger.info("Application can not be executed on device running Android 9 or lower")
+            self.logger.info("Application can not be executed on device running Android 9 or lower.")
 
     def analyzeComponentCustomPermsTypo(self):
         """
@@ -795,9 +796,9 @@ class Analyzer:
         printTestInfo("Looking for typo error(s) in component assigned custom permission")
         custom_perms = self.parser.customPermissions()
         component_list = ["activity", "provider", "receiver", "service"]
-        res = []
         counter = 0
         msg = ""
+        error = False
         for e in component_list:
             res = self.parser.getComponentCustomPerms(e)
             if len(res) != 0:
@@ -805,8 +806,8 @@ class Analyzer:
                     if not all([e.permission == cp.name for e in res]):
                         error = True
                         counter += 0
-                        for e in res:
-                            msg += f"{e.name.split('.')[-1]} : {e.permission.split('.')[-1]}\n"
+                        for c in res:
+                            msg += f"{c.name.split('.')[-1]} : {c.permission.split('.')[-1]}\n"
         
         if error:
             if counter > 1: 
@@ -815,7 +816,8 @@ class Analyzer:
             else:
                 msg_2 = "is typo error"
                 msg_3 = "component"
-            self.logger.critical(f"There {msg_2} in custom permission(s) name(s) assigned to the following {msg_3}. An attacker may be able to bypass this restriction.")
+            self.logger.critical(f"There {msg_2} in custom permission(s) name(s) assigned to the following {msg_3}. "
+                                 f"An attacker may be able to bypass this restriction.")
             print(colored(msg, "red"))
 
     def runAllTests(self):
