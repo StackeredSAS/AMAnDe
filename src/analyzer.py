@@ -774,7 +774,8 @@ class Analyzer:
         printTestInfo("Getting activities whose launch mode is set to singleTask")
         vunerable_activities = self.parser.getSingleTaskActivities()
 
-        if len(vunerable_activities) == 0: return
+        if len(vunerable_activities) == 0:
+            self.logger.info("There is no singleTask activity used across this application")
         if self.args.min_sdk_version <= 28:
             if len(vunerable_activities) == 1:
                 msg = "activity uses"
@@ -809,19 +810,17 @@ class Analyzer:
         
         if error:
             if counter > 1: 
-                msg_2 = "is typo error"
-                msg_3 = "component"
-            else:
                 msg_2 = "are typo errors"
                 msg_3 = "components"
-            self.logger.critical(f"There {msg_2} in custom(s) permission(s) name assigned to the following {msg_3}. An attacker may be able to bypass this restriction.")
+            else:
+                msg_2 = "is typo error"
+                msg_3 = "component"
+            self.logger.critical(f"There {msg_2} in custom permission(s) name(s) assigned to the following {msg_3}. An attacker may be able to bypass this restriction.")
             print(colored(msg, "red"))
-
-        
 
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
-        '''
+        
         self.showApkInfo()
         self.analyzeRequiredPerms()
         self.analyzeCustomPerms()
@@ -834,6 +833,5 @@ class Analyzer:
         self.analyzeExportedComponent()
         self.analyzeUnexportedProviders()
         self.checkForFirebaseURL()
-        '''
         self.analyzeActivitiesLaunchMode()
         self.analyzeComponentCustomPermsTypo()

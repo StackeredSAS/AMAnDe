@@ -442,6 +442,7 @@ class Parser:
         for e in self.root.findall(f"application/{component}"):
             name = self._getattr(e, "android:name")
             permission = self._getattr(e, "android:permission")
+            # only get custom permission(s) (android:permission prefix is only used for builtin ones)
             if permission is not None and not permission.startswith("android.permission"):
                 res.append(CustomPermsComponent(name, permission))
         return res
