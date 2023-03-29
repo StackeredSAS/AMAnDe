@@ -56,7 +56,10 @@ With an APK:
   - Searching dangerous ones (i.e. READ_CONTACTS etc.)
 - customs
   - Analyzing declaration and protectionLevel specified by the developer
-- Check typo error(s) in components custom permission implementation
+- Reviewing custom permission usage with the following checks:
+  - custom permission used but not declared
+  - custom permission declared but not used
+  - custom permission assigned with android:uses-permission instead of android:permission
 
 ### Backup functionality
 - ADB
