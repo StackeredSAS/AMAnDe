@@ -451,6 +451,7 @@ class Parser:
         """
         Lists all components which misuse custom permission (android:uses-permission instead of android:permission)
         """
-        return [self._getattr(e, "android:name") for e in 
-                                        self.root.findall(f'application/{component}[@android:uses-permission]',
-                                            namespaces=self.namespaces) if not self._getattr(e, "android:uses-permission").startswith("android.permission")]
+        return [self._getattr(e, "android:name") for e in
+                self.root.findall(f'application/{component}[@android:uses-permission]',
+                                  namespaces=self.namespaces)
+                if not self._getattr(e, "android:uses-permission").startswith("android.permission")]
