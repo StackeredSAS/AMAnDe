@@ -813,7 +813,7 @@ class Analyzer:
             # get custom permission which is declared but not used 
             errors_2 = [f"{cp.name.split('.')[-1]}" for cp in custom_perms 
                         if cp.name not in [e.permission for e in res]]
-            return (errors,errors_2)
+            return errors, errors_2
 
     def analyzeCustomPermsUsage(self):
         """
