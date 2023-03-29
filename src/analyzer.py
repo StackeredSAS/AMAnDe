@@ -793,8 +793,8 @@ class Analyzer:
 
     def analyzeComponentCustomPerms(self):
         """
-        Analyzes possible error(s) in custom permission(s) declaration or implementation, which can lead to restriction bypass.
-        https://blog.oversecured.com/Common-mistakes-when-using-permissions-in-Android/
+        Analyzes possible error(s) in custom permission(s) declaration or implementation, which can lead to
+        restriction bypass. https://blog.oversecured.com/Common-mistakes-when-using-permissions-in-Android/
         """
         custom_perms = self.parser.customPermissions()
         component_list = ["activity", "provider", "receiver", "service"]
@@ -809,21 +809,24 @@ class Analyzer:
         else:
             for cp in custom_perms:
                 # get component name and its associated custom perm if the custom perm is not declared (custom_perms)
-                errors = [f"{e.name.split('.')[-1]} : {e.permission.split('.')[-1]}" for e in res if e.permission not in [cp.name for cp in custom_perms]]
+                errors = [f"{e.name.split('.')[-1]} : {e.permission.split('.')[-1]}"
+                          for e in res if e.permission not in [cp.name for cp in custom_perms]]
                 # get custom permission which is declared but not used 
-                errors_2 = [f"{cp.name.split('.')[-1]}" for cp in custom_perms if cp.name not in [e.permission for e in res]]
-            return (errors,errors_2)
+                errors_2 = [f"{cp.name.split('.')[-1]}" for cp in custom_perms
+                            if cp.name not in [e.permission for e in res]]
+            return errors, errors_2
 
     def analyzeCustomPermsUsage(self):
         """
         Checks if:
-        - custom permissions are used but not declared. This may be a spelling error which can lead to restriction bypass.
+        - custom permissions are used but not declared. This may be a spelling error which can lead to restriction
+        bypass.
         - custom permissions are declared but not used. A component that is supposed to be protected may not be.
-        - custom permissions are assigned to a component with android:uses-permission instead of android:permission. This lead
-          the protection level attribute to be as 'normal' by default.
+        - custom permissions are assigned to a component with android:uses-permission instead of android:permission.
+        This leads the protection level attribute to be as 'normal' by default.
         """
         printTestInfo("Analyzing custom permissions usage")
-        (used_but_not_declared,declared_but_not_used) = self.analyzeComponentCustomPerms()
+        (used_but_not_declared, declared_but_not_used) = self.analyzeComponentCustomPerms()
 
         printSubTestInfo("Used but not declared")
         if len(used_but_not_declared) > 0:
@@ -832,7 +835,8 @@ class Analyzer:
             else:
                 msg = "permissions are"
 
-            self.logger.critical(f"The following {msg} used but not declared. This may be a spelling error which can lead to restriction bypass.")
+            self.logger.critical(f"The following {msg} used but not declared. This may be a spelling error which can "
+                                 f"lead to restriction bypass.")
             print(colored("\n".join(used_but_not_declared), "red"))        
         else:
             self.logger.info("There is nothing to report about this theme.")
@@ -844,7 +848,8 @@ class Analyzer:
             else:
                 msg = "permissions are"
 
-            self.logger.warning(f"The following {msg} declared but not used. A component that is supposed to be protected may not be.")
+            self.logger.warning(f"The following {msg} declared but not used. A component that is supposed to be "
+                                f"protected may not be.")
             print(colored("\n".join(declared_but_not_used), "yellow"))        
         else:
             self.logger.info("There is nothing to report about this theme.")        
@@ -863,7 +868,8 @@ class Analyzer:
             msg = "component has"
         else:
             msg = "components have"
-        self.logger.critical(f"The following {msg} a custom permission assigned with android:uses-permission. This lead its protectionLevel to be set as normal")
+        self.logger.critical(f"The following {msg} a custom permission assigned with android:uses-permission. This "
+                             f"lead its protectionLevel to be set as normal")
         print(colored("\n".join([f"{e.split('.')[-1]}" for e in res]), "red"))
 
     def runAllTests(self):
