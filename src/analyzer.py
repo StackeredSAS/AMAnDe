@@ -776,6 +776,8 @@ class Analyzer:
 
         if len(vunerable_activities) == 0:
             self.logger.info("There is no singleTask activity used across this application.")
+            return
+
         if self.args.min_sdk_version <= 28:
             if len(vunerable_activities) == 1:
                 msg = "activity uses"
@@ -789,36 +791,80 @@ class Analyzer:
         else:
             self.logger.info("Application can not be executed on device running Android 9 or lower.")
 
-    def analyzeComponentCustomPermsTypo(self):
+    def analyzeComponentCustomPerms(self):
         """
-        Analyzes possible typo error(s) in components custom permission implementation.
+        Analyzes possible error(s) in custom permission(s) declaration or implementation, which can lead to restriction bypass.
+        https://blog.oversecured.com/Common-mistakes-when-using-permissions-in-Android/
         """
-        printTestInfo("Looking for typo error(s) in component assigned custom permission")
         custom_perms = self.parser.customPermissions()
         component_list = ["activity", "provider", "receiver", "service"]
-        counter = 0
-        msg = ""
-        error = False
+        res = []
+
         for e in component_list:
-            res = self.parser.getComponentCustomPerms(e)
-            if len(res) != 0:
-                for cp in custom_perms:
-                    if not all([e.permission == cp.name for e in res]):
-                        error = True
-                        counter += 0
-                        for c in res:
-                            msg += f"{c.name.split('.')[-1]} : {c.permission.split('.')[-1]}\n"
-        
-        if error:
-            if counter > 1: 
-                msg_2 = "are typo errors"
-                msg_3 = "components"
+            res.extend(self.parser.getComponentCustomPerms(e))
+
+        if len(res) == 0 or len(custom_perms) == 0:
+            self.logger.info("There is no declared or assigned custom permission in this application")
+            return
+        else:
+            for cp in custom_perms:
+                # get component name and its associated custom perm if the custom perm is not declared (custom_perms)
+                errors = [f"{e.name.split('.')[-1]} : {e.permission.split('.')[-1]}" for e in res if e.permission not in [cp.name for cp in custom_perms]]
+                # get custom permission which is declared but not used 
+                errors_2 = [f"{cp.name.split('.')[-1]}" for cp in custom_perms if cp.name not in [e.permission for e in res]]
+            return (errors,errors_2)
+
+    def analyzeCustomPermsUsage(self):
+        """
+        Checks if:
+        - custom permissions are used but not declared. This may be a spelling error which can lead to restriction bypass.
+        - custom permissions are declared but not used. A component that is supposed to be protected may not be.
+        - custom permissions are assigned to a component with android:uses-permission instead of android:permission. This lead
+          the protection level attribute to be as 'normal' by default.
+        """
+        printTestInfo("Analyzing custom permissions usage")
+        (used_but_not_declared,declared_but_not_used) = self.analyzeComponentCustomPerms()
+
+        printSubTestInfo("Used but not declared")
+        if len(used_but_not_declared) > 0:
+            if len(used_but_not_declared) == 1:
+                msg = "permission is"
             else:
-                msg_2 = "is typo error"
-                msg_3 = "component"
-            self.logger.critical(f"There {msg_2} in custom permission(s) name(s) assigned to the following {msg_3}. "
-                                 f"An attacker may be able to bypass this restriction.")
-            print(colored(msg, "red"))
+                msg = "permissions are"
+
+            self.logger.critical(f"The following {msg} used but not declared. This may be a spelling error which can lead to restriction bypass.")
+            print(colored("\n".join(used_but_not_declared), "red"))        
+        else:
+            self.logger.info("There is nothing to report about this theme.")
+
+        printSubTestInfo("Declared but not used")
+        if len(declared_but_not_used) > 0:
+            if len(declared_but_not_used) == 1:
+                msg = "permission is"
+            else:
+                msg = "permissions are"
+
+            self.logger.warning(f"The following {msg} declared but not used. A component that is supposed to be protected may not be.")
+            print(colored("\n".join(declared_but_not_used), "yellow"))        
+        else:
+            self.logger.info("There is nothing to report about this theme.")        
+
+        printSubTestInfo("Using android:uses-permission instead of android:permission")
+        component_list = ["activity", "provider", "receiver", "service"]
+        res = []
+
+        for e in component_list:
+            res.extend(self.parser.getCustomPermsUsageError(e))
+
+        if len(res) == 0:
+            self.logger.info("Custom permissions are correctly assigned to all components")
+            return
+        elif len(res) == 1:
+            msg = "component has"
+        else:
+            msg = "components have"
+        self.logger.critical(f"The following {msg} a custom permission assigned with android:uses-permission. This lead its protectionLevel to be set as normal")
+        print(colored("\n".join([f"{e.split('.')[-1]}" for e in res]), "red"))
 
     def runAllTests(self):
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
@@ -836,4 +882,4 @@ class Analyzer:
         self.analyzeUnexportedProviders()
         self.checkForFirebaseURL()
         self.analyzeActivitiesLaunchMode()
-        self.analyzeComponentCustomPermsTypo()
+        self.analyzeCustomPermsUsage()

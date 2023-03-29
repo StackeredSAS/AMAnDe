@@ -145,7 +145,7 @@ class Parser:
         res = []
         for perm in self.root.findall('permission'):
             name = self._getattr(perm, "android:name")
-            protectionLevel = self._getattr(perm, "android:protectionLevel")
+            protectionLevel = self._getattr(perm, "android:protectionLevel") or "normal"
             res.append(CustomPerm(name, protectionLevel))
         return res
 
@@ -446,3 +446,11 @@ class Parser:
             if permission is not None and not permission.startswith("android.permission"):
                 res.append(CustomPermsComponent(name, permission))
         return res
+
+    def getCustomPermsUsageError(self, component):
+        """
+        Lists all components which misuse custom permission (android:uses-permission instead of android:permission)
+        """
+        return [self._getattr(e, "android:name") for e in 
+                                        self.root.findall(f'application/{component}[@android:uses-permission]',
+                                            namespaces=self.namespaces) if not self._getattr(e, "android:uses-permission").startswith("android.permission")]
