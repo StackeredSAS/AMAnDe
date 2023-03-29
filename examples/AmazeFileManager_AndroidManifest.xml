@@ -305,7 +305,7 @@
         <receiver
             android:name=".asynchronous.services.ftp.FtpReceiver3"
             android:exported="true"
-            android:permission="${applicationId}.permission.TEST1">
+            android:permission="${applicationId}.permission.TEST4">
             <intent-filter>
                 <action android:name="com.amaze.filemanager.services.ftpservice.FTPReceiver.ACTION_START_FTPSERVER" />
                 <action android:name="com.amaze.filemanager.services.ftpservice.FTPReceiver.ACTION_STOP_FTPSERVER" />

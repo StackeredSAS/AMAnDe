@@ -799,6 +799,8 @@ class Analyzer:
         custom_perms = self.parser.customPermissions()
         component_list = ["activity", "provider", "receiver", "service"]
         res = []
+        #errors = []
+        #errors_2 = []
 
         for e in component_list:
             res.extend(self.parser.getComponentCustomPerms(e))
@@ -807,11 +809,10 @@ class Analyzer:
             self.logger.info("There is no declared or assigned custom permission in this application")
             return
         else:
-            for cp in custom_perms:
-                # get component name and its associated custom perm if the custom perm is not declared (custom_perms)
-                errors = [f"{e.name.split('.')[-1]} : {e.permission.split('.')[-1]}" for e in res if e.permission not in [cp.name for cp in custom_perms]]
-                # get custom permission which is declared but not used 
-                errors_2 = [f"{cp.name.split('.')[-1]}" for cp in custom_perms if cp.name not in [e.permission for e in res]]
+            # get component name and its associated custom perm if the custom perm is not declared (custom_perms)
+            errors = [f"{e.name.split('.')[-1]} : {e.permission.split('.')[-1]}" for e in res if e.permission not in [cp.name for cp in custom_perms]]
+            # get custom permission which is declared but not used 
+            errors_2 = [f"{cp.name.split('.')[-1]}" for cp in custom_perms if cp.name not in [e.permission for e in res]]
             return (errors,errors_2)
 
     def analyzeCustomPermsUsage(self):
@@ -835,7 +836,7 @@ class Analyzer:
             self.logger.critical(f"The following {msg} used but not declared. This may be a spelling error which can lead to restriction bypass.")
             print(colored("\n".join(used_but_not_declared), "red"))        
         else:
-            self.logger.info("There is nothing to report about this theme.")
+            self.logger.info("There is nothing to report about this test.")
 
         printSubTestInfo("Declared but not used")
         if len(declared_but_not_used) > 0:
@@ -847,7 +848,7 @@ class Analyzer:
             self.logger.warning(f"The following {msg} declared but not used. A component that is supposed to be protected may not be.")
             print(colored("\n".join(declared_but_not_used), "yellow"))        
         else:
-            self.logger.info("There is nothing to report about this theme.")        
+            self.logger.info("There is nothing to report about this test.")        
 
         printSubTestInfo("Using android:uses-permission instead of android:permission")
         component_list = ["activity", "provider", "receiver", "service"]
