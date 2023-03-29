@@ -23,6 +23,12 @@
     <permission android:name="${applicationId}.permission.CONTROL_FTP_SERVER"
         android:protectionLevel="dangerous" />
 
+            <permission android:name="${applicationId}.permission.TEST"
+        android:protectionLevel="dangerous" />
+
+                    <permission android:name="${applicationId}.permission.TEST3"
+        android:protectionLevel="dangerous" />
+
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -287,9 +293,39 @@
         </service>
 
         <receiver
-            android:name=".asynchronous.services.ftp.FtpReceiver"
+            android:name=".asynchronous.services.ftp.FtpReceiver4"
             android:exported="true"
             android:permission="${applicationId}.permission.CONTROL_FTP_SERVER">
+            <intent-filter>
+                <action android:name="com.amaze.filemanager.services.ftpservice.FTPReceiver.ACTION_START_FTPSERVER" />
+                <action android:name="com.amaze.filemanager.services.ftpservice.FTPReceiver.ACTION_STOP_FTPSERVER" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".asynchronous.services.ftp.FtpReceiver3"
+            android:exported="true"
+            android:permission="${applicationId}.permission.TEST4">
+            <intent-filter>
+                <action android:name="com.amaze.filemanager.services.ftpservice.FTPReceiver.ACTION_START_FTPSERVER" />
+                <action android:name="com.amaze.filemanager.services.ftpservice.FTPReceiver.ACTION_STOP_FTPSERVER" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".asynchronous.services.ftp.FtpReceiver1"
+            android:exported="true"
+            android:permission="${applicationId}.permission.TEST">
+            <intent-filter>
+                <action android:name="com.amaze.filemanager.services.ftpservice.FTPReceiver.ACTION_START_FTPSERVER" />
+                <action android:name="com.amaze.filemanager.services.ftpservice.FTPReceiver.ACTION_STOP_FTPSERVER" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".asynchronous.services.ftp.FtpReceiver2"
+            android:exported="true"
+            android:permission="${applicationId}.permission.TEST">
             <intent-filter>
                 <action android:name="com.amaze.filemanager.services.ftpservice.FTPReceiver.ACTION_START_FTPSERVER" />
                 <action android:name="com.amaze.filemanager.services.ftpservice.FTPReceiver.ACTION_STOP_FTPSERVER" />
