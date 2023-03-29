@@ -799,8 +799,6 @@ class Analyzer:
         custom_perms = self.parser.customPermissions()
         component_list = ["activity", "provider", "receiver", "service"]
         res = []
-        #errors = []
-        #errors_2 = []
 
         for e in component_list:
             res.extend(self.parser.getComponentCustomPerms(e))
@@ -809,22 +807,13 @@ class Analyzer:
             self.logger.info("There is no declared or assigned custom permission in this application")
             return
         else:
-<<<<<<< HEAD
             # get component name and its associated custom perm if the custom perm is not declared (custom_perms)
-            errors = [f"{e.name.split('.')[-1]} : {e.permission.split('.')[-1]}" for e in res if e.permission not in [cp.name for cp in custom_perms]]
+            errors = [f"{e.name.split('.')[-1]} : {e.permission.split('.')[-1]}" 
+                      for e in res if e.permission not in [cp.name for cp in custom_perms]]
             # get custom permission which is declared but not used 
-            errors_2 = [f"{cp.name.split('.')[-1]}" for cp in custom_perms if cp.name not in [e.permission for e in res]]
+            errors_2 = [f"{cp.name.split('.')[-1]}" for cp in custom_perms 
+                        if cp.name not in [e.permission for e in res]]
             return (errors,errors_2)
-=======
-            for cp in custom_perms:
-                # get component name and its associated custom perm if the custom perm is not declared (custom_perms)
-                errors = [f"{e.name.split('.')[-1]} : {e.permission.split('.')[-1]}"
-                          for e in res if e.permission not in [cp.name for cp in custom_perms]]
-                # get custom permission which is declared but not used 
-                errors_2 = [f"{cp.name.split('.')[-1]}" for cp in custom_perms
-                            if cp.name not in [e.permission for e in res]]
-            return errors, errors_2
->>>>>>> 89594e705c594370f2b381688cdce45bad5dfdb6
 
     def analyzeCustomPermsUsage(self):
         """
