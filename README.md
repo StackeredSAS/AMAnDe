@@ -29,7 +29,7 @@ AMAnDe is developed with its own logger which can take value 0,1 and 2 to respec
 ./main.py -h
 ./main.py -min 10 examples/AmazeFileManager_AndroidManifest.xml
 ./main.py -min 15 -target 20 -max 30 examples/AmazeFileManager_AndroidManifest.xml -v 2
-./main.py -min 28 -target 30 examples/Signal_AndroidManifest.xml -v 1
+./main.py -min 28 -target 30 examples/Signal_AndroidManifest.xml --json output.json
 ./main.py -min 20 -max 33 --adb com.example.package
 ./main.py -min 21 -max 31 example.apk
 ```

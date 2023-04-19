@@ -12,6 +12,7 @@ from .apkParser import APKParser
 from .networkSecParser import NetworkSecParser
 from collections import namedtuple
 from .external import runAPKSigner, performBackup
+import json
 
 
 class Analyzer:
@@ -22,6 +23,7 @@ class Analyzer:
         self.isAPK = type(self.parser) is APKParser
         self.logger = logging.getLogger("MainLogger")
         self.packageName = None
+        self.json_result = {}
 
     def showApkInfo(self):
         """
@@ -40,20 +42,30 @@ class Analyzer:
             Shows all the above information as well as the signature verification
         """
         printTestInfo("APK information")
+        jres = {}
         info = self.parser.getApkInfo()
         self.logger.info(f'Package name: {info.package}')
+        jres["package name"] = info.package
         if info.versionCode is not None:
             self.logger.info(f'Version code: {info.versionCode}')
+            jres["version code"] = info.versionCode
         if info.versionName is not None:
             self.logger.info(f'Version name: {info.versionName}')
+            jres["version name"] = info.versionName
 
         versions = self.parser.getSdkVersion()
         uses_sdk_min_sdk_version = versions[0]
         uses_sdk_target_sdk_version = versions[1]
         uses_sdk_max_sdk_version = versions[2]
+        jres["sdk versions"] = {"min": uses_sdk_min_sdk_version,
+                                "target": uses_sdk_target_sdk_version,
+                                "max": uses_sdk_max_sdk_version}
         min_sdk_version_args = self.args.min_sdk_version
         target_sdk_version_args = self.args.target_sdk_version
         max_sdk_version_args = self.args.max_sdk_version
+        jres["arg versions"] = {"min": min_sdk_version_args,
+                                "target": target_sdk_version_args,
+                                "max": max_sdk_version_args}
         warning_msg_1 = ""
         warning_msg_2 = ""
         warning_msg_3 = ""
@@ -76,48 +88,62 @@ class Analyzer:
         self.logger.info(f'Target SDK version: {target_sdk_version_args} {warning_msg_3}')
         self.logger.info(f'Maximal SDK version: {max_sdk_version_args} {warning_msg_2}')
         if uses_sdk_max_sdk_version != 0:
+            # todo : ajouter au json ?
             self.logger.warning("Declaring the android:maxSdkVersion attribute is not recommended. "
                                 "Please check the official documentation")
 
         activities_number = self.parser.componentStats("activity")
         exported_activities_number = self.parser.exportedComponentStats("activity")
+        jres["activity"] = {"total": activities_number, "exported": exported_activities_number}
         self.logger.info(f'Number of activities: {activities_number} ({exported_activities_number} exported)')
 
         alias_activities_number = self.parser.componentStats("activity-alias")
         exported_alias_activities_number = self.parser.exportedComponentStats("activity-alias")
+        jres["activity-alias"] = {"total": alias_activities_number, "exported": exported_alias_activities_number}
         self.logger.info(
             f'Number of activity-aliases: {alias_activities_number} ({exported_alias_activities_number} exported)')
 
         receivers_number = self.parser.componentStats("receiver")
         exported_receivers_number = self.parser.exportedComponentStats("receiver")
+        jres["receiver"] = {"total": receivers_number, "exported": exported_receivers_number}
         self.logger.info(f'Number of receivers: {receivers_number} ({exported_receivers_number} exported)')
 
         providers_number = self.parser.componentStats("provider")
         exported_providers_number = self.parser.exportedComponentStats("provider")
+        jres["provider"] = {"total": providers_number, "exported": exported_providers_number}
         self.logger.info(f'Number of providers: {providers_number} ({exported_providers_number} exported)')
 
         services_number = self.parser.componentStats("service")
         exported_services_number = self.parser.exportedComponentStats("service")
+        jres["service"] = {"total": services_number, "exported": exported_services_number}
         self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
 
+        jres["libraries"] = [{"name": lib.name, "required": lib.required}
+                             for lib in self.parser.usesLibrary()]
         for lib in self.parser.usesLibrary():
             self.logger.info(
                 f'Shared library "{lib.name}" can be used by the application (mandatory for runtime : {lib.required})')
 
+        jres["native libraries"] = [{"name": lib.name, "required": lib.required}
+                                    for lib in self.parser.usesNativeLibrary()]
         for nl in self.parser.usesNativeLibrary():
             self.logger.info(
                 f'Vendor provided shared native library "{nl.name}" can be used by the application (mandatory for '
                 f'runtime : {nl.required})')
 
+        jres["features"] = [{"name": feat.name, "required": feat.required}
+                                    for feat in self.parser.usesFeatures()]
         for f in self.parser.usesFeatures():
             self.logger.info(
                 f'Hardware or software feature "{f.name}" can be used by the application '
                 f'(mandatory for runtime : {f.required})')
 
         if self.isAPK:
+            # todo : réfléchir à comment récup les infos des outils tiers, si on les veux
             # if we have an APK and APKSigner is installed
             runAPKSigner(self.args.min_sdk_version, self.args.path)
 
+        self.json_result["APKInfo"] = jres
         return res
 
     def analyzeRequiredPerms(self):
@@ -826,7 +852,8 @@ class Analyzer:
         """
         printTestInfo("Analyzing custom permissions usage")
         analysis = self.analyzeComponentCustomPerms()
-        if a is None: return
+        if analysis is None:
+            return
         used_but_not_declared, declared_but_not_used = analysis
 
         printSubTestInfo("Used but not declared")
@@ -890,3 +917,9 @@ class Analyzer:
         self.checkForFirebaseURL()
         self.analyzeActivitiesLaunchMode()
         self.analyzeCustomPermsUsage()
+
+        if self.args.json is not None:
+            with open(self.args.json, "w") as f:
+                json.dump(self.json_result, f)
+                f.write("\n")
+            self.logger.info(colored(f"\nJSON output written to {self.args.json}.", "green"))

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import sys
-
 from src.parser import Parser
 from src.apkParser import APKParser
 from src.analyzer import Analyzer
@@ -29,6 +28,7 @@ if __name__ == "__main__":
                            metavar=f"[1,{ANDROID_MAX_SDK}]", default=ANDROID_MAX_SDK)
     argparser.add_argument('--adb', action="store_true", help='Indicates to use ADB. The path argument is treated as '
                                                               'the app\'s package name')
+    argparser.add_argument('--json', metavar="file", help='Export the results in JSON format to a file.')
     args = argparser.parse_args()
     # just follow the same rule as Android for the default value
     args.target_sdk_version = args.target_sdk_version or args.min_sdk_version
@@ -72,13 +72,14 @@ if __name__ == "__main__":
             if parser.apk is None:
                 # not an APK file
                 parser = Parser(args.path)
-            analyzer = Analyzer(parser, args)
-            analyzer.packageName = packageName
-            analyzer.runAllTests()
 
         except FileNotFoundError:
             logger.error("Invalid file name !")
+            sys.exit(1)
         except xml.etree.ElementTree.ParseError:
             logger.error("Invalid file !")
-        finally:
             sys.exit(1)
+
+        analyzer = Analyzer(parser, args)
+        analyzer.packageName = packageName
+        analyzer.runAllTests()
