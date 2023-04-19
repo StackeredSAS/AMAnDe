@@ -56,6 +56,10 @@ With an APK:
   - Searching dangerous ones (i.e. READ_CONTACTS etc.)
 - customs
   - Analyzing declaration and protectionLevel specified by the developer
+- Reviewing custom permission(s) usage with the following checks:
+  - custom permission(s) used but not declared
+  - custom permission(s) declared but not used
+  - custom permission(s) assigned with android:uses-permission instead of android:permission
 
 ### Backup functionality
 - ADB
@@ -88,6 +92,9 @@ With an APK and if the file exists:
 
 ### Firebase
 - Looking for Firebase URL
+
+### Task Hijacking
+- Check for possible task hijacking (StrandHogg) in activity launchMode
 
 
 ## Contributing
