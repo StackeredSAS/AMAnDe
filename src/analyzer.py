@@ -825,7 +825,9 @@ class Analyzer:
         This leads the protection level attribute to be as 'normal' by default.
         """
         printTestInfo("Analyzing custom permissions usage")
-        (used_but_not_declared, declared_but_not_used) = self.analyzeComponentCustomPerms()
+        analysis = self.analyzeComponentCustomPerms()
+        if a is None: return
+        used_but_not_declared, declared_but_not_used = analysis
 
         printSubTestInfo("Used but not declared")
         if len(used_but_not_declared) > 0:
