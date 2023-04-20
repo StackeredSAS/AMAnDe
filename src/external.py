@@ -20,7 +20,7 @@ def runAPKSigner(min_sdk, path):
                                             str(min_sdk), path]
     cmdres, err = runProc(cmd)
     pattern_1 = ".*Unauthorized.*not be detected.*$"
-
+    jres = {}
     if cmdres is not None:
         printSubTestInfo("Output of apksigner")
         logger.info(colored(f"executed command : {' '.join(cmd)}", "yellow"))
@@ -54,9 +54,15 @@ def runAPKSigner(min_sdk, path):
 
             logger.info(line)
 
+        jres["signature versions"] = {
+            "V1": signature_versions[0],
+            "V2": signature_versions[1],
+            "V3": signature_versions[2]
+        }
         if signature_versions[0] and not any(signature_versions[1:]):
             logger.critical("Your APK is only signed with scheme v1. Unauthorized modification to META-INF jar "
                             "entry will not be detected")
+        return jres
 
 
 def downloadAPK(name, new_path):
