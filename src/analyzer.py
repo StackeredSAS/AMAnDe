@@ -4,7 +4,7 @@ from .utils import (
     printTestInfo,
     printSubTestInfo,
     checkDigitalAssetLinks,
-    handleVersion
+    handleVersion, unformatFilename
 )
 import logging
 from .constants import dangerous_perms
@@ -408,7 +408,7 @@ class Analyzer:
         """
         printTestInfo("Checking the existence of network_security_config XML file")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
-        self.json_result["Network security config"] = {"file": network_security_config_xml_file}
+        self.json_result["Network security config"] = {"file": unformatFilename(network_security_config_xml_file)}
         if network_security_config_xml_file is not None:
             self.logger.info(f'APK network security configuration is defined '
                              f'in {network_security_config_xml_file} file')

@@ -36,11 +36,12 @@ class APKParser(Parser):
         except KeyError:
             pass
 
-    def _getResource(self, rid, package_name=None):
+    def _getResource(self, rid, package_name=None, resolve=True):
         """
         Transforms an ID of the form @7F0A01BF into @xml/network_security_config.
         :param rid: the ID
         :param package_name: The package name
+        :param resolve: Indicates if we should resolve the string value
         :return: The resource path
         """
         if self.rsc is None:
@@ -52,7 +53,7 @@ class APKParser(Parser):
             package_name = self.rsc.get_packages_names()[0]
         rid = int(rid.strip("@"), 16)
         res_type, name, _ = self.rsc.get_id(package_name, rid)
-        if res_type == "string":
+        if res_type == "string" and resolve:
             # index 0 is name, index 1 is the resolved string
             return self.rsc.get_string(package_name, name)[1]
         return f"@{res_type}/{name}"
@@ -67,10 +68,13 @@ class APKParser(Parser):
             return
         bad_xml = AXMLPrinter(self.apk.open(path, "r").read()).get_xml().decode()
         # find all @XXXXXXXX resource IDs
+        # avoid converting those which are not android:value="@XXXXXXXX"
         rsc_ids = set(re.findall(r"(@[\dA-F]{8})", bad_xml))
         for rid in rsc_ids:
             # replace the IDs with the correct resource name
-            bad_xml = bad_xml.replace(rid, self._getResource(rid))
+            # if it's asked for the resource value
+            resolve = bad_xml.find(f"value\"={rid}") != -1
+            bad_xml = bad_xml.replace(rid, self._getResource(rid, resolve=resolve))
         return StringIO(bad_xml)
 
     def _loadManifest(self):
