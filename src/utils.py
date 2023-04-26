@@ -96,6 +96,8 @@ def unformatFilename(name):
     Because Parser._getResValue formats filenames in a specific way
     we must undo the formatting to work with the raw string
     """
+    if name is None:
+        return
     return name[4:-4]
 
 

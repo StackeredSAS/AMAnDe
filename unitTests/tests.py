@@ -582,35 +582,35 @@ class TestAnalyzer(unittest.TestCase):
         # the tuple elements represents :
         # target_sdk_version, BConfig.cleartextTrafficPermitted, expectedResult
         testCases = [
-            (23, True, True),
-            (24, True, True),
-            (25, True, True),
-            (27, True, True),
-            (28, True, True),
-            (30, True, True),
-            (32, True, True),
+            (23, True, (True, [])),
+            (24, True, (True, [])),
+            (25, True, (True, [])),
+            (27, True, (True, [])),
+            (28, True, (True, [])),
+            (30, True, (True, [])),
+            (32, True, (True, [])),
 
-            (23, False, False),
-            (24, False, False),
-            (25, False, False),
-            (27, False, False),
-            (28, False, False),
-            (30, False, False),
-            (32, False, False),
+            (23, False, (False, [])),
+            (24, False, (False, [])),
+            (25, False, (False, [])),
+            (27, False, (False, [])),
+            (28, False, (False, [])),
+            (30, False, (False, [])),
+            (32, False, (False, [])),
 
-            (23, None, True),
-            (24, None, True),
-            (25, None, True),
-            (27, None, True),
-            (28, None, False),
-            (30, None, False),
-            (32, None, False),
+            (23, None, (True, [])),
+            (24, None, (True, [])),
+            (25, None, (True, [])),
+            (27, None, (True, [])),
+            (28, None, (False, [])),
+            (30, None, (False, [])),
+            (32, None, (False, [])),
         ]
 
         config = namedtuple("BConfig", "cleartextTrafficPermitted trustanchors")
 
         def d(dcs=None, inheritedCT=False, withCT=True):
-            return ["a", "b"]
+            return []
 
         self.parser.getAllDomains = d
         for testCase in testCases:

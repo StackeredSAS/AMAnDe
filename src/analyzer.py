@@ -308,6 +308,8 @@ class Analyzer:
         printSubTestInfo("Checking for own developer backup agent")
         agent = self.parser.backupAgent()
         if agent:
+            if self.json_result.get("Backup") is None:
+                self.json_result["Backup"] = {}
             self.json_result["Backup"]["Agent"] = agent.split(".")[-1]
             self.logger.warning(
                 f'APK implements is own backup agent in {agent.split(".")[-1]}. Please make deeper checks')
@@ -332,6 +334,9 @@ class Analyzer:
         printSubTestInfo("Checking backup rules files")
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
         dataExtractionRules_xml_rules_files = self.parser.dataExtractionRules()
+
+        if self.json_result.get("Backup") is None:
+            self.json_result["Backup"] = {}
 
         def fbc():
             jres = {"file": fullBackupContent_xml_file_rules}
@@ -465,7 +470,6 @@ class Analyzer:
          - Do not add deeplinks or applinks, as they cannot have specific permissions (by default they are used
            to call our app when a specific URI is handled by another app)
         """
-        # todo: json
         printTestInfo("Analyzing permissions set on exported components")
         headers = ["Name", "Type", "Permission", "readPermission", "writePermission"]
         table = []
@@ -475,8 +479,10 @@ class Analyzer:
         unique_names = {universal_link.name for universal_link in universal_links}
         count = 0
         res = 0
+        jres = {}
 
         for component in ["activity", "receiver", "provider", "service"]:
+            jres[component] = []
             for e in self.parser.getExportedComponentPermission(component):
                 if e.componentName not in unique_names:
                     n = e.componentName.split(".")[-1]
@@ -489,6 +495,13 @@ class Analyzer:
                     # Keep entire permission name to make the difference between custom and builtin
                     rp = e.readPermission
                     wp = e.writePermission
+
+                    jres[component].append({
+                        "name": n,
+                        "permission": p,
+                        "read permission": rp,
+                        "write permission": wp
+                    })
 
                     if (t != "provider" and p is None) or (
                             t == "provider" and wp is None and rp is None and p is None):
@@ -523,6 +536,7 @@ class Analyzer:
         if count > 0:
             self.logger.warning(
                 f'There are {count} exported components which can be called without any permission. Check it out!')
+        self.json_result["Exported components permissions"] = jres
         return res
 
     def analyzeUnexportedProviders(self):
@@ -561,7 +575,6 @@ class Analyzer:
             (taking into account Android versions and there corresponding default values and configurations)
             
         """
-        # todo: json
         printTestInfo("Checking if http traffic can be used")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
 
@@ -582,6 +595,7 @@ class Analyzer:
             if cleartextTraffic:
                 return allowed()
             if cleartextTraffic is None:
+                # only one possibility
                 return handleVersion(allowed, forbidden, 28, self.args.min_sdk_version, self.args.max_sdk_version,
                                      self.args.target_sdk_version, True)
             return forbidden()
@@ -590,15 +604,35 @@ class Analyzer:
             if condition:
                 print(colored("On Android 7.0 (API 24) and higher", attrs=["bold"]))
             self.logger.info("The usesCleartextTraffic attribute is overridden by the network security configuration.")
-            self.analyzeNSCClearTextTraffic()
+            r = self.analyzeNSCClearTextTraffic()
             if not self.isAPK:
                 self.logger.info("APK network security configuration is defined. Please refer to this test instead.")
+            return r
 
         if network_security_config_xml_file is not None:
-            return handleVersion(notIgnored, ignored, 24, self.args.min_sdk_version, self.args.max_sdk_version,
+            # multiple possibilities
+            r = handleVersion(notIgnored, ignored, 24, self.args.min_sdk_version, self.args.max_sdk_version,
                                  self.args.target_sdk_version, False)
-
-        return notIgnored()
+            jres = []
+            if type(r) == tuple:
+                # (True, []) or (True, (True, []))
+                if type(r[1]) == tuple:
+                    # (True, (True, []))
+                    # notIgnored and ignored
+                    jres.append({"allowed": r[0], "exceptions": [], "condition": "Running SDK < 24"})
+                    jres.append({"allowed": r[1][0], "exceptions": r[1][1], "condition": "Running SDK >= 24"})
+                else:
+                    # (True, [])
+                    # ignored
+                    jres.append({"allowed": r[0], "exceptions": r[1], "condition": None})
+            else:
+                # notIgnored
+                jres.append({"allowed": r, "exceptions": [], "condition": None})
+            self.json_result["Cleartext traffic"] = jres
+            return r
+        r = notIgnored()
+        self.json_result["Cleartext traffic"] = [{"allowed": r, "exceptions": [], "condition":None}]
+        return r
 
     def getIntentFilterInfo(self):
         """
@@ -711,7 +745,7 @@ class Analyzer:
             jres[component] = [e.split(".")[-1] for e in self.parser.exportedComponents(component)]
             for e in self.parser.exportedComponents(component):
                 self.logger.info(f'{e.split(".")[-1]} ({component})')
-        self.json_result["exported components"] = jres
+        self.json_result["Exported components"] = jres
 
     def checkForFirebaseURL(self):
         """
@@ -752,6 +786,8 @@ class Analyzer:
 
             jres["exceptions"] = [{"Domain": e[0], "Trust anchors": e[1].split(", ")}
                                   for e in exceptions]
+            if self.json_result.get("Network security config") is None:
+                self.json_result["Network security config"] = {}
             self.json_result["Network security config"]["Trust anchors"] = jres
             if len(exceptions) > 0:
                 self.logger.info("The following exceptions are defined:")
@@ -784,7 +820,6 @@ class Analyzer:
         The default value changes after API level 27.
         https://developer.android.com/training/articles/security-config?hl=en#base-config
         """
-        # todo: json
         # for unit tests allow to give a custom parser
         if nsParser is None:
             nsf = self.parser.getNetworkSecurityConfigFile()
@@ -795,24 +830,25 @@ class Analyzer:
 
         def ctallowed():
             self.logger.warning("Clear text traffic is allowed for all domains.")
-            doms = nsParser.getAllDomains(inheritedCT=True, withCT=False)
-            doms = [f'\t{e}' for e in doms]
+            dom = nsParser.getAllDomains(inheritedCT=True, withCT=False)
+            doms = [f'\t{e}' for e in dom]
             if len(doms) > 0:
                 self.logger.info("Except for:")
                 self.logger.info("\n".join(doms))
-            return True
+            return True, dom
 
         def ctNotAllowed():
             self.logger.info(f"Clear text traffic is not allowed for all domains.")
-            doms = nsParser.getAllDomains(inheritedCT=False, withCT=True)
-            doms = [f'\t{e}' for e in doms]
+            dom = nsParser.getAllDomains(inheritedCT=False, withCT=True)
+            doms = [f'\t{e}' for e in dom]
             if len(doms) > 0:
                 self.logger.info(colored("Except for:", "yellow"))
                 self.logger.info(colored("\n".join(doms), "yellow"))
-            return False
+            return False, dom
 
         baseConfig = nsParser.getBaseConfig()
         if baseConfig is None or baseConfig.cleartextTrafficPermitted is None:
+            # only one possibility
             return handleVersion(ctallowed, ctNotAllowed, 28, self.args.min_sdk_version, self.args.max_sdk_version,
                                  self.args.target_sdk_version, True)
         if baseConfig.cleartextTrafficPermitted:
@@ -865,6 +901,8 @@ class Analyzer:
                 msg += colored(msg2, "yellow")
             self.logger.info(msg)
 
+        if self.json_result.get("Network security config") is None:
+            self.json_result["Network security config"] = {}
         self.json_result["Network security config"]["Pinning"] = jres
 
     def analyzeActivitiesLaunchMode(self):
