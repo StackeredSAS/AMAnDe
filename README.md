@@ -1,6 +1,6 @@
 # AMAnDe
 ## What's AMAnDe
-AMAnDe stands for Android Manifest ANomaly Detector.
+AMAnDe stands for Android Manifest Anomaly Detector.
 It's a new tool whose objective is to extract and gather information from an Android Manifest.
 When we deal with huge Manifests, it is often difficult to get all relevant datas (like deeplink URIs, exported provider, etc.)
 With AMAnDe all of this information is deeply analyzed and presented to you in a simple manner.
