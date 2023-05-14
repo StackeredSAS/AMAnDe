@@ -713,7 +713,8 @@ class Analyzer:
         # get component name and uris
         for name in unique_names:
             jcomp = {"name": name.split(".")[-1]}
-            deeplinks = [e for e in res if e.name == name]
+            # do not display app links 
+            deeplinks = [e for e in res if e.name == name and not e.autoVerify]
             jcomp["type"] = deeplinks[0].tag
             self.logger.warning(f'Found a deeplink in {deeplinks[0].tag} {deeplinks[0].name.split(".")[-1]}'
                                 f' with the following URI:')
