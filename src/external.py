@@ -40,17 +40,17 @@ def runAPKSigner(min_sdk, path):
             if "APK Signature Scheme v2" in line:
                 signature_versions[1] = ("true" in line)
                 line = line.replace("true", colored("true", "green"))
-                line = line.replace("false", colored("false", "red"))
+                line = line.replace("false", colored("false", "yellow"))
 
             if "APK Signature Scheme v3" in line:
                 signature_versions[2] = ("true" in line)
                 line = line.replace("true", colored("true", "green"))
-                line = line.replace("false", colored("false", "red"))
+                line = line.replace("false", colored("false", "yellow"))
 
             if "JAR signing" in line:
                 signature_versions[0] = ("true" in line)
                 line = line.replace("true", colored("true", "green"))
-                line = line.replace("false", colored("false", "red"))
+                line = line.replace("false", colored("false", "yellow"))
 
             logger.info(line)
 
