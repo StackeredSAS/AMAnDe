@@ -4,7 +4,7 @@ from .utils import (
     printTestInfo,
     printSubTestInfo,
     checkDigitalAssetLinks,
-    handleVersion
+    handleVersion, unformatFilename
 )
 import logging
 from .constants import dangerous_perms
@@ -12,6 +12,7 @@ from .apkParser import APKParser
 from .networkSecParser import NetworkSecParser
 from collections import namedtuple
 from .external import runAPKSigner, performBackup
+import json
 
 
 class Analyzer:
@@ -22,6 +23,7 @@ class Analyzer:
         self.isAPK = type(self.parser) is APKParser
         self.logger = logging.getLogger("MainLogger")
         self.packageName = None
+        self.json_result = {}
 
     def showApkInfo(self):
         """
@@ -40,20 +42,30 @@ class Analyzer:
             Shows all the above information as well as the signature verification
         """
         printTestInfo("APK information")
+        jres = {}
         info = self.parser.getApkInfo()
         self.logger.info(f'Package name: {info.package}')
+        jres["package name"] = info.package
         if info.versionCode is not None:
             self.logger.info(f'Version code: {info.versionCode}')
+            jres["version code"] = info.versionCode
         if info.versionName is not None:
             self.logger.info(f'Version name: {info.versionName}')
+            jres["version name"] = info.versionName
 
         versions = self.parser.getSdkVersion()
         uses_sdk_min_sdk_version = versions[0]
         uses_sdk_target_sdk_version = versions[1]
         uses_sdk_max_sdk_version = versions[2]
+        jres["sdk versions"] = {"min": uses_sdk_min_sdk_version,
+                                "target": uses_sdk_target_sdk_version,
+                                "max": uses_sdk_max_sdk_version}
         min_sdk_version_args = self.args.min_sdk_version
         target_sdk_version_args = self.args.target_sdk_version
         max_sdk_version_args = self.args.max_sdk_version
+        jres["arg versions"] = {"min": min_sdk_version_args,
+                                "target": target_sdk_version_args,
+                                "max": max_sdk_version_args}
         warning_msg_1 = ""
         warning_msg_2 = ""
         warning_msg_3 = ""
@@ -81,34 +93,45 @@ class Analyzer:
 
         activities_number = self.parser.componentStats("activity")
         exported_activities_number = self.parser.exportedComponentStats("activity")
+        jres["activity"] = {"total": activities_number, "exported": exported_activities_number}
         self.logger.info(f'Number of activities: {activities_number} ({exported_activities_number} exported)')
 
         alias_activities_number = self.parser.componentStats("activity-alias")
         exported_alias_activities_number = self.parser.exportedComponentStats("activity-alias")
+        jres["activity-alias"] = {"total": alias_activities_number, "exported": exported_alias_activities_number}
         self.logger.info(
             f'Number of activity-aliases: {alias_activities_number} ({exported_alias_activities_number} exported)')
 
         receivers_number = self.parser.componentStats("receiver")
         exported_receivers_number = self.parser.exportedComponentStats("receiver")
+        jres["receiver"] = {"total": receivers_number, "exported": exported_receivers_number}
         self.logger.info(f'Number of receivers: {receivers_number} ({exported_receivers_number} exported)')
 
         providers_number = self.parser.componentStats("provider")
         exported_providers_number = self.parser.exportedComponentStats("provider")
+        jres["provider"] = {"total": providers_number, "exported": exported_providers_number}
         self.logger.info(f'Number of providers: {providers_number} ({exported_providers_number} exported)')
 
         services_number = self.parser.componentStats("service")
         exported_services_number = self.parser.exportedComponentStats("service")
+        jres["service"] = {"total": services_number, "exported": exported_services_number}
         self.logger.info(f'Number of services: {services_number} ({exported_services_number} exported)')
 
+        jres["libraries"] = [{"name": lib.name, "required": lib.required}
+                             for lib in self.parser.usesLibrary()]
         for lib in self.parser.usesLibrary():
             self.logger.info(
                 f'Shared library "{lib.name}" can be used by the application (mandatory for runtime : {lib.required})')
 
+        jres["native libraries"] = [{"name": lib.name, "required": lib.required}
+                                    for lib in self.parser.usesNativeLibrary()]
         for nl in self.parser.usesNativeLibrary():
             self.logger.info(
                 f'Vendor provided shared native library "{nl.name}" can be used by the application (mandatory for '
                 f'runtime : {nl.required})')
 
+        jres["features"] = [{"name": feat.name, "required": feat.required}
+                            for feat in self.parser.usesFeatures()]
         for f in self.parser.usesFeatures():
             self.logger.info(
                 f'Hardware or software feature "{f.name}" can be used by the application '
@@ -116,8 +139,11 @@ class Analyzer:
 
         if self.isAPK:
             # if we have an APK and APKSigner is installed
-            runAPKSigner(self.args.min_sdk_version, self.args.path)
+            res = runAPKSigner(self.args.min_sdk_version, self.args.path)
+            if res is not None:
+                jres["APKSigner"] = res
 
+        self.json_result["APKInfo"] = jres
         return res
 
     def analyzeRequiredPerms(self):
@@ -126,14 +152,22 @@ class Analyzer:
         Provides an analysis of builtin ones based on protectionLevel
         """
         printTestInfo("Analyzing required permissions")
+        jsonNormalPerms = []
+        jsonDangerousPerms = []
         dangerous_perms_number = 0
         for perm in self.parser.requiredPermissions():
             if perm in dangerous_perms:
+                jsonDangerousPerms.append(perm)
                 if self.logger.level <= logging.WARNING:
                     print(colored(perm, "yellow"))
                 dangerous_perms_number += 1
             else:
+                jsonNormalPerms.append(perm)
                 self.logger.info(perm)
+        self.json_result["required permissions"] = {
+            "normal": jsonNormalPerms,
+            "dangerous": jsonDangerousPerms
+        }
         if dangerous_perms_number > 0:
             if dangerous_perms_number == 1:
                 msg = "permission"
@@ -153,10 +187,11 @@ class Analyzer:
         header = ["name", "protectionLevel"]
         custom_permissions = self.parser.customPermissions()
         dangerous_protection_level = 0
-
+        jres = []
         for custom_permission in custom_permissions:
             name = custom_permission.name
             protectionLevel = custom_permission.protectionLevel
+            jres.append({"name": name, "protection level": protectionLevel})
 
             if protectionLevel == "normal" or protectionLevel == "dangerous":
                 name = colored(name, "red")
@@ -166,6 +201,7 @@ class Analyzer:
             elif self.logger.level <= logging.INFO:
                 table.append([name, protectionLevel])
 
+        self.json_result["custom permissions"] = jres
         if len(table) > 0:
             print(tabulate(table, header, tablefmt="fancy_grid"))
         if dangerous_protection_level > 0:
@@ -203,6 +239,7 @@ class Analyzer:
 
         # android:allowBackup default value is true for any android version
         if backup_attr and not debuggable:
+            # can only have one value
             return handleVersion(allowed, notAllowed, 31, self.args.min_sdk_version, self.args.max_sdk_version,
                                  self.args.target_sdk_version, True)
         if backup_attr and debuggable:
@@ -271,6 +308,10 @@ class Analyzer:
         printSubTestInfo("Checking for own developer backup agent")
         agent = self.parser.backupAgent()
         if agent:
+            # needed for unit tests to not crash when calling backup functions separately
+            if self.json_result.get("Backup") is None:
+                self.json_result["Backup"] = {}
+            self.json_result["Backup"]["Agent"] = agent.split(".")[-1]
             self.logger.warning(
                 f'APK implements is own backup agent in {agent.split(".")[-1]}. Please make deeper checks')
             return True
@@ -295,7 +336,12 @@ class Analyzer:
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
         dataExtractionRules_xml_rules_files = self.parser.dataExtractionRules()
 
+        # needed for unit tests to not crash when calling backup functions separately
+        if self.json_result.get("Backup") is None:
+            self.json_result["Backup"] = {}
+
         def fbc():
+            jres = {"file": fullBackupContent_xml_file_rules}
             if fullBackupContent_xml_file_rules is not None:
                 self.logger.info(
                     f'For Android versions <= 11 (API 30), custom rules has been defined to control what gets backed '
@@ -303,15 +349,22 @@ class Analyzer:
                 rules = self.parser.getFullBackupContentRules()
                 headers = ["type", "domain", "path", "requireFlags"]
                 table = [[e.type, e.domain, e.path, e.requireFlags] for e in rules]
+                jres["rules"] = [{"type": e.type,
+                                  "domain": e.domain,
+                                  "path": e.path,
+                                  "flags": e.requireFlags} for e in rules]
+                self.json_result["Backup"]["rules"] = jres
                 if len(table) > 0:
                     self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
                 return 1
             self.logger.warning(f'targetSdk parameter value is {self.args.target_sdk_version}. '
                                 f'As backup is allowed, it is recommended to specify custom exclusions in '
                                 f'fullBackupContent XML file.')
+            self.json_result["Backup"]["rules"] = jres
             return 0
 
         def der():
+            jres = {"file": dataExtractionRules_xml_rules_files}
             if dataExtractionRules_xml_rules_files is not None:
                 self.logger.info(
                     f'For Android versions >= 12 (API 31), custom rules has been defined to control what gets backed '
@@ -332,6 +385,11 @@ class Analyzer:
                         self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
                     # show device transfer rules
                     table = [[e.type, e.domain, e.path, e.requireFlags] for e in deviceTransferRules]
+                    jres["rules"] = [{"type": e.type,
+                                      "domain": e.domain,
+                                      "path": e.path,
+                                      "flags": e.requireFlags} for e in deviceTransferRules]
+                    self.json_result["Backup"]["rules"] = jres
                     if len(table) > 0:
                         self.logger.info("Cloud backup rules have been defined :")
                         self.logger.info(tabulate(table, headers, tablefmt="fancy_grid"))
@@ -339,8 +397,10 @@ class Analyzer:
             self.logger.warning(f'targetSdk parameter value is {self.args.target_sdk_version}. '
                                 f'As backup is allowed, it is recommended to specify custom exclusions in '
                                 f'dataExtractionRules XML file.')
+            self.json_result["Backup"]["rules"] = jres
             return 0
 
+        # can only have one value
         return handleVersion(fbc, der, 31, self.args.min_sdk_version, self.args.max_sdk_version,
                              self.args.target_sdk_version, True)
 
@@ -355,6 +415,7 @@ class Analyzer:
         """
         printTestInfo("Checking the existence of network_security_config XML file")
         network_security_config_xml_file = self.parser.networkSecurityConfig()
+        self.json_result["Network security config"] = {"file": unformatFilename(network_security_config_xml_file)}
         if network_security_config_xml_file is not None:
             self.logger.info(f'APK network security configuration is defined '
                              f'in {network_security_config_xml_file} file')
@@ -369,8 +430,16 @@ class Analyzer:
         Regroups all functions related to backup analysis
         """
         printTestInfo("Analyzing backup functionality")
+        jres = {}
         isADBBackupAllowed = self.isADBBackupAllowed()
+        jres["ADB"] = isADBBackupAllowed
         isAutoBackupAllowed = self.isAutoBackupAllowed()
+        if type(isAutoBackupAllowed) == tuple:
+            # can be (True, True|False)
+            isAutoBackupAllowed, isEncrypted = isAutoBackupAllowed
+            jres["E2E encrypted"] = isEncrypted
+        jres["Auto"] = isAutoBackupAllowed
+        self.json_result["Backup"] = jres
         if isADBBackupAllowed or isAutoBackupAllowed:
             self.getBackupRulesFile()
         self.isBackupAgentImplemented()
@@ -383,11 +452,13 @@ class Analyzer:
         """
         printTestInfo("Checking compilation mode")
         debuggable = self.parser.debuggable()
+        self.json_result["Debug"] = {"allowed": debuggable}
         if debuggable:
             self.logger.warning("Debuggable flag found. APK can be debugged on a device running in user mode")
             # flutter kernel_blob.bin
             path = 'assets/flutter_assets/kernel_blob.bin'
             if self.parser.hasFile(path):
+                self.json_result["Debug"]["flutter"] = path
                 self.logger.critical(f"Flutter app is debuggable and source code can be found in the strings of {path}")
             return True
         self.logger.info("APK is not compiled in debug mode")
@@ -410,8 +481,10 @@ class Analyzer:
         unique_names = {universal_link.name for universal_link in universal_links}
         count = 0
         res = 0
+        jres = {}
 
         for component in ["activity", "receiver", "provider", "service"]:
+            jres[component] = []
             for e in self.parser.getExportedComponentPermission(component):
                 if e.componentName not in unique_names:
                     n = e.componentName.split(".")[-1]
@@ -424,6 +497,13 @@ class Analyzer:
                     # Keep entire permission name to make the difference between custom and builtin
                     rp = e.readPermission
                     wp = e.writePermission
+
+                    jres[component].append({
+                        "name": n,
+                        "permission": p,
+                        "read permission": rp,
+                        "write permission": wp
+                    })
 
                     if (t != "provider" and p is None) or (
                             t == "provider" and wp is None and rp is None and p is None):
@@ -458,6 +538,7 @@ class Analyzer:
         if count > 0:
             self.logger.warning(
                 f'There are {count} exported components which can be called without any permission. Check it out!')
+        self.json_result["Exported components permissions"] = jres
         return res
 
     def analyzeUnexportedProviders(self):
@@ -468,6 +549,7 @@ class Analyzer:
         """
         printTestInfo("Analyzing unexported providers")
         res = self.parser.getUnexportedProviders()
+        self.json_result["Unexported providers"] = list(res)
         msg = ""
         if len(res) == 1:
             msg = "provider"
@@ -515,6 +597,7 @@ class Analyzer:
             if cleartextTraffic:
                 return allowed()
             if cleartextTraffic is None:
+                # only one possibility
                 return handleVersion(allowed, forbidden, 28, self.args.min_sdk_version, self.args.max_sdk_version,
                                      self.args.target_sdk_version, True)
             return forbidden()
@@ -523,15 +606,35 @@ class Analyzer:
             if condition:
                 print(colored("On Android 7.0 (API 24) and higher", attrs=["bold"]))
             self.logger.info("The usesCleartextTraffic attribute is overridden by the network security configuration.")
-            self.analyzeNSCClearTextTraffic()
+            r = self.analyzeNSCClearTextTraffic()
             if not self.isAPK:
                 self.logger.info("APK network security configuration is defined. Please refer to this test instead.")
+            return r
 
         if network_security_config_xml_file is not None:
-            return handleVersion(notIgnored, ignored, 24, self.args.min_sdk_version, self.args.max_sdk_version,
+            # multiple possibilities
+            r = handleVersion(notIgnored, ignored, 24, self.args.min_sdk_version, self.args.max_sdk_version,
                                  self.args.target_sdk_version, False)
-
-        return notIgnored()
+            jres = []
+            if type(r) == tuple:
+                # (True, []) or (True, (True, []))
+                if type(r[1]) == tuple:
+                    # (True, (True, []))
+                    # notIgnored and ignored
+                    jres.append({"allowed": r[0], "exceptions": [], "condition": "Running SDK < 24"})
+                    jres.append({"allowed": r[1][0], "exceptions": r[1][1], "condition": "Running SDK >= 24"})
+                else:
+                    # (True, [])
+                    # ignored
+                    jres.append({"allowed": r[0], "exceptions": r[1], "condition": None})
+            else:
+                # notIgnored
+                jres.append({"allowed": r, "exceptions": [], "condition": None})
+            self.json_result["Cleartext traffic"] = jres
+            return r
+        r = notIgnored()
+        self.json_result["Cleartext traffic"] = [{"allowed": r, "exceptions": [], "condition":None}]
+        return r
 
     def getIntentFilterInfo(self):
         """
@@ -562,10 +665,14 @@ class Analyzer:
         res = self.parser.getUniversalLinks()
         verified_hosts = {h for e in res if e.autoVerify for h in e.hosts}
 
+        jres = []
         for host in verified_hosts:
+            jhost = {"host": host}
             # check if the assetlink.json is publicly accessible
             active_msg = colored("Digital Asset Link JSON file not found", "red")
+            jhost["active"] = False
             if checkDigitalAssetLinks(host):
+                jhost["active"] = True
                 active_msg = colored(
                     f"Digital Asset Link JSON file found at https://{host}/.well-known/assetlinks.json", "green")
             self.logger.warning(f'Found an applink with host "{host}":')
@@ -577,16 +684,23 @@ class Analyzer:
             # might be used in multiple activities
             unique_names = {a.name for a in applinks}
             # separate by activities
+            jhost["components"] = []
             for name in unique_names:
+                jactivity = {"name": name.split(".")[-1]}
                 # only applink infos for this particular host and for this activity
                 applinks_with_this_name = [e for e in applinks if e.name == name]
+                jactivity["type"] = applinks_with_this_name[0].tag
+                jactivity["uris"] = [e for applink in applinks_with_this_name for e in applink.uris]
+                jhost["components"].append(jactivity)
                 if self.logger.level <= logging.WARNING:
-                    print(colored(f'\tDeclared in {applinks_with_this_name[0].tag} {name.split(".")[-1]} '
+                    print(colored(f'\tDeclared in {applinks_with_this_name[0].tag} {name.split(".")[-1]}'
                                   f' with the following URI :', "yellow"))
                     # show the URI
                     for applink in applinks_with_this_name:
                         for uri in applink.uris:
                             print(f"\t\t{uri}")
+            jres.append(jhost)
+        self.json_result["App links"] = jres
         return len(verified_hosts)
 
     def isDeepLinkUsed(self):
@@ -597,15 +711,23 @@ class Analyzer:
         printSubTestInfo("Checking for DeepLinks")
         res = self.parser.getUniversalLinks()
         unique_names = {deeplink.name for deeplink in res}
+        jres = []
         # get component name and uris
         for name in unique_names:
-            deeplinks = [e for e in res if e.name == name]
+            jcomp = {"name": name.split(".")[-1]}
+            # do not display app links 
+            deeplinks = [e for e in res if e.name == name and not e.autoVerify]
+            jcomp["type"] = deeplinks[0].tag
             self.logger.warning(f'Found a deeplink in {deeplinks[0].tag} {deeplinks[0].name.split(".")[-1]}'
                                 f' with the following URI:')
+            jcomp["uris"] = [uri for deeplink in deeplinks for uri in deeplink.uris]
+            jres.append(jcomp)
             for deeplink in deeplinks:
                 for uri in deeplink.uris:
                     if self.logger.level <= logging.WARNING:
                         print(f"\t{uri}")
+
+        self.json_result["Deep links"] = jres
         return len(unique_names) > 0
 
     def analyzeIntentFilters(self):
@@ -621,9 +743,12 @@ class Analyzer:
         Lists all exported components
         """
         printTestInfo("Listing exported components")
+        jres = {}
         for component in ["activity", "receiver", "provider", "service"]:
+            jres[component] = [e.split(".")[-1] for e in self.parser.exportedComponents(component)]
             for e in self.parser.exportedComponents(component):
                 self.logger.info(f'{e.split(".")[-1]} ({component})')
+        self.json_result["Exported components"] = jres
 
     def checkForFirebaseURL(self):
         """
@@ -633,6 +758,7 @@ class Analyzer:
         if self.isAPK:
             printTestInfo("Looking for Firebase URL")
         res = self.parser.searchInStrings("https://.*firebaseio.com")
+        self.json_result["Firebase"] = res
         if len(res) > 0:
             for e in res:
                 self.logger.info(f"\t{e}")
@@ -654,12 +780,18 @@ class Analyzer:
         cert = namedtuple("Cert", "src overridePins")
 
         def show_config(inherited_ta):
+            jres = {"inherited": [e.src for e in inherited_ta]}
             self.logger.info(f"Default trust-anchors are: {', '.join([e.src for e in inherited_ta])}")
             exceptions = []
             for e in nsParser.getDomainsWithTA(inheritedTA=inherited_ta):
                 if e.trustanchors != inherited_ta:
                     exceptions.append((e.domain, ', '.join([c.src for c in e.trustanchors])))
 
+            jres["exceptions"] = [{"Domain": e[0], "Trust anchors": e[1].split(", ")}
+                                  for e in exceptions]
+            if self.json_result.get("Network security config") is None:
+                self.json_result["Network security config"] = {}
+            self.json_result["Network security config"]["Trust anchors"] = jres
             if len(exceptions) > 0:
                 self.logger.info("The following exceptions are defined:")
                 for e in exceptions:
@@ -678,6 +810,7 @@ class Analyzer:
 
         baseConfig = nsParser.getBaseConfig()
         if baseConfig is None or len(baseConfig.trustanchors) == 0:
+            # can only have one value
             return handleVersion(for23andlower, for24andabove, 24, self.args.min_sdk_version, self.args.max_sdk_version,
                                  self.args.target_sdk_version, True)
         else:
@@ -700,24 +833,25 @@ class Analyzer:
 
         def ctallowed():
             self.logger.warning("Clear text traffic is allowed for all domains.")
-            doms = nsParser.getAllDomains(inheritedCT=True, withCT=False)
-            doms = [f'\t{e}' for e in doms]
+            dom = nsParser.getAllDomains(inheritedCT=True, withCT=False)
+            doms = [f'\t{e}' for e in dom]
             if len(doms) > 0:
                 self.logger.info("Except for:")
                 self.logger.info("\n".join(doms))
-            return True
+            return True, dom
 
         def ctNotAllowed():
             self.logger.info(f"Clear text traffic is not allowed for all domains.")
-            doms = nsParser.getAllDomains(inheritedCT=False, withCT=True)
-            doms = [f'\t{e}' for e in doms]
+            dom = nsParser.getAllDomains(inheritedCT=False, withCT=True)
+            doms = [f'\t{e}' for e in dom]
             if len(doms) > 0:
                 self.logger.info(colored("Except for:", "yellow"))
                 self.logger.info(colored("\n".join(doms), "yellow"))
-            return False
+            return False, dom
 
         baseConfig = nsParser.getBaseConfig()
         if baseConfig is None or baseConfig.cleartextTrafficPermitted is None:
+            # only one possibility
             return handleVersion(ctallowed, ctNotAllowed, 28, self.args.min_sdk_version, self.args.max_sdk_version,
                                  self.args.target_sdk_version, True)
         if baseConfig.cleartextTrafficPermitted:
@@ -747,7 +881,9 @@ class Analyzer:
             inherited_TA = baseConfig.trustanchors
         # If baseConfig is not defined, we don't care because by default there is no overridePins
         # in the trust anchors, but if it is defined, the user might have added some
+        jres = []
         for e in nsParser.getPinningInfo(inheritedTA=inherited_TA):
+            jdomain = {"Domain": e.domain}
             msg = f"Pinning is configured for domain {e.domain}"
             # color the expiration date if lower than today
             exp = f" (expires {e.pinset})"
@@ -755,6 +891,9 @@ class Analyzer:
             if datetime.strptime(e.pinset, "%Y-%m-%d") < datetime.today():
                 color = "red"
             msg += colored(exp, color)
+            jdomain["expiration"] = e.pinset
+            jdomain["override PIN"] = e.overridePins
+            jres.append(jdomain)
 
             # add warning if pinning can be bypassed
             if len(e.overridePins) > 0:
@@ -765,6 +904,10 @@ class Analyzer:
                 msg += colored(msg2, "yellow")
             self.logger.info(msg)
 
+        if self.json_result.get("Network security config") is None:
+            self.json_result["Network security config"] = {}
+        self.json_result["Network security config"]["Pinning"] = jres
+
     def analyzeActivitiesLaunchMode(self):
         """
         Applications specifying activities' launch mode to singleTask are vulnerable to Task Hijacking on device
@@ -773,6 +916,7 @@ class Analyzer:
         """
         printTestInfo("Getting activities whose launch mode is set to singleTask")
         vunerable_activities = self.parser.getSingleTaskActivities()
+        self.json_result["Single task activities"] = vunerable_activities
 
         if len(vunerable_activities) == 0:
             self.logger.info("There is no singleTask activity used across this application.")
@@ -825,8 +969,12 @@ class Analyzer:
         This leads the protection level attribute to be as 'normal' by default.
         """
         printTestInfo("Analyzing custom permissions usage")
-        (used_but_not_declared, declared_but_not_used) = self.analyzeComponentCustomPerms()
-
+        analysis = self.analyzeComponentCustomPerms()
+        if analysis is None:
+            return
+        used_but_not_declared, declared_but_not_used = analysis
+        jres = {"used but not declared": used_but_not_declared,
+                "declared but not used": declared_but_not_used}
         printSubTestInfo("Used but not declared")
         if len(used_but_not_declared) > 0:
             if len(used_but_not_declared) == 1:
@@ -860,6 +1008,8 @@ class Analyzer:
         for e in component_list:
             res.extend(self.parser.getCustomPermsUsageError(e))
 
+        jres["uses-permission"] = res
+        self.json_result["Custom permission usage"] = jres
         if len(res) == 0:
             self.logger.info("Custom permissions are correctly assigned to all components")
             return
@@ -888,3 +1038,9 @@ class Analyzer:
         self.checkForFirebaseURL()
         self.analyzeActivitiesLaunchMode()
         self.analyzeCustomPermsUsage()
+
+        if self.args.json is not None:
+            with open(self.args.json, "w") as f:
+                json.dump(self.json_result, f)
+                f.write("\n")
+            self.logger.info(colored(f"\nJSON output written to {self.args.json}.", "green"))

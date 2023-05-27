@@ -36,11 +36,12 @@ class APKParser(Parser):
         except KeyError:
             pass
 
-    def _getResource(self, rid, package_name=None):
+    def _getResource(self, rid, package_name=None, resolve=True):
         """
         Transforms an ID of the form @7F0A01BF into @xml/network_security_config.
         :param rid: the ID
         :param package_name: The package name
+        :param resolve: Indicates if we should resolve the string value
         :return: The resource path
         """
         if self.rsc is None:
@@ -52,7 +53,7 @@ class APKParser(Parser):
             package_name = self.rsc.get_packages_names()[0]
         rid = int(rid.strip("@"), 16)
         res_type, name, _ = self.rsc.get_id(package_name, rid)
-        if res_type == "string":
+        if res_type == "string" and resolve:
             # index 0 is name, index 1 is the resolved string
             return self.rsc.get_string(package_name, name)[1]
         return f"@{res_type}/{name}"
@@ -62,15 +63,22 @@ class APKParser(Parser):
         Transforms an AXML converted XML file into something closer to the original XML.
         All resource IDs are replaced with their original values.
         """
+        if path is None:
+            # sometimes it is not possible to find the file (might be because of obfuscation)
+            # _realPathFromTypeAndName will have returned None
+            return
         file_content = self._getApkFileContent(path)
         if file_content is None:
             return
         bad_xml = AXMLPrinter(self.apk.open(path, "r").read()).get_xml().decode()
         # find all @XXXXXXXX resource IDs
+        # avoid converting those which are not android:value="@XXXXXXXX"
         rsc_ids = set(re.findall(r"(@[\dA-F]{8})", bad_xml))
         for rid in rsc_ids:
             # replace the IDs with the correct resource name
-            bad_xml = bad_xml.replace(rid, self._getResource(rid))
+            # if it's asked for the resource value
+            resolve = bad_xml.find(f"value\"={rid}") != -1
+            bad_xml = bad_xml.replace(rid, self._getResource(rid, resolve=resolve))
         return StringIO(bad_xml)
 
     def _loadManifest(self):
@@ -102,7 +110,9 @@ class APKParser(Parser):
         for perm in self.root.findall('permission'):
             name = self._getattr(perm, "android:name")
             # Get the protection level name from its enum value
-            protectionLevel = int(self._getattr(perm, "android:protectionLevel"), 16)
+            # default value is 0, but it's not clear why sometimes it is not defined
+            protlevel = self._getattr(perm, "android:protectionLevel") or "0"
+            protectionLevel = int(protlevel, 16)
             protectionLevel = protection_levels[protectionLevel]
             res.append(CustomPerm(name, protectionLevel))
         return res
@@ -117,7 +127,9 @@ class APKParser(Parser):
             # I don't know how to handle the case when there are multiple package names yet
             package_name = self.rsc.get_packages_names()[0]
         # recover the rid from the resource type and filename
-        rid = self.rsc.resource_keys[package_name][resType][name]
+        rid = self.rsc.resource_keys[package_name][resType].get(name)
+        if rid is None:
+            return
         # get_res_configs returns a list of tuples
         # we only care about the first element of this list
         # and the second element of the tuple is a ARSCResTableEntry
@@ -166,6 +178,9 @@ class APKParser(Parser):
         if filename is not None:
             path = self._realPathFromTypeAndName("xml", unformatFilename(filename).split(".")[0])
             xml = self._getCleanXML(path)
+            if xml is None:
+                # sometimes it is not possible to find the file (might be because of obfuscation)
+                return res
             root = ET.parse(xml).getroot()
             res = self.getAllRules(root)
         return res
@@ -214,6 +229,8 @@ class APKParser(Parser):
             package_name = self.rsc.get_packages_names()[0]
             # get_resolved_strings does not recompute all the strings every time, so it's fine
             for s in self.rsc.get_resolved_strings()[package_name]["DEFAULT"].values():
+                if s is None:
+                    continue
                 if re.search(pattern, s, re.IGNORECASE):
                     res.append(s)
         return res
