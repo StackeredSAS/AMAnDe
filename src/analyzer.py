@@ -308,6 +308,7 @@ class Analyzer:
         printSubTestInfo("Checking for own developer backup agent")
         agent = self.parser.backupAgent()
         if agent:
+            # needed for unit tests to not crash when calling backup functions separately
             if self.json_result.get("Backup") is None:
                 self.json_result["Backup"] = {}
             self.json_result["Backup"]["Agent"] = agent.split(".")[-1]
@@ -335,6 +336,7 @@ class Analyzer:
         fullBackupContent_xml_file_rules = self.parser.fullBackupContent()
         dataExtractionRules_xml_rules_files = self.parser.dataExtractionRules()
 
+        # needed for unit tests to not crash when calling backup functions separately
         if self.json_result.get("Backup") is None:
             self.json_result["Backup"] = {}
 
