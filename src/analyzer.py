@@ -689,10 +689,12 @@ class Analyzer:
                 jactivity = {"name": name.split(".")[-1]}
                 # only applink infos for this particular host and for this activity
                 applinks_with_this_name = [e for e in applinks if e.name == name]
-                jactivity["type"] = applinks_with_this_name[0].tag
+                jactivity["type"] = None
+                if len(applinks_with_this_name) > 0:
+                    jactivity["type"] = applinks_with_this_name[0].tag
                 jactivity["uris"] = [e for applink in applinks_with_this_name for e in applink.uris]
                 jhost["components"].append(jactivity)
-                if self.logger.level <= logging.WARNING:
+                if len(applinks_with_this_name) > 0 and self.logger.level <= logging.WARNING:
                     print(colored(f'\tDeclared in {applinks_with_this_name[0].tag} {name.split(".")[-1]}'
                                   f' with the following URI :', "yellow"))
                     # show the URI
@@ -717,8 +719,10 @@ class Analyzer:
             jcomp = {"name": name.split(".")[-1]}
             # do not display app links 
             deeplinks = [e for e in res if e.name == name and not e.autoVerify]
-            jcomp["type"] = deeplinks[0].tag
-            self.logger.warning(f'Found a deeplink in {deeplinks[0].tag} {deeplinks[0].name.split(".")[-1]}'
+            jcomp["type"] = None
+            if len(deeplinks) > 0:
+                jcomp["type"] = deeplinks[0].tag
+                self.logger.warning(f'Found a deeplink in {deeplinks[0].tag} {deeplinks[0].name.split(".")[-1]}'
                                 f' with the following URI:')
             jcomp["uris"] = [uri for deeplink in deeplinks for uri in deeplink.uris]
             jres.append(jcomp)
