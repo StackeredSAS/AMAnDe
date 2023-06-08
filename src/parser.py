@@ -427,9 +427,13 @@ class Parser:
         """
         Returns a list of activities whose launch mode is set to singleTask.
         """
+        singleTask = self.root.findall(f'application/activity[@android:launchMode="singleTask"]',
+                                                    namespaces=self.namespaces)
+        # In some APK it is the enum value only singleTask=2
+        singleTask += self.root.findall(f'application/activity[@android:launchMode="2"]',
+                                                    namespaces=self.namespaces)
         single_task_activities = [self._getattr(e, "android:name").split(".")[-1] for e in
-                                  self.root.findall(f'application/activity[@android:launchMode="singleTask"]',
-                                                    namespaces=self.namespaces)]
+                                  list(singleTask)]
         return single_task_activities
 
     def getComponentCustomPerms(self, component):
