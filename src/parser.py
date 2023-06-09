@@ -425,15 +425,21 @@ class Parser:
 
     def getSingleTaskActivities(self):
         """
-        Returns a list of activities whose launch mode is set to singleTask.
+        Returns a list of activities whose launch mode is set to singleTask and taskAffinity to ""
         """
         singleTask = self.root.findall(f'application/activity[@android:launchMode="singleTask"]',
                                                     namespaces=self.namespaces)
+        
         # In some APK it is the enum value only singleTask=2
         singleTask += self.root.findall(f'application/activity[@android:launchMode="2"]',
                                                     namespaces=self.namespaces)
+        
+        singleTask_with_task_affinity = self.root.findall(f'application/activity[@android:taskAffinity=""]',
+                                                    namespaces=self.namespaces)
+        
         single_task_activities = [self._getattr(e, "android:name").split(".")[-1] for e in
-                                  list(singleTask)]
+                                  list(singleTask) if e not in singleTask_with_task_affinity]
+        
         return single_task_activities
 
     def getComponentCustomPerms(self, component):
@@ -459,3 +465,9 @@ class Parser:
                 self.root.findall(f'application/{component}[@android:uses-permission]',
                                   namespaces=self.namespaces)
                 if not self._getattr(e, "android:uses-permission").startswith("android.permission")]
+    
+    def isGlobalTaskAffinity(self):
+        """
+        Returns the value of taskAffinity in application tag.
+        """
+        return self._getattr(self.root.find("application"), "android:taskAffinity")

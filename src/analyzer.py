@@ -918,12 +918,17 @@ class Analyzer:
         running Android 9 or lower. 
         Please refer to StrandHogg vulnerability to get more info
         """
-        printTestInfo("Getting activities whose launch mode is set to singleTask")
+        # TODO : check minsdk
+        printTestInfo("Checking for task hijacking vulnerabbilities")
         vunerable_activities = self.parser.getSingleTaskActivities()
         self.json_result["Single task activities"] = vunerable_activities
 
         if len(vunerable_activities) == 0:
             self.logger.info("There is no singleTask activity used across this application.")
+            return
+        
+        if self.parser.isGlobalTaskAffinity() == "":
+            self.logger.info('Task affinity is set to "" in application tag. This application is not vulnerable to Task Hijacking.')
             return
 
         if self.args.min_sdk_version <= 28:
@@ -1029,6 +1034,7 @@ class Analyzer:
         print(colored(f"Analysis of {self.args.path}", "magenta", attrs=["bold"]))
         
         self.showApkInfo()
+        
         self.analyzeRequiredPerms()
         self.analyzeCustomPerms()
         self.analyzeBackupFeatures()
@@ -1040,8 +1046,8 @@ class Analyzer:
         self.analyzeExportedComponent()
         self.analyzeUnexportedProviders()
         self.checkForFirebaseURL()
-        self.analyzeActivitiesLaunchMode()
         self.analyzeCustomPermsUsage()
+        self.analyzeActivitiesLaunchMode()
 
         if self.args.json is not None:
             with open(self.args.json, "w") as f:
