@@ -72,7 +72,7 @@ def checkDigitalAssetLinks(host):
     try:
         if requests.get(f'https://{host}/.well-known/assetlinks.json').status_code == 200:
             return True
-    except requests.exceptions.ConnectionError:
+    except (requests.exceptions.ConnectionError, requests.exceptions.InvalidURL):
         return False
 
 
